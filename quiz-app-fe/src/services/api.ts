@@ -41,7 +41,7 @@ async function fetchWithTimeout(url: string, options: FetchOptions = {}): Promis
     })
     clearTimeout(timeoutId)
     return response
-  } catch (error) {
+  } catch (error: any) {
     clearTimeout(timeoutId)
     if (error instanceof Error && error.name === 'AbortError') {
       throw new APIError('Request timeout', 408)
