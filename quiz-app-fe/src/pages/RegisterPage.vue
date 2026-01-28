@@ -119,6 +119,7 @@
             type="button"
             variant="link"
             class="text-primary hover:text-primary/80 h-auto p-0 font-medium"
+            @click="openTermsOfService"
           >
             Terms of Service
           </Button>
@@ -127,6 +128,7 @@
             type="button"
             variant="link"
             class="text-primary hover:text-primary/80 h-auto p-0 font-medium"
+            @click="openPrivacyPolicy"
           >
             Privacy Policy
           </Button>
@@ -160,6 +162,7 @@
         type="button"
         variant="outline"
         class="border-border hover:bg-accent h-12 cursor-pointer gap-2 rounded-xl text-sm font-medium transition-all"
+        @click="handleGoogleSignUp"
       >
         <Icon name="google" class="h-5 w-5" />
         Google
@@ -168,6 +171,7 @@
         type="button"
         variant="outline"
         class="border-border hover:bg-accent h-12 cursor-pointer gap-2 rounded-xl text-sm font-medium transition-all"
+        @click="handleFacebookSignUp"
       >
         <Icon name="facebook" class="h-5 w-5" />
         Facebook
@@ -214,7 +218,7 @@ const registerSchema = z
   .object({
     fullName: z.string().min(2, 'Full name must be at least 2 characters'),
     email: z.string().email('Please enter a valid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -255,5 +259,25 @@ const handleSignUp = handleSubmit((values) => {
 
 const goToLogin = () => {
   router.push({ name: 'Login' })
+}
+
+const handleGoogleSignUp = () => {
+  // TODO: Implement Google OAuth sign up
+  console.log('Google sign up clicked')
+}
+
+const handleFacebookSignUp = () => {
+  // TODO: Implement Facebook OAuth sign up
+  console.log('Facebook sign up clicked')
+}
+
+const openTermsOfService = () => {
+  // TODO: Navigate to Terms of Service page or open modal
+  window.open('/terms-of-service', '_blank')
+}
+
+const openPrivacyPolicy = () => {
+  // TODO: Navigate to Privacy Policy page or open modal
+  window.open('/privacy-policy', '_blank')
 }
 </script>

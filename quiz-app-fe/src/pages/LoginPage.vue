@@ -108,6 +108,7 @@
         type="button"
         variant="outline"
         class="border-border hover:bg-accent h-12 cursor-pointer gap-2 rounded-xl text-sm font-medium transition-all"
+        @click="handleGoogleSignIn"
       >
         <Icon name="google" class="h-5 w-5" />
         Google
@@ -116,6 +117,7 @@
         type="button"
         variant="outline"
         class="border-border hover:bg-accent h-12 cursor-pointer gap-2 rounded-xl text-sm font-medium transition-all"
+        @click="handleFacebookSignIn"
       >
         <Icon name="facebook" class="h-5 w-5" />
         Facebook
@@ -219,5 +221,15 @@ const goToRegister = () => {
 
 const goToForgotPassword = () => {
   router.push({ name: 'ForgotPassword' })
+}
+
+const handleGoogleSignIn = () => {
+  // TODO: Implement Google OAuth sign in
+  console.log('Google sign in clicked')
+}
+
+const handleFacebookSignIn = () => {
+  // TODO: Implement Facebook OAuth sign in
+  console.log('Facebook sign in clicked')
 }
 </script>
