@@ -202,7 +202,6 @@ import {
   Trophy,
   BarChart3,
   Settings,
-  HelpCircle,
   Bell,
   Search,
   Menu,
@@ -272,13 +271,6 @@ const menuSections = [
       { path: '/goals', label: 'Goals', icon: Target },
       { path: '/achievements', label: 'Achievements', icon: Trophy },
       { path: '/statistics', label: 'Statistics', icon: BarChart3 },
-    ],
-  },
-  {
-    title: 'Other',
-    items: [
-      { path: '/settings', label: 'Settings', icon: Settings },
-      { path: '/help', label: 'Help & Support', icon: HelpCircle },
     ],
   },
 ]
