@@ -4,6 +4,8 @@ export { useTheme } from './useTheme'
 export { useGoals } from './useGoals'
 export { useAchievements } from './useAchievements'
 export { useSettings } from './useSettings'
+export { useProfile } from './useProfile'
+export { useDashboard } from './useDashboard'
 
 // Re-export types
 export type { ToastOptions } from './useToast'
@@ -18,3 +20,9 @@ export type {
   StudySettings,
   PrivacySettings,
 } from './useSettings'
+export type {
+  LearningStats,
+  RecentActivity,
+  ShowcaseAchievement,
+  ActivityType,
+} from './useProfile'
