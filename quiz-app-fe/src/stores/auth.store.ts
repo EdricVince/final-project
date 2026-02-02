@@ -1,148 +1,227 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { setCookie, getCookie, removeCookie } from '@/utils/cookies'
-import { api } from '@/utils/api'
+import { api, ApiError } from '@/utils/api'
+import type { UserOut, UserProfileData } from '@/types/api'
 
 const ACCESS_TOKEN_KEY = 'access_token'
 const REFRESH_TOKEN_KEY = 'refresh_token'
 const REMEMBER_EMAIL_KEY = 'remembered_email'
+const USER_KEY = 'user_data'
+
+export interface AuthUser {
+  id: number
+  email: string
+  name?: string
+  is_active?: boolean
+  role_id?: number
+}
+
+export interface AuthResult {
+  success: boolean
+  message?: string
+  user?: AuthUser
+}
 
 export const useAuthStore = defineStore('auth', () => {
-  const currentUser = ref<any | null>(null)
+  // Load user from localStorage on init
+  const savedUser = localStorage.getItem(USER_KEY)
+  const currentUser = ref<AuthUser | null>(savedUser ? JSON.parse(savedUser) : null)
 
   const isAuthenticated = computed(() => !!getCookie(ACCESS_TOKEN_KEY))
 
-  const setTokens = (accessToken: string, refreshToken: string) => {
+  const user = computed(() => currentUser.value)
+
+  const setTokens = (accessToken: string, refreshToken?: string) => {
     setCookie(ACCESS_TOKEN_KEY, accessToken, {
       expires: 1,
       secure: true,
       sameSite: 'strict',
     })
-    setCookie(REFRESH_TOKEN_KEY, refreshToken, {
-      expires: 7,
-      secure: true,
-      sameSite: 'strict',
-    })
+    if (refreshToken) {
+      setCookie(REFRESH_TOKEN_KEY, refreshToken, {
+        expires: 7,
+        secure: true,
+        sameSite: 'strict',
+      })
+    }
+  }
+
+  const setUser = (user: AuthUser | null) => {
+    currentUser.value = user
+    if (user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(user))
+    } else {
+      localStorage.removeItem(USER_KEY)
+    }
   }
 
   const clearTokens = () => {
     removeCookie(ACCESS_TOKEN_KEY)
     removeCookie(REFRESH_TOKEN_KEY)
-    currentUser.value = null
+    setUser(null)
   }
 
   const getAccessToken = (): string | undefined => getCookie(ACCESS_TOKEN_KEY)
   const getRefreshToken = (): string | undefined => getCookie(REFRESH_TOKEN_KEY)
 
-  const login = async (username: string, password: string, remember = false): Promise<boolean> => {
+  /**
+   * Login with email and password
+   * Note: BE login endpoint needs to be implemented
+   */
+  const login = async (email: string, password: string, remember = false): Promise<AuthResult> => {
     try {
-      const resp: any = await api.login(username, password)
-      setTokens(resp.access_token, resp.refresh_token)
-      currentUser.value = resp.user || null
-      if (remember) localStorage.setItem(REMEMBER_EMAIL_KEY, username)
-      else localStorage.removeItem(REMEMBER_EMAIL_KEY)
-      return true
-    } catch (error: any) {
+      const resp = await api.login(email, password)
+      setTokens(resp.access_token)
+      setUser({
+        id: resp.user.id,
+        email: resp.user.email,
+        is_active: resp.user.is_active,
+        role_id: resp.user.role_id,
+      })
+      if (remember) {
+        localStorage.setItem(REMEMBER_EMAIL_KEY, email)
+      } else {
+        localStorage.removeItem(REMEMBER_EMAIL_KEY)
+      }
+      return { success: true, user: currentUser.value ?? undefined }
+    } catch (error) {
       console.error('Login error:', error)
-      return false
+      const message = error instanceof ApiError ? error.errorMessage : 'Login failed'
+      return { success: false, message }
     }
   }
 
-  const loginWithGoogle = async (): Promise<boolean> => {
+  /**
+   * Login with Google OAuth
+   * Note: BE Google OAuth needs to be implemented
+   */
+  const loginWithGoogle = async (): Promise<AuthResult> => {
     try {
+      // TODO: Implement Google OAuth when BE is ready
       await new Promise((r) => setTimeout(r, 1000))
       const mock = {
         access_token: 'google_access_token_' + Date.now(),
-        refresh_token: 'google_refresh_token_' + Date.now(),
-        user: { id: 'google_user', email: 'user@gmail.com', name: 'Google User' },
+        user: { id: 1, email: 'user@gmail.com', name: 'Google User' },
       }
-      setTokens(mock.access_token, mock.refresh_token)
-      currentUser.value = mock.user
-      return true
-    } catch (error: any) {
+      setTokens(mock.access_token)
+      setUser(mock.user)
+      return { success: true, user: mock.user }
+    } catch (error) {
       console.error('Google login error:', error)
-      return false
+      return { success: false, message: 'Google login failed' }
     }
   }
 
-  const register = async (email: string, password: string, name: string): Promise<boolean> => {
+  /**
+   * Register new user
+   * BE endpoint: POST /api/v1/auth/register
+   * Returns user data (no token - user needs to login after register)
+   */
+  const register = async (email: string, password: string): Promise<AuthResult> => {
     try {
-      const resp: any = await api.register(email, password, name)
-      setTokens(resp.access_token, resp.refresh_token)
-      currentUser.value = resp.user || null
-      return true
-    } catch (error: any) {
+      const userOut: UserOut = await api.register(email, password)
+      // BE doesn't return token on register, user needs to login
+      // Store user data temporarily
+      const user: AuthUser = {
+        id: userOut.id,
+        email: userOut.email ?? '',
+        is_active: userOut.is_active,
+        role_id: userOut.role_id,
+      }
+      return { success: true, user, message: 'Registration successful! Please login.' }
+    } catch (error) {
       console.error('Registration error:', error)
-      return false
+      const message = error instanceof ApiError ? error.errorMessage : 'Registration failed'
+      return { success: false, message }
     }
   }
 
-  const registerWithGoogle = async (): Promise<boolean> => {
+  /**
+   * Register with Google OAuth
+   * Note: BE Google OAuth needs to be implemented
+   */
+  const registerWithGoogle = async (): Promise<AuthResult> => {
     try {
+      // TODO: Implement Google OAuth when BE is ready
       await new Promise((r) => setTimeout(r, 1000))
       const mock = {
         access_token: 'google_register_token_' + Date.now(),
-        refresh_token: 'google_refresh_token_' + Date.now(),
-        user: { id: 'new_google_user', email: 'newuser@gmail.com', name: 'New Google User' },
+        user: { id: 2, email: 'newuser@gmail.com', name: 'New Google User' },
       }
-      setTokens(mock.access_token, mock.refresh_token)
-      currentUser.value = mock.user
-      return true
-    } catch (error: any) {
+      setTokens(mock.access_token)
+      setUser(mock.user)
+      return { success: true, user: mock.user }
+    } catch (error) {
       console.error('Google registration error:', error)
-      return false
+      return { success: false, message: 'Google registration failed' }
     }
   }
 
-  const resetPassword = async (email: string): Promise<boolean> => {
+  /**
+   * Request password reset
+   * Note: BE endpoint needs to be implemented
+   */
+  const resetPassword = async (email: string): Promise<AuthResult> => {
     try {
       await api.resetPassword(email)
-      return true
-    } catch (error: any) {
+      return { success: true, message: 'Password reset email sent' }
+    } catch (error) {
       console.error('Reset password error:', error)
-      return false
+      const message = error instanceof ApiError ? error.errorMessage : 'Reset password failed'
+      return { success: false, message }
     }
   }
 
-  const logout = async () => {
-    try {
-      // optionally notify backend
-      // await api.logout()
-      clearTokens()
-    } catch (error: any) {
-      console.error('Logout error:', error)
-      clearTokens()
-    }
+  /**
+   * Logout user
+   */
+  const logout = () => {
+    clearTokens()
   }
 
   const getRememberedEmail = (): string => localStorage.getItem(REMEMBER_EMAIL_KEY) || ''
 
-  const fetchUserProfile = async (): Promise<any | null> => {
+  /**
+   * Fetch current user profile
+   * Note: BE endpoint needs to be implemented
+   */
+  const fetchUserProfile = async (): Promise<UserProfileData | null> => {
     const token = getAccessToken()
     if (!token) return null
     try {
-      const user = await api.getProfile()
-      currentUser.value = user
-      return user
-    } catch (error: any) {
+      const profile = await api.getProfile()
+      setUser({
+        id: profile.id,
+        email: profile.email,
+        name: profile.name,
+        is_active: profile.is_active,
+        role_id: profile.role_id,
+      })
+      return profile
+    } catch (error) {
       console.error('Fetch profile error:', error)
       clearTokens()
       return null
     }
   }
 
+  /**
+   * Refresh access token
+   * Note: BE endpoint needs to be implemented
+   */
   const refreshAccessToken = async (): Promise<boolean> => {
     const refreshToken = getRefreshToken()
     if (!refreshToken) return false
     try {
-      const resp: any = await api.refreshToken(refreshToken)
+      const resp = await api.refreshToken(refreshToken)
       setCookie(ACCESS_TOKEN_KEY, resp.access_token, {
         expires: 1,
         secure: true,
         sameSite: 'strict',
       })
       return true
-    } catch (error: any) {
+    } catch (error) {
       console.error('Token refresh error:', error)
       clearTokens()
       return false
@@ -150,8 +229,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
+    // State
     currentUser,
+    user,
     isAuthenticated,
+    // Actions
     login,
     loginWithGoogle,
     register,
@@ -163,5 +245,8 @@ export const useAuthStore = defineStore('auth', () => {
     getRefreshToken,
     fetchUserProfile,
     refreshAccessToken,
+    setTokens,
+    setUser,
+    clearTokens,
   }
 })

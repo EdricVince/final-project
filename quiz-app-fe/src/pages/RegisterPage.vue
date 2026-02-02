@@ -8,29 +8,16 @@
       </p>
     </div>
 
+    <!-- Success/Error Messages -->
+    <div v-if="successMessage" class="rounded-lg border border-green-200 bg-green-50 p-4">
+      <p class="text-sm text-green-800">{{ successMessage }}</p>
+    </div>
+    <div v-if="errorMessage" class="rounded-lg border border-red-200 bg-red-50 p-4">
+      <p class="text-sm text-red-800">{{ errorMessage }}</p>
+    </div>
+
     <!-- Register Form -->
     <form class="animate-fade-in-up delay-100 space-y-5" @submit="handleSignUp">
-      <!-- Full Name Field -->
-      <FormField v-slot="{ componentField }" name="fullName">
-        <FormItem class="space-y-2">
-          <FormLabel class="text-foreground text-sm font-medium">Full name</FormLabel>
-          <FormControl>
-            <div class="relative">
-              <User
-                class="text-muted-foreground pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2"
-              />
-              <Input
-                v-bind="componentField"
-                type="text"
-                placeholder="Enter your full name"
-                class="border-input bg-background focus:border-primary focus:ring-primary/20 h-12 rounded-xl pl-12 text-base transition-all focus:ring-2"
-              />
-            </div>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      </FormField>
-
       <!-- Email Field -->
       <FormField v-slot="{ componentField }" name="email">
         <FormItem class="space-y-2">
@@ -199,7 +186,7 @@ import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-vue-next'
+import { Eye, EyeOff, Mail, Lock } from 'lucide-vue-next'
 
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
@@ -213,10 +200,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { useAuthStore } from '@/stores/auth.store'
 
 const registerSchema = z
   .object({
-    fullName: z.string().min(2, 'Full name must be at least 2 characters'),
     email: z.string().email('Please enter a valid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
@@ -227,32 +214,46 @@ const registerSchema = z
   })
 
 const router = useRouter()
+const authStore = useAuthStore()
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const agreeTerms = ref(false)
 const isSubmitting = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
 
 const { handleSubmit } = useForm({
   validationSchema: toTypedSchema(registerSchema),
   initialValues: {
-    fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
   },
 })
 
-const handleSignUp = handleSubmit((values) => {
+const handleSignUp = handleSubmit(async (values) => {
   if (isSubmitting.value || !agreeTerms.value) return
 
   isSubmitting.value = true
+  successMessage.value = ''
+  errorMessage.value = ''
+
   try {
-    console.log('Register values:', values)
-    // TODO: Implement actual register logic
-    setTimeout(() => {
-      isSubmitting.value = false
-    }, 1500)
-  } catch {
+    const result = await authStore.register(values.email, values.password)
+
+    if (result.success) {
+      successMessage.value = result.message || 'Registration successful! Redirecting to login...'
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        router.push({ name: 'Login' })
+      }, 2000)
+    } else {
+      errorMessage.value = result.message || 'Registration failed. Please try again.'
+    }
+  } catch (error) {
+    console.error('Registration error:', error)
+    errorMessage.value = 'An unexpected error occurred. Please try again.'
+  } finally {
     isSubmitting.value = false
   }
 })
@@ -261,9 +262,13 @@ const goToLogin = () => {
   router.push({ name: 'Login' })
 }
 
-const handleGoogleSignUp = () => {
-  // TODO: Implement Google OAuth sign up
-  console.log('Google sign up clicked')
+const handleGoogleSignUp = async () => {
+  const result = await authStore.registerWithGoogle()
+  if (result.success) {
+    router.push({ name: 'Login' })
+  } else {
+    errorMessage.value = result.message || 'Google registration failed'
+  }
 }
 
 const handleFacebookSignUp = () => {
@@ -272,12 +277,10 @@ const handleFacebookSignUp = () => {
 }
 
 const openTermsOfService = () => {
-  // TODO: Navigate to Terms of Service page or open modal
   window.open('/terms-of-service', '_blank')
 }
 
 const openPrivacyPolicy = () => {
-  // TODO: Navigate to Privacy Policy page or open modal
   window.open('/privacy-policy', '_blank')
 }
 </script>

@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@rive-app/canvas':
+        specifier: ^2.34.1
+        version: 2.34.3
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2))
+      '@types/hammerjs':
+        specifier: ^2.0.46
+        version: 2.0.46
       '@vee-validate/zod':
         specifier: ^4.15.1
         version: 4.15.1(vue@3.5.26(typescript@5.9.3))(zod@3.25.76)
@@ -23,6 +29,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      hammerjs:
+        specifier: ^2.0.8
+        version: 2.0.8
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
@@ -385,6 +394,9 @@ packages:
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
+  '@rive-app/canvas@2.34.3':
+    resolution: {integrity: sha512-4VUJ1ZMP+5C2usFvG4SndzbNK5NSYVRtdVGP2fVL38T2Htz/2vaVLAWbvjJYcgr64nIE5STMaahun8qfCJdviA==}
+
   '@rolldown/pluginutils@1.0.0-beta.53':
     resolution: {integrity: sha512-vENRlFU4YbrwVqNDZ7fLvy+JR1CRkyr01jhSiDpE1u6py3OMzQfztQU2jxykW3ALNxO4kSlqIDeYyD0Y9RcQeQ==}
 
@@ -601,6 +613,9 @@ packages:
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
+
+  '@types/hammerjs@2.0.46':
+    resolution: {integrity: sha512-ynRvcq6wvqexJ9brDMS4BnBLzmr0e14d6ZJTEShTBWKymQiHwlAyGu0ZPEFI2Fh1U53F7tN9ufClWM5KvqkKOw==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -1053,6 +1068,10 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  hammerjs@2.0.8:
+    resolution: {integrity: sha512-tSQXBXS/MWQOn/RKckawJ61vvsDpCom87JgxiYdGwHdOa0ht0vzUWDlfioofFCRU0L+6NGDt6XzbgoJvZkMeRQ==}
+    engines: {node: '>=0.8.0'}
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -1815,6 +1834,8 @@ snapshots:
 
   '@pkgr/core@0.2.9': {}
 
+  '@rive-app/canvas@2.34.3': {}
+
   '@rolldown/pluginutils@1.0.0-beta.53': {}
 
   '@rollup/rollup-android-arm-eabi@4.54.0':
@@ -1963,6 +1984,8 @@ snapshots:
       vue: 3.5.26(typescript@5.9.3)
 
   '@types/estree@1.0.8': {}
+
+  '@types/hammerjs@2.0.46': {}
 
   '@types/json-schema@7.0.15': {}
 
@@ -2511,6 +2534,8 @@ snapshots:
   globals@14.0.0: {}
 
   graceful-fs@4.2.11: {}
+
+  hammerjs@2.0.8: {}
 
   has-flag@4.0.0: {}
 
