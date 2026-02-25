@@ -194,6 +194,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
 import {
   Sparkles,
   LayoutDashboard,
@@ -216,6 +217,7 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 // Sidebar state
 const isCollapsed = ref(false)
@@ -246,12 +248,20 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
-// User data
-const userName = ref('Alex Johnson')
-const userEmail = ref('alex@studyspark.com')
+// User data - get from auth store
+const userName = computed(() => {
+  if (authStore.user?.name) return authStore.user.name
+  if (authStore.user?.email) return authStore.user.email.split('@')[0]
+  return 'Guest'
+})
+const userEmail = computed(() => authStore.user?.email || 'guest@example.com')
 const userInitials = computed(() => {
-  const names = userName.value.split(' ')
-  return names.map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const name = userName.value
+  const names = name.split(' ')
+  if (names.length > 1) {
+    return names.map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  }
+  return name.slice(0, 2).toUpperCase()
 })
 
 // Navigation menu
@@ -308,6 +318,7 @@ watch(
 // Logout handler
 const handleLogout = () => {
   isDropdownOpen.value = false
+  authStore.logout()
   router.push('/login')
 }
 </script>

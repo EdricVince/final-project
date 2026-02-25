@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { setCookie, getCookie, removeCookie } from '@/utils/cookies'
 import { api, ApiError } from '@/utils/api'
 import type { UserOut, UserProfileData } from '@/types/api'
+import { UserRole } from '@/types/role'
 
 const ACCESS_TOKEN_KEY = 'access_token'
 const REFRESH_TOKEN_KEY = 'refresh_token'
@@ -31,6 +32,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!getCookie(ACCESS_TOKEN_KEY))
 
   const user = computed(() => currentUser.value)
+
+  // Role-based computed properties
+  const isTeacher = computed(() => currentUser.value?.role_id === UserRole.TEACHER)
+  const isAdmin = computed(() => currentUser.value?.role_id === UserRole.ADMIN)
+  const isStudent = computed(() => !currentUser.value?.role_id || currentUser.value.role_id === UserRole.STUDENT)
+  const userRole = computed(() => currentUser.value?.role_id ?? UserRole.STUDENT)
 
   const setTokens = (accessToken: string, refreshToken?: string) => {
     setCookie(ACCESS_TOKEN_KEY, accessToken, {
@@ -117,17 +124,18 @@ export const useAuthStore = defineStore('auth', () => {
    * Register new user
    * BE endpoint: POST /api/v1/auth/register
    * Returns user data (no token - user needs to login after register)
+   * @param roleId - Optional role ID (1=Student, 2=Teacher, 3=Admin)
    */
-  const register = async (email: string, password: string): Promise<AuthResult> => {
+  const register = async (email: string, password: string, roleId?: number): Promise<AuthResult> => {
     try {
-      const userOut: UserOut = await api.register(email, password)
+      const userOut: UserOut = await api.register(email, password, roleId)
       // BE doesn't return token on register, user needs to login
       // Store user data temporarily
       const user: AuthUser = {
         id: userOut.id,
         email: userOut.email ?? '',
         is_active: userOut.is_active,
-        role_id: userOut.role_id,
+        role_id: userOut.role_id ?? roleId,
       }
       return { success: true, user, message: 'Registration successful! Please login.' }
     } catch (error) {
@@ -233,6 +241,11 @@ export const useAuthStore = defineStore('auth', () => {
     currentUser,
     user,
     isAuthenticated,
+    // Role helpers
+    isTeacher,
+    isAdmin,
+    isStudent,
+    userRole,
     // Actions
     login,
     loginWithGoogle,

@@ -16,6 +16,41 @@
       <p class="text-sm text-red-800">{{ errorMessage }}</p>
     </div>
 
+    <!-- Role Selection -->
+    <div class="animate-fade-in-up delay-75">
+      <label class="text-foreground mb-3 block text-sm font-medium">I want to join as</label>
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          class="flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all"
+          :class="
+            selectedRole === UserRole.STUDENT
+              ? 'border-primary bg-primary/5 text-primary'
+              : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
+          "
+          @click="selectedRole = UserRole.STUDENT"
+        >
+          <GraduationCap class="h-8 w-8" />
+          <span class="text-sm font-medium">Student</span>
+          <span class="text-xs opacity-70">Learn and take tests</span>
+        </button>
+        <button
+          type="button"
+          class="flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all"
+          :class="
+            selectedRole === UserRole.TEACHER
+              ? 'border-primary bg-primary/5 text-primary'
+              : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
+          "
+          @click="selectedRole = UserRole.TEACHER"
+        >
+          <Users class="h-8 w-8" />
+          <span class="text-sm font-medium">Teacher</span>
+          <span class="text-xs opacity-70">Create classes & tests</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Register Form -->
     <form class="animate-fade-in-up delay-100 space-y-5" @submit="handleSignUp">
       <!-- Email Field -->
@@ -186,7 +221,7 @@ import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-vue-next'
+import { Eye, EyeOff, Mail, Lock, GraduationCap, Users } from 'lucide-vue-next'
 
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
@@ -201,6 +236,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useAuthStore } from '@/stores/auth.store'
+import { UserRole } from '@/types/role'
 
 const registerSchema = z
   .object({
@@ -221,6 +257,7 @@ const agreeTerms = ref(false)
 const isSubmitting = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
+const selectedRole = ref<UserRole>(UserRole.STUDENT)
 
 const { handleSubmit } = useForm({
   validationSchema: toTypedSchema(registerSchema),
@@ -239,7 +276,7 @@ const handleSignUp = handleSubmit(async (values) => {
   errorMessage.value = ''
 
   try {
-    const result = await authStore.register(values.email, values.password)
+    const result = await authStore.register(values.email, values.password, selectedRole.value)
 
     if (result.success) {
       successMessage.value = result.message || 'Registration successful! Redirecting to login...'

@@ -1,6 +1,7 @@
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { useTheme } from './useTheme'
 import { useToast } from './useToast'
+import { useAuthStore } from '@/stores/auth.store'
 
 export interface AccountSettings {
   fullName: string
@@ -47,13 +48,36 @@ export interface PrivacySettings {
 export function useSettings() {
   const { setTheme } = useTheme()
   const toast = useToast()
+  const authStore = useAuthStore()
 
-  // Account
+  // Get user info from auth store
+  const getUserName = () => {
+    if (authStore.user?.name) return authStore.user.name
+    if (authStore.user?.email) return authStore.user.email.split('@')[0]
+    return 'Guest User'
+  }
+
+  const getUserEmail = () => authStore.user?.email || 'guest@example.com'
+
+  // Account - initialized from auth store
   const accountSettings = reactive<AccountSettings>({
-    fullName: 'Alex Johnson',
-    username: 'alexj',
-    email: 'alex@studyspark.com',
+    fullName: getUserName(),
+    username: getUserName().toLowerCase().replace(/\s+/g, ''),
+    email: getUserEmail(),
   })
+
+  // Watch for auth store changes and update account settings
+  watch(
+    () => authStore.user,
+    (newUser) => {
+      if (newUser) {
+        accountSettings.fullName = newUser.name || newUser.email?.split('@')[0] || 'Guest User'
+        accountSettings.username = accountSettings.fullName.toLowerCase().replace(/\s+/g, '')
+        accountSettings.email = newUser.email || 'guest@example.com'
+      }
+    },
+    { immediate: true }
+  )
 
   const passwordForm = reactive<PasswordForm>({
     current: '',
@@ -66,9 +90,10 @@ export function useSettings() {
     return names.map(n => n[0]).join('').toUpperCase().slice(0, 2)
   })
 
-  // Appearance
+  // Appearance - read saved theme from localStorage to sync with actual theme
+  const savedTheme = localStorage.getItem('studyspark-theme') as 'light' | 'dark' | 'system' | null
   const appearanceSettings = reactive<AppearanceSettings>({
-    theme: 'system',
+    theme: savedTheme && ['light', 'dark', 'system'].includes(savedTheme) ? savedTheme : 'system',
     fontSize: 100,
   })
 

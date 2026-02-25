@@ -3,7 +3,15 @@
 </template>
 
 <script setup lang="ts">
-// Root app renders router views
+import { onMounted } from 'vue'
+import { useTheme } from '@/composables/useTheme'
+
+// Initialize theme globally when app loads
+const { initTheme } = useTheme()
+
+onMounted(() => {
+  initTheme()
+})
 </script>
 
 <style>

@@ -5,6 +5,65 @@ import ProfilePage from '@/pages/ProfilePage.vue'
 import DashboardPage from '@/pages/DashboardPage.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { AUTH_ROUTES } from './auth.route'
+import { UserRole } from '@/types/role'
+
+// Teacher routes
+const TEACHER_ROUTES = {
+  path: '/teacher',
+  component: () => import('@/layouts/TeacherLayout.vue'),
+  meta: { requiresAuth: true, requiredRole: UserRole.TEACHER },
+  children: [
+    {
+      path: '',
+      redirect: '/teacher/dashboard',
+    },
+    {
+      path: 'dashboard',
+      name: 'TeacherDashboard',
+      component: () => import('@/pages/teacher/TeacherDashboardPage.vue'),
+    },
+    {
+      path: 'classes',
+      name: 'TeacherClasses',
+      component: () => import('@/pages/teacher/ClassesPage.vue'),
+    },
+    {
+      path: 'classes/:id',
+      name: 'TeacherClassDetail',
+      component: () => import('@/pages/teacher/ClassDetailPage.vue'),
+    },
+    {
+      path: 'videos',
+      name: 'TeacherVideos',
+      component: () => import('@/pages/teacher/VideosPage.vue'),
+    },
+    {
+      path: 'tests',
+      name: 'TeacherTests',
+      component: () => import('@/pages/teacher/TestsPage.vue'),
+    },
+    {
+      path: 'tests/new',
+      name: 'TeacherTestBuilder',
+      component: () => import('@/pages/teacher/TestBuilderPage.vue'),
+    },
+    {
+      path: 'tests/:id/edit',
+      name: 'TeacherTestEdit',
+      component: () => import('@/pages/teacher/TestBuilderPage.vue'),
+    },
+    {
+      path: 'tests/:id/results',
+      name: 'TeacherTestResults',
+      component: () => import('@/pages/teacher/TestResultsPage.vue'),
+    },
+    {
+      path: 'students',
+      name: 'TeacherStudents',
+      component: () => import('@/pages/teacher/StudentsPage.vue'),
+    },
+  ],
+}
 
 const routes = [
   {
@@ -12,6 +71,7 @@ const routes = [
     redirect: '/dashboard',
   },
   ...AUTH_ROUTES,
+  TEACHER_ROUTES,
   {
     path: '/',
     component: MainLayout,
@@ -37,13 +97,13 @@ const routes = [
       {
         path: 'courses/explore',
         name: 'ExploreCourses',
-        component: () => import('@/pages/ComingSoonPage.vue'),
+        component: () => import('@/pages/CourseExplorePage.vue'),
         meta: { requiresAuth: false },
       },
       {
         path: 'courses/:id',
         name: 'CourseDetail',
-        component: () => import('@/pages/ComingSoonPage.vue'),
+        component: () => import('@/pages/CourseDetailPage.vue'),
         meta: { requiresAuth: false },
       },
       {
@@ -136,13 +196,35 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
 
+  // Check if route requires authentication
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
-  } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    next('/dashboard')
-  } else {
-    next()
+    return
   }
+
+  // Check if route requires guest (not logged in)
+  if (to.meta.requiresGuest && authStore.isAuthenticated) {
+    next('/dashboard')
+    return
+  }
+
+  // Check if route requires specific role
+  if (to.meta.requiredRole) {
+    const requiredRole = to.meta.requiredRole as number
+    const userRole = authStore.userRole
+
+    if (userRole !== requiredRole) {
+      // Redirect to appropriate dashboard based on role
+      if (userRole === UserRole.TEACHER) {
+        next('/teacher/dashboard')
+      } else {
+        next('/dashboard')
+      }
+      return
+    }
+  }
+
+  next()
 })
 
 export default router

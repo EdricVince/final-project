@@ -1,4 +1,4 @@
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import {
   Star,
   Trophy,
@@ -14,6 +14,7 @@ import {
   GraduationCap,
 } from 'lucide-vue-next'
 import { useToast } from './useToast'
+import { useAuthStore } from '@/stores/auth.store'
 import type {
   ProfileData,
   ProfileStats,
@@ -61,23 +62,42 @@ export interface ShowcaseAchievement {
 
 export function useProfile() {
   const toast = useToast()
+  const authStore = useAuthStore()
 
-  // Profile data
+  // Get user info from auth store
+  const getUserName = () => {
+    if (authStore.user?.name) return authStore.user.name
+    if (authStore.user?.email) return authStore.user.email.split('@')[0]
+    return 'Guest User'
+  }
+
+  const getUserEmail = () => authStore.user?.email || 'guest@example.com'
+
+  // Profile data - initialized from auth store
   const profile = reactive<ProfileData>({
     avatar: '',
-    fullName: 'Alex Johnson',
-    username: 'alexj',
-    email: 'alex@studyspark.com',
-    phone: '+84 123 456 789',
-    title: 'Software Developer',
-    location: 'Ho Chi Minh City, Vietnam',
-    bio: 'Passionate learner and tech enthusiast. Currently focusing on web development and machine learning. Love to share knowledge and help others grow.',
-    socialLinks: [
-      { platform: 'GitHub', url: 'https://github.com/alexj' },
-      { platform: 'LinkedIn', url: 'https://linkedin.com/in/alexj' },
-      { platform: 'Twitter', url: 'https://twitter.com/alexj' },
-    ],
+    fullName: getUserName(),
+    username: getUserName().toLowerCase().replace(/\s+/g, ''),
+    email: getUserEmail(),
+    phone: '',
+    title: 'Learner',
+    location: '',
+    bio: 'Welcome to StudySpark! Start your learning journey today.',
+    socialLinks: [],
   })
+
+  // Watch for auth store changes and update profile
+  watch(
+    () => authStore.user,
+    (newUser) => {
+      if (newUser) {
+        profile.fullName = newUser.name || newUser.email?.split('@')[0] || 'Guest User'
+        profile.username = profile.fullName.toLowerCase().replace(/\s+/g, '')
+        profile.email = newUser.email || 'guest@example.com'
+      }
+    },
+    { immediate: true }
+  )
 
   // Avatar stats
   const avatarStats = reactive<ProfileStats>({

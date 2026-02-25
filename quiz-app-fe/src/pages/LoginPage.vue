@@ -8,6 +8,14 @@
       </p>
     </div>
 
+    <!-- Error Message -->
+    <div
+      v-if="errorMessage"
+      class="animate-fade-in rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
+    >
+      {{ errorMessage }}
+    </div>
+
     <!-- Login Form -->
     <form class="animate-fade-in-up delay-100 space-y-5" @submit="handleSignIn">
       <!-- Email Field -->
@@ -160,6 +168,7 @@ import {
 } from '@/components/ui/form'
 import { loginSchema } from '@/types/auth'
 import { useLoginAnimation } from '@/composables'
+import { useAuthStore } from '@/stores/auth.store'
 
 // Get animation ref from AuthLayout
 const loginAnimationRef = inject('loginAnimationRef', ref(null))
@@ -176,9 +185,11 @@ const {
 } = useLoginAnimation(loginAnimationRef)
 
 const router = useRouter()
+const authStore = useAuthStore()
 const showPassword = ref(false)
 const rememberMe = ref(false)
 const isSubmitting = ref(false)
+const errorMessage = ref('')
 
 const { handleSubmit, values } = useForm({
   validationSchema: toTypedSchema(loginSchema),
@@ -200,17 +211,25 @@ const handleSignIn = handleSubmit(async (formValues) => {
   if (isSubmitting.value) return
 
   isSubmitting.value = true
-  try {
-    console.log('Login values:', formValues)
-    // TODO: Implement actual login logic
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+  errorMessage.value = ''
 
-    // Simulate success (change to onLoginFail() for error case)
-    onLoginSuccess()
-    isSubmitting.value = false
+  try {
+    const result = await authStore.login(formValues.email, formValues.password, rememberMe.value)
+
+    if (result.success) {
+      onLoginSuccess()
+      // Redirect to dashboard after successful login
+      setTimeout(() => {
+        router.push({ name: 'Dashboard' })
+      }, 500)
+    } else {
+      errorMessage.value = result.message || 'Login failed'
+      onLoginFail()
+    }
   } catch {
+    errorMessage.value = 'An unexpected error occurred'
     onLoginFail()
+  } finally {
     isSubmitting.value = false
   }
 })

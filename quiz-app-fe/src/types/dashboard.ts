@@ -26,6 +26,7 @@ export interface StudyMode {
   title: string
   description: string
   icon: Component
+  path?: string
 }
 
 export interface DayActivity {

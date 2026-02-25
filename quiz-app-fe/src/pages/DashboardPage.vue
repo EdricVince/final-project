@@ -1,29 +1,44 @@
 <template>
   <div class="p-6 lg:p-8">
     <!-- Welcome Section -->
-    <div class="animate-fade-in-down mb-8">
+    <div class="animate-fade-in-down mb-6">
       <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">
         Welcome back, {{ userName }}!
       </h1>
       <p class="text-muted-foreground mt-2 text-base">Ready to continue your learning journey?</p>
     </div>
 
+    <!-- Quick Actions Bar -->
+    <div class="animate-fade-in-up delay-50 mb-6">
+      <QuickActionsBar @action="handleQuickAction" />
+    </div>
+
     <!-- Stats Row -->
-    <div class="animate-fade-in-up delay-100 mb-8">
+    <div class="animate-fade-in-up delay-100 mb-6">
       <DashboardStatsRow :stats="stats" />
+    </div>
+
+    <!-- XP Level Card -->
+    <div class="animate-fade-in-up delay-150 mb-6">
+      <XPLevelCard :totalXP="stats.totalXP" />
     </div>
 
     <!-- Main Grid -->
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
       <!-- Left Column -->
       <div class="space-y-6 xl:col-span-2 xl:space-y-8">
+        <!-- Daily Challenges -->
+        <div class="animate-fade-in-up delay-200">
+          <DailyChallengesCard @claim-reward="handleClaimReward" />
+        </div>
+
         <!-- Today's Goal -->
-        <div class="animate-fade-in-up delay-150">
+        <div class="animate-fade-in-up delay-250">
           <TodayGoalCard :progress="todayProgress" :goal="todayGoal" />
         </div>
 
         <!-- Continue Learning -->
-        <div class="animate-fade-in-up delay-200">
+        <div class="animate-fade-in-up delay-300">
           <ContinueLearningCard
             :courses="continueLearning"
             :is-loading="isLoading"
@@ -33,7 +48,7 @@
         </div>
 
         <!-- Recent Flashcards -->
-        <div class="animate-fade-in-up delay-300">
+        <div class="animate-fade-in-up delay-350">
           <RecentFlashcardsCard
             :flashcards="recentFlashcards"
             :is-loading="isLoading"
@@ -51,22 +66,40 @@
         </div>
 
         <!-- Weekly Activity -->
-        <div class="animate-fade-in-up delay-300">
+        <div class="animate-fade-in-up delay-250">
           <WeeklyActivityCard :activity="weeklyActivity" />
         </div>
 
+        <!-- Leaderboard -->
+        <div class="animate-fade-in-up delay-300">
+          <LeaderboardCard />
+        </div>
+
         <!-- Achievements -->
-        <div class="animate-fade-in-up delay-400">
+        <div class="animate-fade-in-up delay-350">
           <RecentBadgesCard :badges="recentBadges" />
         </div>
       </div>
     </div>
+
+    <!-- Celebration Modal -->
+    <CelebrationModal
+      :show="showCelebration"
+      :type="celebrationType"
+      :title="celebrationTitle"
+      :subtitle="celebrationSubtitle"
+      :rewards="celebrationRewards"
+      :badge="celebrationBadge"
+      @close="showCelebration = false"
+      @primary="showCelebration = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
 import {
   Brain,
   Timer,
@@ -88,6 +121,11 @@ import RecentFlashcardsCard from '@/components/dashboard/RecentFlashcardsCard.vu
 import StudyModesCard from '@/components/dashboard/StudyModesCard.vue'
 import WeeklyActivityCard from '@/components/dashboard/WeeklyActivityCard.vue'
 import RecentBadgesCard from '@/components/dashboard/RecentBadgesCard.vue'
+import XPLevelCard from '@/components/dashboard/XPLevelCard.vue'
+import DailyChallengesCard from '@/components/dashboard/DailyChallengesCard.vue'
+import QuickActionsBar from '@/components/dashboard/QuickActionsBar.vue'
+import LeaderboardCard from '@/components/dashboard/LeaderboardCard.vue'
+import CelebrationModal from '@/components/ui/CelebrationModal.vue'
 
 import type {
   DashboardStats,
@@ -99,9 +137,14 @@ import type {
 } from '@/types/dashboard'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-// User data
-const userName = ref('Alex')
+// User data - use email from auth store or fallback to 'Guest'
+const userName = computed(() => {
+  if (authStore.user?.name) return authStore.user.name
+  if (authStore.user?.email) return authStore.user.email.split('@')[0]
+  return 'Guest'
+})
 
 // Stats
 const stats = ref<DashboardStats>({
@@ -110,6 +153,14 @@ const stats = ref<DashboardStats>({
   quizzesCompleted: 23,
   totalXP: 2450,
 })
+
+// Celebration Modal
+const showCelebration = ref(false)
+const celebrationType = ref<'success' | 'achievement' | 'levelup' | 'streak'>('success')
+const celebrationTitle = ref('')
+const celebrationSubtitle = ref('')
+const celebrationRewards = ref<{ value: string | number; label: string }[]>([])
+const celebrationBadge = ref<string | undefined>(undefined)
 
 // Today's goal
 const todayProgress = ref(15)
@@ -133,12 +184,12 @@ const recentFlashcards = ref<DashboardFlashcard[]>([
   { id: 4, question: 'How does prototypal inheritance work?', difficulty: 'Medium', lastStudied: '2 days ago' },
 ])
 
-// Study Modes
+// Study Modes - linked to actual pages
 const studyModes = ref<StudyMode[]>([
-  { id: 1, title: 'Flashcards', description: 'Classic study mode', icon: Layers },
-  { id: 2, title: 'Quiz Mode', description: 'Test your knowledge', icon: Brain },
-  { id: 3, title: 'Speed Round', description: 'Race against time', icon: Timer },
-  { id: 4, title: 'Shuffle', description: 'Random practice', icon: Shuffle },
+  { id: 1, title: 'Flashcards', description: 'Classic study mode', icon: Layers, path: '/flashcards' },
+  { id: 2, title: 'Quiz Mode', description: 'Test your knowledge', icon: Brain, path: '/quizzes' },
+  { id: 3, title: 'Speed Round', description: 'Race against time', icon: Timer, path: '/quizzes/speed-round' },
+  { id: 4, title: 'Multiple Choice', description: 'Select answers', icon: Shuffle, path: '/quizzes/multiple-choice' },
 ])
 
 // Weekly Activity
@@ -179,9 +230,44 @@ const openFlashcard = (id: number) => {
 
 const selectStudyMode = (id: number) => {
   const mode = studyModes.value.find(m => m.id === id)
-  if (mode) {
-    router.push(`/study/${mode.title.toLowerCase().replace(' ', '-')}`)
+  if (mode?.path) {
+    router.push(mode.path)
   }
+}
+
+// Quick actions handler
+const handleQuickAction = (action: string) => {
+  switch (action) {
+    case 'flashcard':
+      router.push('/flashcards')
+      break
+    case 'quiz':
+      router.push('/quizzes')
+      break
+    case 'course':
+      router.push('/courses')
+      break
+    case 'goal':
+      router.push('/goals')
+      break
+  }
+}
+
+// Claim reward handler
+const handleClaimReward = (_challengeId: number, xpReward: number) => {
+  // Add XP to stats
+  stats.value.totalXP += xpReward
+
+  // Show celebration
+  celebrationType.value = 'success'
+  celebrationTitle.value = 'Challenge Complete!'
+  celebrationSubtitle.value = 'Great job completing your daily challenge!'
+  celebrationRewards.value = [
+    { value: `+${xpReward}`, label: 'XP Earned' },
+    { value: stats.value.totalXP.toLocaleString(), label: 'Total XP' },
+  ]
+  celebrationBadge.value = undefined
+  showCelebration.value = true
 }
 
 // Simulate loading
