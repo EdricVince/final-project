@@ -2,16 +2,16 @@
   <div class="flex w-full max-w-md flex-col gap-8">
     <!-- Title Section -->
     <div class="animate-fade-in-down text-center lg:text-left">
-      <h1 class="text-foreground text-3xl font-bold tracking-tight">Welcome back</h1>
+      <h1 class="text-foreground text-3xl font-bold tracking-tight">{{ $t('auth.login.title') }}</h1>
       <p class="text-muted-foreground mt-2 text-base">
-        Sign in to continue your learning journey
+        {{ $t('auth.login.subtitle') }}
       </p>
     </div>
 
     <!-- Error Message -->
     <div
       v-if="errorMessage"
-      class="animate-fade-in rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
+      class="animate-fade-in rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
     >
       {{ errorMessage }}
     </div>
@@ -21,7 +21,7 @@
       <!-- Email Field -->
       <FormField v-slot="{ componentField }" name="email">
         <FormItem class="space-y-2">
-          <FormLabel class="text-foreground text-sm font-medium">Email address</FormLabel>
+          <FormLabel class="text-foreground text-sm font-medium">{{ $t('auth.login.email') }}</FormLabel>
           <FormControl>
             <div class="relative">
               <Mail
@@ -45,14 +45,14 @@
       <FormField v-slot="{ componentField }" name="password">
         <FormItem class="space-y-2">
           <div class="flex items-center justify-between">
-            <FormLabel class="text-foreground text-sm font-medium">Password</FormLabel>
+            <FormLabel class="text-foreground text-sm font-medium">{{ $t('auth.login.password') }}</FormLabel>
             <Button
               type="button"
               variant="link"
               class="text-primary hover:text-primary/80 h-auto p-0 text-sm font-medium"
               @click="goToForgotPassword"
             >
-              Forgot password?
+              {{ $t('auth.login.forgotPassword') }}
             </Button>
           </div>
           <FormControl>
@@ -85,7 +85,7 @@
       <!-- Remember me -->
       <div class="flex items-center">
         <Checkbox v-model:checked="rememberMe" class="cursor-pointer">
-          <span class="text-muted-foreground select-none text-sm">Remember me for 30 days</span>
+          <span class="text-muted-foreground select-none text-sm">{{ $t('auth.login.rememberMe') }}</span>
         </Checkbox>
       </div>
 
@@ -96,7 +96,7 @@
         class="bg-primary text-primary-foreground hover:bg-primary/90 h-12 w-full cursor-pointer rounded-xl text-base font-semibold shadow-sm transition-all duration-200 hover:shadow-md"
       >
         <Spinner v-if="isSubmitting" class="mr-2 h-5 w-5 animate-spin" />
-        <span>{{ isSubmitting ? 'Signing in...' : 'Sign in' }}</span>
+        <span>{{ isSubmitting ? $t('auth.login.signingIn') : $t('auth.login.signIn') }}</span>
       </Button>
     </form>
 
@@ -106,7 +106,7 @@
         <div class="border-border w-full border-t"></div>
       </div>
       <div class="relative flex justify-center">
-        <span class="bg-background text-muted-foreground px-4 text-sm">Or continue with</span>
+        <span class="bg-background text-muted-foreground px-4 text-sm">{{ $t('auth.login.orContinueWith') }}</span>
       </div>
     </div>
 
@@ -134,14 +134,14 @@
 
     <!-- Sign up link -->
     <p class="animate-fade-in-up delay-400 text-muted-foreground text-center text-sm">
-      Don't have an account?
+      {{ $t('auth.login.noAccount') }}
       <Button
         type="button"
         variant="link"
         class="text-primary hover:text-primary/80 h-auto p-0 font-semibold"
         @click="goToRegister"
       >
-        Create account
+        {{ $t('auth.login.createAccount') }}
       </Button>
     </p>
   </div>

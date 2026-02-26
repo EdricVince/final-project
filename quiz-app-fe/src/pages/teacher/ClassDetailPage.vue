@@ -44,21 +44,33 @@
 
     <!-- Stats -->
     <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Students</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-1/10">
+          <Users class="text-chart-1 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ students.length }}/{{ classData.student_limit }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">Students</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Videos</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-2/10">
+          <Video class="text-chart-2 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ videos.length }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">Videos</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Tests</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-3/10">
+          <FileText class="text-chart-3 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ tests.length }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">Tests</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Avg. Score</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-4/10">
+          <BarChart2 class="text-chart-4 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ avgScore }}%</p>
+        <p class="text-muted-foreground mt-1 text-sm">Avg. Score</p>
       </div>
     </div>
 
@@ -181,7 +193,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeft, Copy, UserMinus, Plus, Video, FileText } from 'lucide-vue-next'
+import { ArrowLeft, Copy, UserMinus, Plus, Video, FileText, Users, BarChart2 } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 import type { ClassStudent } from '@/types/class'

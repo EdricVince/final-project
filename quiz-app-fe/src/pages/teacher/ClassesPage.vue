@@ -3,32 +3,44 @@
     <!-- Header -->
     <div class="animate-fade-in-down mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">My Classes</h1>
-        <p class="text-muted-foreground mt-2">Manage your classes and students</p>
+        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('teacher.classes.title') }}</h1>
+        <p class="text-muted-foreground mt-2">{{ $t('teacher.classes.subtitle') }}</p>
       </div>
       <Button @click="openCreateModal">
         <Plus class="mr-2 h-4 w-4" />
-        Create Class
+        {{ $t('teacher.classes.createClass') }}
       </Button>
     </div>
 
     <!-- Stats -->
     <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Total Classes</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-1/10">
+          <BookOpen class="text-chart-1 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ classes.length }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.classes.stats.total') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Active Classes</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-2/10">
+          <CheckSquare class="text-chart-2 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ activeClassCount }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.classes.stats.active') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Total Students</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-3/10">
+          <Users class="text-chart-3 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ totalStudents }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.classes.stats.students') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Avg. Class Size</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-4/10">
+          <BarChart2 class="text-chart-4 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ avgClassSize }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.classes.stats.avgSize') }}</p>
       </div>
     </div>
 
@@ -73,7 +85,7 @@
             class="rounded-full px-3 py-1 text-xs font-medium"
             :class="cls.is_active ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'"
           >
-            {{ cls.is_active ? 'Active' : 'Inactive' }}
+            {{ cls.is_active ? $t('teacher.classes.status.active') : $t('teacher.classes.status.inactive') }}
           </span>
           <button
             class="text-muted-foreground hover:text-foreground opacity-0 transition-opacity group-hover:opacity-100"
@@ -89,7 +101,7 @@
 
         <!-- Class Code Display -->
         <div class="bg-secondary mb-4 rounded-xl p-3 text-center">
-          <p class="text-muted-foreground text-xs">Class Code</p>
+          <p class="text-muted-foreground text-xs">{{ $t('teacher.classes.classCode') }}</p>
           <p class="text-foreground font-mono text-lg font-bold">{{ cls.class_code }}</p>
         </div>
 
@@ -108,7 +120,7 @@
         <!-- Actions -->
         <div class="flex gap-2">
           <Button variant="outline" size="sm" class="flex-1" @click="viewClass(cls.id)">
-            View Details
+            {{ $t('teacher.classes.viewDetails') }}
           </Button>
           <Button variant="ghost" size="sm" @click="editClass(cls)">
             <Pencil class="h-4 w-4" />
@@ -127,11 +139,11 @@
         <div class="bg-secondary mb-4 flex h-16 w-16 items-center justify-center rounded-full">
           <BookOpen class="text-muted-foreground h-8 w-8" />
         </div>
-        <h3 class="text-foreground mb-2 font-medium">No classes found</h3>
-        <p class="text-muted-foreground mb-4 text-sm">Create your first class to get started</p>
+        <h3 class="text-foreground mb-2 font-medium">{{ $t('teacher.classes.noClassesFound') }}</h3>
+        <p class="text-muted-foreground mb-4 text-sm">{{ $t('teacher.classes.createFirstClass') }}</p>
         <Button @click="openCreateModal">
           <Plus class="mr-2 h-4 w-4" />
-          Create Class
+          {{ $t('teacher.classes.createClass') }}
         </Button>
       </div>
     </div>
@@ -158,13 +170,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, Search, Users, BookOpen, Copy, Pencil, Trash2 } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
+import { Plus, Search, Users, BookOpen, Copy, Pencil, Trash2, CheckSquare, BarChart2 } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
 import ClassModal from '@/components/teacher/ClassModal.vue'
 import DeleteConfirmModal from '@/components/common/DeleteConfirmModal.vue'
 import { useToast } from '@/composables/useToast'
 import type { Class, CreateClassDto } from '@/types/class'
 
+const { t } = useI18n()
 const router = useRouter()
 const toast = useToast()
 
@@ -175,11 +189,11 @@ const showDeleteModal = ref(false)
 const editingClass = ref<Class | null>(null)
 const deletingClass = ref<Class | null>(null)
 
-const filters = [
-  { label: 'All', value: 'all' },
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' },
-]
+const filters = computed(() => [
+  { label: t('teacher.classes.filters.all'), value: 'all' },
+  { label: t('teacher.classes.filters.active'), value: 'active' },
+  { label: t('teacher.classes.filters.inactive'), value: 'inactive' },
+])
 
 // Mock data
 const classes = ref<Class[]>([

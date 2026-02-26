@@ -3,17 +3,17 @@
     <!-- Header -->
     <div class="animate-fade-in-down mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
-        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Flashcards</h1>
-        <p class="text-muted-foreground mt-1 text-base">Create and study your vocabulary sets</p>
+        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('flashcards.title') }}</h1>
+        <p class="text-muted-foreground mt-1 text-base">{{ $t('flashcards.subtitle') }}</p>
       </div>
       <div class="flex flex-wrap gap-3">
         <Button variant="outline" @click="showImportModal = true">
           <Upload class="mr-2 h-5 w-5" />
-          Import
+          {{ $t('flashcards.import') }}
         </Button>
         <Button @click="openCreateDeck">
           <Plus class="mr-2 h-5 w-5" />
-          Create Deck
+          {{ $t('flashcards.createDeck') }}
         </Button>
       </div>
     </div>
@@ -22,42 +22,42 @@
     <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
       <div class="bg-card border-border rounded-2xl border p-5 transition-all duration-300 hover:shadow-lg lg:p-6">
         <div class="mb-3 flex items-center gap-3">
-          <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl lg:h-14 lg:w-14">
-            <Layers class="text-primary h-6 w-6 lg:h-7 lg:w-7" />
+          <div class="bg-chart-1/10 flex h-12 w-12 items-center justify-center rounded-xl lg:h-14 lg:w-14">
+            <Layers class="text-chart-1 h-6 w-6 lg:h-7 lg:w-7" />
           </div>
         </div>
         <span class="text-foreground text-3xl font-bold lg:text-4xl">{{ stats.totalDecks }}</span>
-        <p class="text-muted-foreground mt-1 text-base">Total Decks</p>
+        <p class="text-muted-foreground mt-1 text-base">{{ $t('flashcards.stats.totalDecks') }}</p>
       </div>
 
       <div class="bg-card border-border rounded-2xl border p-5 transition-all duration-300 hover:shadow-lg lg:p-6">
         <div class="mb-3 flex items-center gap-3">
-          <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl lg:h-14 lg:w-14">
-            <CreditCard class="text-primary h-6 w-6 lg:h-7 lg:w-7" />
+          <div class="bg-chart-2/10 flex h-12 w-12 items-center justify-center rounded-xl lg:h-14 lg:w-14">
+            <CreditCard class="text-chart-2 h-6 w-6 lg:h-7 lg:w-7" />
           </div>
         </div>
         <span class="text-foreground text-3xl font-bold lg:text-4xl">{{ stats.totalCards }}</span>
-        <p class="text-muted-foreground mt-1 text-base">Total Cards</p>
+        <p class="text-muted-foreground mt-1 text-base">{{ $t('flashcards.stats.totalCards') }}</p>
       </div>
 
       <div class="bg-card border-border rounded-2xl border p-5 transition-all duration-300 hover:shadow-lg lg:p-6">
         <div class="mb-3 flex items-center gap-3">
-          <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl lg:h-14 lg:w-14">
-            <CheckCircle class="text-primary h-6 w-6 lg:h-7 lg:w-7" />
+          <div class="bg-chart-3/10 flex h-12 w-12 items-center justify-center rounded-xl lg:h-14 lg:w-14">
+            <CheckCircle class="text-chart-3 h-6 w-6 lg:h-7 lg:w-7" />
           </div>
         </div>
         <span class="text-foreground text-3xl font-bold lg:text-4xl">{{ stats.masteredCards }}</span>
-        <p class="text-muted-foreground mt-1 text-base">Mastered</p>
+        <p class="text-muted-foreground mt-1 text-base">{{ $t('flashcards.stats.mastered') }}</p>
       </div>
 
       <div class="bg-card border-border rounded-2xl border p-5 transition-all duration-300 hover:shadow-lg lg:p-6">
         <div class="mb-3 flex items-center gap-3">
-          <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl lg:h-14 lg:w-14">
-            <TrendingUp class="text-primary h-6 w-6 lg:h-7 lg:w-7" />
+          <div class="bg-chart-4/10 flex h-12 w-12 items-center justify-center rounded-xl lg:h-14 lg:w-14">
+            <TrendingUp class="text-chart-4 h-6 w-6 lg:h-7 lg:w-7" />
           </div>
         </div>
         <span class="text-foreground text-3xl font-bold lg:text-4xl">{{ stats.studyStreak }}</span>
-        <p class="text-muted-foreground mt-1 text-base">Day Streak</p>
+        <p class="text-muted-foreground mt-1 text-base">{{ $t('flashcards.stats.dayStreak') }}</p>
       </div>
     </div>
 
@@ -68,7 +68,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search decks..."
+          :placeholder="$t('flashcards.searchPlaceholder')"
           class="bg-secondary text-foreground placeholder:text-muted-foreground h-12 w-full rounded-xl border-0 pl-12 pr-4 text-base transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </div>
@@ -77,7 +77,7 @@
           v-model="selectedCategory"
           class="bg-secondary text-foreground h-12 rounded-xl border-0 px-4 text-base focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
-          <option value="all">All Categories</option>
+          <option value="all">{{ $t('flashcards.allCategories') }}</option>
           <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
         </select>
         <div class="bg-secondary flex items-center gap-1 rounded-xl p-1">
@@ -134,21 +134,21 @@
                   @click.stop="openEditDeck(deck)"
                 >
                   <Pencil class="h-4 w-4" />
-                  Edit
+                  {{ $t('flashcards.deck.edit') }}
                 </button>
                 <button
                   class="hover:bg-secondary text-foreground flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors"
                   @click.stop="duplicateDeck(deck)"
                 >
                   <Copy class="h-4 w-4" />
-                  Duplicate
+                  {{ $t('flashcards.deck.duplicate') }}
                 </button>
                 <button
                   class="hover:bg-destructive/10 text-destructive flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors"
                   @click.stop="confirmDeleteDeck(deck)"
                 >
                   <Trash2 class="h-4 w-4" />
-                  Delete
+                  {{ $t('flashcards.deck.delete') }}
                 </button>
               </div>
             </div>
@@ -163,7 +163,7 @@
             <div class="mb-4 flex items-center gap-4">
               <span class="text-muted-foreground flex items-center gap-1 text-sm">
                 <CreditCard class="h-4 w-4" />
-                {{ deck.cardCount }} cards
+                {{ deck.cardCount }} {{ $t('flashcards.deck.cards') }}
               </span>
               <span class="text-muted-foreground flex items-center gap-1 text-sm">
                 <Clock class="h-4 w-4" />
@@ -174,7 +174,7 @@
             <!-- Progress -->
             <div>
               <div class="mb-2 flex items-center justify-between">
-                <span class="text-muted-foreground text-sm">Progress</span>
+                <span class="text-muted-foreground text-sm">{{ $t('flashcards.deck.progress') }}</span>
                 <span class="text-foreground text-sm font-medium">{{ deck.progress }}%</span>
               </div>
               <div class="bg-secondary h-2 overflow-hidden rounded-full">
@@ -195,7 +195,7 @@
               @click.stop="startStudy(deck.id)"
             >
               <Play class="mr-2 h-4 w-4" />
-              Study
+              {{ $t('flashcards.deck.study') }}
             </Button>
             <Button
               variant="outline"
@@ -261,11 +261,11 @@
       <div class="flex gap-3">
         <Button variant="outline" @click="showImportModal = true">
           <Upload class="mr-2 h-5 w-5" />
-          Import
+          {{ $t('flashcards.import') }}
         </Button>
         <Button @click="openCreateDeck">
           <Plus class="mr-2 h-5 w-5" />
-          Create Deck
+          {{ $t('flashcards.createDeck') }}
         </Button>
       </div>
     </div>
@@ -509,8 +509,10 @@ import {
   GraduationCap,
 } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
+import { useProgressStore } from '@/stores/progress.store'
 
 const router = useRouter()
+const progressStore = useProgressStore()
 
 // State
 const searchQuery = ref('')
@@ -545,12 +547,12 @@ const deckForm = ref({
   category: '',
 })
 
-// Stats
+// Stats (deck/card counts are local; streak & mastered from progress store)
 const stats = ref({
   totalDecks: 5,
   totalCards: 234,
-  masteredCards: 156,
-  studyStreak: 7,
+  masteredCards: 0,
+  studyStreak: 0,
 })
 
 // Sample decks
@@ -795,6 +797,8 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 onMounted(() => {
+  stats.value.masteredCards = progressStore.totalCardsStudied
+  stats.value.studyStreak = progressStore.streakCount
   document.addEventListener('click', handleClickOutside)
 })
 

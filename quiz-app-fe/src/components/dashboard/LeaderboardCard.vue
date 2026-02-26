@@ -126,8 +126,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Minus, Zap } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth.store'
+import { useProgressStore } from '@/stores/progress.store'
+import type { LeaderboardItem } from '@/stores/progress.store'
 
 interface LeaderboardUser {
   id: number
@@ -138,7 +141,9 @@ interface LeaderboardUser {
   isCurrentUser?: boolean
 }
 
+const router = useRouter()
 const authStore = useAuthStore()
+const progressStore = useProgressStore()
 const selectedPeriod = ref<'daily' | 'weekly' | 'monthly' | 'all'>('weekly')
 
 const timePeriods = [
@@ -154,18 +159,25 @@ const userInitials = computed(() => {
   return parts.map(p => p[0]).join('').toUpperCase().slice(0, 2)
 })
 
-// Mock leaderboard data
-const leaderboard = ref<LeaderboardUser[]>([
-  { id: 1, name: 'Alex Johnson', initials: 'AJ', xp: 15420, level: 28 },
-  { id: 2, name: 'Sarah Chen', initials: 'SC', xp: 14850, level: 26 },
-  { id: 3, name: 'Michael Park', initials: 'MP', xp: 13200, level: 24 },
-  { id: 4, name: 'Emily Davis', initials: 'ED', xp: 11500, level: 21 },
-  { id: 5, name: 'You', initials: userInitials.value, xp: 8750, level: 15, isCurrentUser: true },
-])
+const leaderboard = computed<LeaderboardUser[]>(() =>
+  progressStore.leaderboard.map((item: LeaderboardItem) => {
+    const name = item.display_name || item.email.split('@')[0]
+    return {
+      id: item.user_id,
+      name,
+      initials: name.slice(0, 2).toUpperCase(),
+      xp: item.xp,
+      level: item.level,
+      isCurrentUser: item.user_id === authStore.user?.id,
+    }
+  })
+)
 
-const currentUserRank = ref(5)
-const currentUserXP = ref(8750)
-const rankChange = ref(2) // Positive means moved up
+const currentUserRank = computed(
+  () => progressStore.leaderboard.find(i => i.user_id === authStore.user?.id)?.rank ?? 0
+)
+const currentUserXP = computed(() => progressStore.xp)
+const rankChange = ref(0)
 
 const xpToNextRank = computed(() => {
   const userIndex = leaderboard.value.findIndex(u => u.isCurrentUser)
@@ -180,7 +192,6 @@ const getRankClass = (index: number) => {
 }
 
 const viewAll = () => {
-  // Navigate to full leaderboard page
-  console.log('View all leaderboard')
+  router.push('/achievements')
 }
 </script>

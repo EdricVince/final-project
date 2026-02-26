@@ -4,22 +4,22 @@
     <div class="animate-fade-in-down mb-8">
       <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 class="text-foreground text-3xl font-bold tracking-tight lg:text-4xl">My Courses</h1>
-          <p class="text-muted-foreground mt-2 text-lg">Track your learning progress and continue where you left off</p>
+          <h1 class="text-foreground text-3xl font-bold tracking-tight lg:text-4xl">{{ $t('courses.myCourses.title') }}</h1>
+          <p class="text-muted-foreground mt-2 text-lg">{{ $t('courses.myCourses.subtitle') }}</p>
         </div>
         <Button class="w-full lg:w-auto" @click="exploreCourses">
           <Plus class="mr-2 h-5 w-5" />
-          Explore Courses
+          {{ $t('courses.myCourses.exploreCourses') }}
         </Button>
       </div>
     </div>
 
     <!-- Stats Overview -->
     <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
-      <StatsCard :icon="BookOpen" :value="stats.totalCourses" label="Total Courses" />
-      <StatsCard :icon="CheckCircle" :value="stats.completed" label="Completed" />
-      <StatsCard :icon="Clock" :value="stats.totalHours" label="Learning Hours" suffix="h" />
-      <StatsCard :icon="TrendingUp" :value="stats.avgProgress" label="Avg. Progress" suffix="%" />
+      <StatsCard :icon="BookOpen" :value="stats.totalCourses" :label="$t('courses.myCourses.stats.total')" icon-bg-class="bg-chart-1/10" icon-class="text-chart-1" />
+      <StatsCard :icon="CheckCircle" :value="stats.completed" :label="$t('courses.myCourses.stats.completed')" icon-bg-class="bg-chart-2/10" icon-class="text-chart-2" />
+      <StatsCard :icon="Clock" :value="stats.totalHours" :label="$t('courses.myCourses.stats.hours')" suffix="h" icon-bg-class="bg-chart-3/10" icon-class="text-chart-3" />
+      <StatsCard :icon="TrendingUp" :value="stats.avgProgress" :label="$t('courses.myCourses.stats.avgProgress')" suffix="%" icon-bg-class="bg-chart-4/10" icon-class="text-chart-4" />
     </div>
 
     <!-- Search & Filters -->
@@ -79,16 +79,13 @@
         <BookOpen class="text-muted-foreground h-12 w-12" />
       </div>
       <h3 class="text-foreground mb-3 text-2xl font-semibold">
-        {{ searchQuery ? 'No courses found' : 'No courses yet' }}
+        {{ searchQuery ? $t('courses.myCourses.notFound.title') : $t('courses.myCourses.empty.title') }}
       </h3>
       <p class="text-muted-foreground mb-8 max-w-md text-lg">
-        {{ searchQuery
-          ? 'Try adjusting your search or filters to find what you\'re looking for.'
-          : 'Start your learning journey by exploring our course catalog.'
-        }}
+        {{ searchQuery ? $t('courses.myCourses.notFound.desc') : $t('courses.myCourses.empty.desc') }}
       </p>
       <Button size="lg" @click="searchQuery ? (searchQuery = '') : exploreCourses()">
-        {{ searchQuery ? 'Clear Search' : 'Explore Courses' }}
+        {{ searchQuery ? $t('courses.myCourses.clearSearch') : $t('courses.myCourses.exploreCourses') }}
         <ArrowRight class="ml-2 h-5 w-5" />
       </Button>
     </div>
@@ -98,6 +95,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, type Component } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   BookOpen,
   CheckCircle,
@@ -125,6 +123,7 @@ import CourseGridSkeleton from '@/components/course/CourseGridSkeleton.vue'
 import CourseListSkeleton from '@/components/course/CourseListSkeleton.vue'
 import type { Course } from '@/types/course'
 
+const { t } = useI18n()
 const router = useRouter()
 
 // Stats
@@ -143,10 +142,10 @@ const isLoading = ref(true)
 
 // Filter tabs
 const filterTabs = computed(() => [
-  { value: 'all', label: 'All', icon: Layers, count: courses.value.length },
-  { value: 'in-progress', label: 'In Progress', icon: PlayCircle, count: courses.value.filter(c => c.progress > 0 && c.progress < 100).length },
-  { value: 'completed', label: 'Completed', icon: CheckCircle, count: courses.value.filter(c => c.progress === 100).length },
-  { value: 'not-started', label: 'Not Started', icon: PauseCircle, count: courses.value.filter(c => c.progress === 0).length },
+  { value: 'all', label: t('courses.myCourses.filters.all'), icon: Layers, count: courses.value.length },
+  { value: 'in-progress', label: t('courses.myCourses.filters.inProgress'), icon: PlayCircle, count: courses.value.filter(c => c.progress > 0 && c.progress < 100).length },
+  { value: 'completed', label: t('courses.myCourses.filters.completed'), icon: CheckCircle, count: courses.value.filter(c => c.progress === 100).length },
+  { value: 'not-started', label: t('courses.myCourses.filters.notStarted'), icon: PauseCircle, count: courses.value.filter(c => c.progress === 0).length },
 ])
 
 // Courses data

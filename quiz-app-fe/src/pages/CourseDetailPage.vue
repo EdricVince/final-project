@@ -6,7 +6,7 @@
       @click="goBack"
     >
       <ArrowLeft class="h-4 w-4" />
-      Back to Courses
+      {{ $t('courses.detail.backToCourses') }}
     </button>
 
     <!-- Course Header -->
@@ -36,11 +36,11 @@
         <div class="flex gap-3">
           <Button variant="outline" @click="toggleBookmark">
             <Bookmark :class="isBookmarked ? 'fill-current' : ''" class="mr-2 h-4 w-4" />
-            {{ isBookmarked ? 'Saved' : 'Save' }}
+            {{ isBookmarked ? $t('courses.detail.saved') : $t('courses.detail.save') }}
           </Button>
           <Button @click="startCourse">
             <Play class="mr-2 h-4 w-4" />
-            {{ course.progress > 0 ? 'Continue' : 'Start Course' }}
+            {{ course.progress > 0 ? $t('courses.detail.continueCourse') : $t('courses.detail.startCourse') }}
           </Button>
         </div>
       </div>
@@ -48,21 +48,33 @@
 
     <!-- Stats Cards -->
     <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <div class="bg-card border-border rounded-xl border p-4">
-        <div class="text-muted-foreground mb-1 text-sm">Lessons</div>
-        <div class="text-foreground text-2xl font-bold">{{ course.totalLessons }}</div>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-1/10">
+          <BookOpen class="text-chart-1 h-4 w-4" />
+        </div>
+        <p class="text-foreground text-2xl font-bold">{{ course.totalLessons }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('courses.detail.stats.lessons') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <div class="text-muted-foreground mb-1 text-sm">Duration</div>
-        <div class="text-foreground text-2xl font-bold">{{ course.estimatedHours }}h</div>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-2/10">
+          <Clock class="text-chart-2 h-4 w-4" />
+        </div>
+        <p class="text-foreground text-2xl font-bold">{{ course.estimatedHours }}h</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('courses.detail.stats.duration') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <div class="text-muted-foreground mb-1 text-sm">Progress</div>
-        <div class="text-foreground text-2xl font-bold">{{ course.progress }}%</div>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-3/10">
+          <TrendingUp class="text-chart-3 h-4 w-4" />
+        </div>
+        <p class="text-foreground text-2xl font-bold">{{ course.progress }}%</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('courses.detail.stats.progress') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <div class="text-muted-foreground mb-1 text-sm">Completed</div>
-        <div class="text-foreground text-2xl font-bold">{{ course.completedLessons }}/{{ course.totalLessons }}</div>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-4/10">
+          <CheckCircle2 class="text-chart-4 h-4 w-4" />
+        </div>
+        <p class="text-foreground text-2xl font-bold">{{ course.completedLessons }}/{{ course.totalLessons }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('courses.detail.stats.completed') }}</p>
       </div>
     </div>
 
@@ -70,7 +82,7 @@
     <div class="animate-fade-in-up delay-150 mb-8">
       <div class="bg-card border-border rounded-xl border p-6">
         <div class="mb-3 flex items-center justify-between">
-          <span class="text-foreground font-medium">Your Progress</span>
+          <span class="text-foreground font-medium">{{ $t('courses.detail.yourProgress') }}</span>
           <span class="text-muted-foreground text-sm">{{ course.progress }}% complete</span>
         </div>
         <div class="bg-secondary h-3 overflow-hidden rounded-full">
@@ -89,7 +101,7 @@
         <div class="animate-fade-in-up delay-200">
           <div class="bg-card border-border rounded-xl border">
             <div class="border-border border-b p-6">
-              <h2 class="text-foreground text-lg font-semibold">Course Content</h2>
+              <h2 class="text-foreground text-lg font-semibold">{{ $t('courses.detail.courseContent') }}</h2>
               <p class="text-muted-foreground mt-1 text-sm">
                 {{ course.totalLessons }} lessons • {{ course.estimatedHours }} hours total
               </p>
@@ -156,11 +168,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   ArrowLeft,
   Play,
   Bookmark,
   CheckCircle,
+  CheckCircle2,
+  Clock,
+  TrendingUp,
   Lock,
   ChevronRight,
   Languages,
@@ -171,6 +187,7 @@ import CourseNotes from '@/components/course/CourseNotes.vue'
 import CourseCertificate from '@/components/course/CourseCertificate.vue'
 import { useAuthStore } from '@/stores/auth.store'
 
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -297,7 +314,6 @@ const startCourse = () => {
 }
 
 const openLesson = (lessonId: number) => {
-  // For now, just show a toast or navigate to a lesson page
-  console.log('Opening lesson:', lessonId)
+  router.push(`/courses/${courseId.value}/lessons/${lessonId}`)
 }
 </script>

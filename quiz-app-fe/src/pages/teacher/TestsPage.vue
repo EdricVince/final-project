@@ -3,32 +3,44 @@
     <!-- Header -->
     <div class="animate-fade-in-down mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Tests & Exams</h1>
-        <p class="text-muted-foreground mt-2">Create and manage your tests</p>
+        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('teacher.tests.title') }}</h1>
+        <p class="text-muted-foreground mt-2">{{ $t('teacher.tests.subtitle') }}</p>
       </div>
       <Button @click="$router.push('/teacher/tests/new')">
         <Plus class="mr-2 h-4 w-4" />
-        Create Test
+        {{ $t('teacher.tests.createTest') }}
       </Button>
     </div>
 
     <!-- Stats -->
     <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Total Tests</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-4/10">
+          <FileText class="text-chart-4 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ tests.length }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.tests.stats.total') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Total Questions</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-3/10">
+          <HelpCircle class="text-chart-3 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ totalQuestions }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.tests.stats.questions') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Submissions</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-1/10">
+          <Users class="text-chart-1 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ totalSubmissions }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.tests.stats.submissions') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Avg. Score</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-2/10">
+          <BarChart2 class="text-chart-2 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ avgScore }}%</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.tests.stats.avgScore') }}</p>
       </div>
     </div>
 
@@ -58,7 +70,7 @@
                   class="rounded-full px-2 py-0.5 text-xs"
                   :class="test.is_active ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'"
                 >
-                  {{ test.is_active ? 'Active' : 'Draft' }}
+                  {{ test.is_active ? $t('teacher.tests.status.active') : $t('teacher.tests.status.draft') }}
                 </span>
               </div>
             </div>
@@ -80,7 +92,7 @@
 
         <!-- Assigned Classes -->
         <div v-if="test.assigned_classes && test.assigned_classes.length > 0" class="border-border mt-4 border-t pt-4">
-          <p class="text-muted-foreground mb-2 text-sm">Assigned to:</p>
+          <p class="text-muted-foreground mb-2 text-sm">{{ $t('teacher.tests.assignedTo') }}</p>
           <div class="flex flex-wrap gap-2">
             <span
               v-for="cls in test.assigned_classes"
@@ -114,7 +126,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Plus, FileText, BarChart, Pencil, Trash2 } from 'lucide-vue-next'
+import { Plus, FileText, BarChart, Pencil, Trash2, HelpCircle, Users, BarChart2 } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 

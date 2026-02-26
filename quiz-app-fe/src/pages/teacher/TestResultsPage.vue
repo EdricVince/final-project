@@ -7,44 +7,56 @@
         @click="$router.push('/teacher/tests')"
       >
         <ArrowLeft class="h-4 w-4" />
-        Back to Tests
+        {{ $t('teacher.testResults.backToTests') }}
       </button>
       <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ test.title }}</h1>
-          <p class="text-muted-foreground mt-2">Test Results</p>
+          <p class="text-muted-foreground mt-2">{{ $t('teacher.testResults.testResults') }}</p>
         </div>
         <Button variant="outline" @click="exportResults">
           <Download class="mr-2 h-4 w-4" />
-          Export CSV
+          {{ $t('teacher.testResults.exportCsv') }}
         </Button>
       </div>
     </div>
 
     <!-- Stats -->
     <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Total Submissions</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-1/10">
+          <Users class="text-chart-1 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ results.length }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.testResults.stats.submissions') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Average Score</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-4/10">
+          <BarChart2 class="text-chart-4 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ avgScore }}%</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.testResults.stats.avgScore') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Highest Score</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-2/10">
+          <TrendingUp class="text-chart-2 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ highestScore }}%</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.testResults.stats.highest') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Lowest Score</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-destructive/10">
+          <TrendingDown class="text-destructive h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ lowestScore }}%</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.testResults.stats.lowest') }}</p>
       </div>
     </div>
 
     <!-- Score Distribution -->
     <div class="animate-fade-in-up delay-150 mb-8">
       <div class="bg-card border-border rounded-2xl border p-6">
-        <h2 class="text-foreground mb-4 font-semibold">Score Distribution</h2>
+        <h2 class="text-foreground mb-4 font-semibold">{{ $t('teacher.testResults.scoreDistribution') }}</h2>
         <div class="flex items-end gap-2" style="height: 120px">
           <div
             v-for="(count, range) in scoreDistribution"
@@ -65,18 +77,18 @@
     <div class="animate-fade-in-up delay-200">
       <div class="bg-card border-border overflow-hidden rounded-2xl border">
         <div class="border-border border-b p-4">
-          <h2 class="text-foreground font-semibold">Student Results</h2>
+          <h2 class="text-foreground font-semibold">{{ $t('teacher.testResults.studentResults') }}</h2>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full">
             <thead class="bg-secondary">
               <tr>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Student</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Score</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Correct</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Time Taken</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Submitted</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Actions</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.testResults.table.student') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.testResults.table.score') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.testResults.table.correct') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.testResults.table.timeTaken') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.testResults.table.submitted') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.testResults.table.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-border divide-y">
@@ -130,7 +142,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { ArrowLeft, Download, Eye } from 'lucide-vue-next'
+import { ArrowLeft, Download, Eye, Users, BarChart2, TrendingUp, TrendingDown } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 

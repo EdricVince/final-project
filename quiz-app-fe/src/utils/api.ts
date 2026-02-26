@@ -519,4 +519,25 @@ export const api = {
   getStudentResults: (): Promise<unknown[]> => {
     return apiRequest<unknown[]>('/student/results', { method: 'GET' })
   },
+
+  // ==================== Progress Endpoints ====================
+
+  getMyProgress: (): Promise<unknown> => {
+    return apiRequest<unknown>('/progress/me', { method: 'GET' })
+  },
+
+  logActivity: (data: { type: string; cards_count?: number; score?: number; questions_count?: number }): Promise<unknown> => {
+    return apiRequest<unknown>('/progress/activity', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  getWeeklyActivity: (): Promise<unknown[]> => {
+    return apiRequest<unknown[]>('/progress/weekly', { method: 'GET' })
+  },
+
+  getLeaderboard: (): Promise<unknown[]> => {
+    return apiRequest<unknown[]>('/progress/leaderboard', { method: 'GET' })
+  },
 }

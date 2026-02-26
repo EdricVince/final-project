@@ -4,6 +4,7 @@ import { setCookie, getCookie, removeCookie } from '@/utils/cookies'
 import { api, ApiError } from '@/utils/api'
 import type { UserOut, UserProfileData } from '@/types/api'
 import { UserRole } from '@/types/role'
+import { useProgressStore } from '@/stores/progress.store'
 
 const ACCESS_TOKEN_KEY = 'access_token'
 const REFRESH_TOKEN_KEY = 'refresh_token'
@@ -91,6 +92,12 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         localStorage.removeItem(REMEMBER_EMAIL_KEY)
       }
+      // Fetch progress stats after login
+      const progressStore = useProgressStore()
+      progressStore.fetchProgress()
+      progressStore.fetchWeekly()
+      progressStore.fetchLeaderboard()
+
       return { success: true, user: currentUser.value ?? undefined }
     } catch (error) {
       console.error('Login error:', error)
@@ -186,6 +193,8 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const logout = () => {
     clearTokens()
+    const progressStore = useProgressStore()
+    progressStore.$reset()
   }
 
   const getRememberedEmail = (): string => localStorage.getItem(REMEMBER_EMAIL_KEY) || ''

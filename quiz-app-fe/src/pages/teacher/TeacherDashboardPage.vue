@@ -3,51 +3,51 @@
     <!-- Welcome Section -->
     <div class="animate-fade-in-down mb-8">
       <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">
-        Welcome back, {{ userName }}!
+        {{ $t('dashboard.welcome', { name: userName }) }}
       </h1>
-      <p class="text-muted-foreground mt-2 text-base">Manage your classes and track student progress.</p>
+      <p class="text-muted-foreground mt-2 text-base">{{ $t('teacher.dashboard.subtitle') }}</p>
     </div>
 
     <!-- Stats Row -->
     <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
       <div class="bg-card border-border rounded-2xl border p-5">
-        <div class="mb-3 flex items-center justify-between">
-          <div class="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-            <BookOpen class="text-primary h-5 w-5" />
+        <div class="mb-4 flex items-center gap-3">
+          <div class="bg-chart-2/10 flex h-10 w-10 items-center justify-center rounded-xl">
+            <BookOpen class="text-chart-2 h-5 w-5" />
           </div>
+          <span class="text-muted-foreground text-xs font-medium uppercase tracking-wider">{{ $t('teacher.dashboard.stats.totalClasses') }}</span>
         </div>
-        <p class="text-foreground text-2xl font-bold">{{ stats.totalClasses }}</p>
-        <p class="text-muted-foreground text-sm">Active Classes</p>
+        <p class="text-foreground text-3xl font-bold">{{ stats.totalClasses }}</p>
       </div>
 
       <div class="bg-card border-border rounded-2xl border p-5">
-        <div class="mb-3 flex items-center justify-between">
-          <div class="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-            <Users class="text-primary h-5 w-5" />
+        <div class="mb-4 flex items-center gap-3">
+          <div class="bg-chart-1/10 flex h-10 w-10 items-center justify-center rounded-xl">
+            <Users class="text-chart-1 h-5 w-5" />
           </div>
+          <span class="text-muted-foreground text-xs font-medium uppercase tracking-wider">{{ $t('teacher.dashboard.stats.totalStudents') }}</span>
         </div>
-        <p class="text-foreground text-2xl font-bold">{{ stats.totalStudents }}</p>
-        <p class="text-muted-foreground text-sm">Total Students</p>
+        <p class="text-foreground text-3xl font-bold">{{ stats.totalStudents }}</p>
       </div>
 
       <div class="bg-card border-border rounded-2xl border p-5">
-        <div class="mb-3 flex items-center justify-between">
-          <div class="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-            <FileText class="text-primary h-5 w-5" />
+        <div class="mb-4 flex items-center gap-3">
+          <div class="bg-chart-4/10 flex h-10 w-10 items-center justify-center rounded-xl">
+            <FileText class="text-chart-4 h-5 w-5" />
           </div>
+          <span class="text-muted-foreground text-xs font-medium uppercase tracking-wider">{{ $t('teacher.dashboard.stats.testsCreated') }}</span>
         </div>
-        <p class="text-foreground text-2xl font-bold">{{ stats.totalTests }}</p>
-        <p class="text-muted-foreground text-sm">Tests Created</p>
+        <p class="text-foreground text-3xl font-bold">{{ stats.totalTests }}</p>
       </div>
 
       <div class="bg-card border-border rounded-2xl border p-5">
-        <div class="mb-3 flex items-center justify-between">
-          <div class="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-xl">
-            <Video class="text-primary h-5 w-5" />
+        <div class="mb-4 flex items-center gap-3">
+          <div class="bg-chart-3/10 flex h-10 w-10 items-center justify-center rounded-xl">
+            <Video class="text-chart-3 h-5 w-5" />
           </div>
+          <span class="text-muted-foreground text-xs font-medium uppercase tracking-wider">Videos</span>
         </div>
-        <p class="text-foreground text-2xl font-bold">{{ stats.totalVideos }}</p>
-        <p class="text-muted-foreground text-sm">Videos Uploaded</p>
+        <p class="text-foreground text-3xl font-bold">{{ stats.totalVideos }}</p>
       </div>
     </div>
 
@@ -58,46 +58,46 @@
         <!-- Quick Actions -->
         <div class="animate-fade-in-up delay-150">
           <div class="bg-card border-border rounded-2xl border p-6">
-            <h2 class="text-foreground mb-4 text-lg font-semibold">Quick Actions</h2>
-            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <h2 class="text-foreground mb-5 text-lg font-semibold">{{ $t('teacher.dashboard.quickActions') }}</h2>
+            <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <router-link
                 to="/teacher/classes"
-                class="bg-primary/5 hover:bg-primary/10 flex flex-col items-center gap-2 rounded-xl p-4 transition-colors"
+                class="group border-border hover:bg-accent flex flex-col items-center gap-3 rounded-xl border p-4 transition-all hover:shadow-sm"
               >
-                <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
-                  <Plus class="text-primary h-6 w-6" />
+                <div class="bg-chart-2/10 group-hover:bg-chart-2/20 flex h-12 w-12 items-center justify-center rounded-xl transition-colors">
+                  <Plus class="text-chart-2 h-6 w-6" />
                 </div>
-                <span class="text-foreground text-sm font-medium">New Class</span>
+                <span class="text-foreground text-sm font-medium">{{ $t('teacher.dashboard.actions.createClass') }}</span>
               </router-link>
 
               <router-link
                 to="/teacher/tests/new"
-                class="bg-primary/5 hover:bg-primary/10 flex flex-col items-center gap-2 rounded-xl p-4 transition-colors"
+                class="group border-border hover:bg-accent flex flex-col items-center gap-3 rounded-xl border p-4 transition-all hover:shadow-sm"
               >
-                <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
-                  <FileText class="text-primary h-6 w-6" />
+                <div class="bg-chart-4/10 group-hover:bg-chart-4/20 flex h-12 w-12 items-center justify-center rounded-xl transition-colors">
+                  <FileText class="text-chart-4 h-6 w-6" />
                 </div>
-                <span class="text-foreground text-sm font-medium">Create Test</span>
+                <span class="text-foreground text-sm font-medium">{{ $t('teacher.dashboard.actions.createTest') }}</span>
               </router-link>
 
               <router-link
                 to="/teacher/videos"
-                class="bg-primary/5 hover:bg-primary/10 flex flex-col items-center gap-2 rounded-xl p-4 transition-colors"
+                class="group border-border hover:bg-accent flex flex-col items-center gap-3 rounded-xl border p-4 transition-all hover:shadow-sm"
               >
-                <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
-                  <Video class="text-primary h-6 w-6" />
+                <div class="bg-chart-3/10 group-hover:bg-chart-3/20 flex h-12 w-12 items-center justify-center rounded-xl transition-colors">
+                  <Video class="text-chart-3 h-6 w-6" />
                 </div>
-                <span class="text-foreground text-sm font-medium">Upload Video</span>
+                <span class="text-foreground text-sm font-medium">Videos</span>
               </router-link>
 
               <router-link
                 to="/teacher/students"
-                class="bg-primary/5 hover:bg-primary/10 flex flex-col items-center gap-2 rounded-xl p-4 transition-colors"
+                class="group border-border hover:bg-accent flex flex-col items-center gap-3 rounded-xl border p-4 transition-all hover:shadow-sm"
               >
-                <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
-                  <Users class="text-primary h-6 w-6" />
+                <div class="bg-chart-1/10 group-hover:bg-chart-1/20 flex h-12 w-12 items-center justify-center rounded-xl transition-colors">
+                  <Users class="text-chart-1 h-6 w-6" />
                 </div>
-                <span class="text-foreground text-sm font-medium">View Students</span>
+                <span class="text-foreground text-sm font-medium">{{ $t('teacher.dashboard.actions.viewStudents') }}</span>
               </router-link>
             </div>
           </div>
@@ -107,35 +107,36 @@
         <div class="animate-fade-in-up delay-200">
           <div class="bg-card border-border rounded-2xl border p-6">
             <div class="mb-4 flex items-center justify-between">
-              <h2 class="text-foreground text-lg font-semibold">Recent Classes</h2>
+              <h2 class="text-foreground text-lg font-semibold">{{ $t('teacher.dashboard.recentClasses') }}</h2>
               <router-link
                 to="/teacher/classes"
                 class="text-primary hover:text-primary/80 text-sm font-medium"
               >
-                View All
+                {{ $t('common.viewAll') }}
               </router-link>
             </div>
-            <div class="space-y-3">
-              <div
+            <div class="space-y-2">
+              <router-link
                 v-for="cls in recentClasses"
                 :key="cls.id"
-                class="hover:bg-accent/50 flex items-center gap-4 rounded-xl p-3 transition-colors"
+                :to="`/teacher/classes/${cls.id}`"
+                class="hover:bg-accent group flex items-center gap-4 rounded-xl p-3 transition-colors"
               >
-                <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
-                  <BookOpen class="text-primary h-6 w-6" />
+                <div class="bg-primary/10 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+                  <BookOpen class="text-primary h-5 w-5" />
                 </div>
-                <div class="flex-1">
-                  <h3 class="text-foreground font-medium">{{ cls.name }}</h3>
-                  <p class="text-muted-foreground text-sm">{{ cls.student_count }} students</p>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-foreground font-medium truncate">{{ cls.name }}</h3>
+                  <p class="text-muted-foreground text-xs">{{ cls.student_count }} students · {{ cls.subject }}</p>
                 </div>
-                <div class="text-right">
-                  <p class="text-foreground text-sm font-medium">{{ cls.subject }}</p>
-                  <p class="text-muted-foreground text-xs">{{ cls.class_code }}</p>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="bg-secondary text-muted-foreground rounded-md px-2 py-1 text-xs font-mono">{{ cls.class_code }}</span>
                 </div>
-              </div>
+              </router-link>
 
               <div v-if="recentClasses.length === 0" class="py-8 text-center">
-                <p class="text-muted-foreground">No classes yet. Create your first class!</p>
+                <BookOpen class="text-muted-foreground mx-auto mb-3 h-8 w-8" />
+                <p class="text-muted-foreground text-sm">No classes yet. Create your first class!</p>
               </div>
             </div>
           </div>
@@ -213,6 +214,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   BookOpen,
   Users,
@@ -225,6 +227,7 @@ import {
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth.store'
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 
 const userName = computed(() => {

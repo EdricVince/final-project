@@ -3,9 +3,9 @@
     <!-- Welcome Section -->
     <div class="animate-fade-in-down mb-6">
       <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">
-        Welcome back, {{ userName }}!
+        {{ $t('dashboard.welcome', { name: userName }) }}
       </h1>
-      <p class="text-muted-foreground mt-2 text-base">Ready to continue your learning journey?</p>
+      <p class="text-muted-foreground mt-2 text-base">{{ $t('dashboard.subtitle') }}</p>
     </div>
 
     <!-- Quick Actions Bar -->
@@ -99,7 +99,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth.store'
+import { useProgressStore } from '@/stores/progress.store'
 import {
   Brain,
   Timer,
@@ -136,8 +138,10 @@ import type {
   BadgeItem,
 } from '@/types/dashboard'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
+const progressStore = useProgressStore()
 
 // User data - use email from auth store or fallback to 'Guest'
 const userName = computed(() => {
@@ -146,13 +150,13 @@ const userName = computed(() => {
   return 'Guest'
 })
 
-// Stats
-const stats = ref<DashboardStats>({
-  streak: 7,
-  cardsLearned: 156,
-  quizzesCompleted: 23,
-  totalXP: 2450,
-})
+// Stats — live from progress store
+const stats = computed<DashboardStats>(() => ({
+  streak: progressStore.streakCount,
+  cardsLearned: progressStore.totalCardsStudied,
+  quizzesCompleted: progressStore.totalQuizzesCompleted,
+  totalXP: progressStore.xp,
+}))
 
 // Celebration Modal
 const showCelebration = ref(false)
@@ -163,11 +167,11 @@ const celebrationRewards = ref<{ value: string | number; label: string }[]>([])
 const celebrationBadge = ref<string | undefined>(undefined)
 
 // Today's goal
-const todayProgress = ref(15)
+const todayProgress = computed(() => progressStore.todayCards)
 const todayGoal = ref(20)
 
 // Loading state
-const isLoading = ref(true)
+const isLoading = computed(() => progressStore.isLoading)
 
 // Continue Learning data
 const continueLearning = ref<DashboardCourse[]>([
@@ -192,16 +196,13 @@ const studyModes = ref<StudyMode[]>([
   { id: 4, title: 'Multiple Choice', description: 'Select answers', icon: Shuffle, path: '/quizzes/multiple-choice' },
 ])
 
-// Weekly Activity
-const weeklyActivity = ref<DayActivity[]>([
-  { name: 'M', percent: 60 },
-  { name: 'T', percent: 80 },
-  { name: 'W', percent: 45 },
-  { name: 'T', percent: 90 },
-  { name: 'F', percent: 70 },
-  { name: 'S', percent: 30 },
-  { name: 'S', percent: 55 },
-])
+// Weekly Activity — from progress store
+const weeklyActivity = computed<DayActivity[]>(() =>
+  progressStore.weeklyActivity.map(d => ({
+    name: d.day_label.charAt(0),
+    percent: Math.min(d.xp_earned, 100),
+  }))
+)
 
 // Recent Badges
 const recentBadges = ref<BadgeItem[]>([
@@ -255,25 +256,20 @@ const handleQuickAction = (action: string) => {
 
 // Claim reward handler
 const handleClaimReward = (_challengeId: number, xpReward: number) => {
-  // Add XP to stats
-  stats.value.totalXP += xpReward
-
-  // Show celebration
   celebrationType.value = 'success'
   celebrationTitle.value = 'Challenge Complete!'
   celebrationSubtitle.value = 'Great job completing your daily challenge!'
   celebrationRewards.value = [
     { value: `+${xpReward}`, label: 'XP Earned' },
-    { value: stats.value.totalXP.toLocaleString(), label: 'Total XP' },
+    { value: (progressStore.xp + xpReward).toLocaleString(), label: 'Total XP' },
   ]
   celebrationBadge.value = undefined
   showCelebration.value = true
 }
 
-// Simulate loading
 onMounted(() => {
-  setTimeout(() => {
-    isLoading.value = false
-  }, 800)
+  progressStore.fetchProgress()
+  progressStore.fetchWeekly()
+  progressStore.fetchLeaderboard()
 })
 </script>

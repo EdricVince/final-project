@@ -3,10 +3,10 @@
     <!-- Header -->
     <div class="animate-fade-in-down mb-8">
       <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">
-        Explore Courses
+        {{ $t('courses.explore.title') }}
       </h1>
       <p class="text-muted-foreground mt-2 text-base">
-        Discover new courses to expand your knowledge
+        {{ $t('courses.explore.subtitle') }}
       </p>
     </div>
 
@@ -17,11 +17,11 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search courses..."
+          :placeholder="$t('courses.explore.searchPlaceholder')"
           class="border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 h-11 w-full rounded-xl border pl-10 pr-4 text-sm transition-all focus:outline-none focus:ring-2"
         />
       </div>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <button
           v-for="category in categories"
           :key="category"
@@ -71,8 +71,8 @@
     <!-- Empty State -->
     <div v-if="filteredCourses.length === 0" class="py-12 text-center">
       <BookOpen class="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-      <h3 class="text-foreground mb-2 text-lg font-semibold">No courses found</h3>
-      <p class="text-muted-foreground">Try adjusting your search or filters</p>
+      <h3 class="text-foreground mb-2 text-lg font-semibold">{{ $t('courses.explore.empty.title') }}</h3>
+      <p class="text-muted-foreground">{{ $t('courses.explore.empty.desc') }}</p>
     </div>
   </div>
 </template>

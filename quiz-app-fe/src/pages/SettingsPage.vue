@@ -3,10 +3,10 @@
     <!-- Header -->
     <div class="animate-fade-in-down mb-8">
       <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">
-        Settings
+        {{ $t('settings.title') }}
       </h1>
       <p class="text-muted-foreground mt-2 text-base">
-        Manage your account preferences and application settings
+        {{ $t('settings.subtitle') }}
       </p>
     </div>
 
@@ -79,7 +79,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { User, Palette, Bell, Target, Shield } from 'lucide-vue-next'
 
 import SettingsNavigation, { type SettingsSection } from '@/components/settings/SettingsNavigation.vue'
@@ -111,15 +112,17 @@ const {
 
 const toast = useToast()
 
+const { t } = useI18n()
+
 // Active section
 const activeSection = ref('account')
 
 // Settings sections for navigation
-const settingsSections: SettingsSection[] = [
-  { id: 'account', label: 'Account', icon: User },
-  { id: 'appearance', label: 'Appearance', icon: Palette },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'study', label: 'Study Preferences', icon: Target },
-  { id: 'privacy', label: 'Privacy & Data', icon: Shield },
-]
+const settingsSections = computed((): SettingsSection[] => [
+  { id: 'account', label: t('settings.sections.account'), icon: User },
+  { id: 'appearance', label: t('settings.sections.appearance'), icon: Palette },
+  { id: 'notifications', label: t('settings.sections.notifications'), icon: Bell },
+  { id: 'study', label: t('settings.sections.study'), icon: Target },
+  { id: 'privacy', label: t('settings.sections.privacy'), icon: Shield },
+])
 </script>

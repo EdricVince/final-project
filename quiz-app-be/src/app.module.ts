@@ -4,9 +4,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CoreModule } from './core/core.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProgressModule } from './modules/progress/progress.module';
 
 @Module({
-  imports: [CoreModule, AuthModule],
+  imports: [CoreModule, AuthModule, ProgressModule],
   controllers: [AppController],
   providers: [AppService],
 })

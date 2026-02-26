@@ -9,11 +9,11 @@
     </div>
 
     <!-- Success/Error Messages -->
-    <div v-if="successMessage" class="rounded-lg border border-green-200 bg-green-50 p-4">
-      <p class="text-sm text-green-800">{{ successMessage }}</p>
+    <div v-if="successMessage" class="rounded-lg border border-primary/30 bg-primary/10 p-4">
+      <p class="text-sm text-primary">{{ successMessage }}</p>
     </div>
-    <div v-if="errorMessage" class="rounded-lg border border-red-200 bg-red-50 p-4">
-      <p class="text-sm text-red-800">{{ errorMessage }}</p>
+    <div v-if="errorMessage" class="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+      <p class="text-sm text-destructive">{{ errorMessage }}</p>
     </div>
 
     <!-- Role Selection -->

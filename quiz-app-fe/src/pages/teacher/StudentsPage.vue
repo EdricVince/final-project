@@ -2,27 +2,39 @@
   <div class="p-6 lg:p-8">
     <!-- Header -->
     <div class="animate-fade-in-down mb-8">
-      <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Students</h1>
-      <p class="text-muted-foreground mt-2">View all students across your classes</p>
+      <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('teacher.students.title') }}</h1>
+      <p class="text-muted-foreground mt-2">{{ $t('teacher.students.subtitle') }}</p>
     </div>
 
     <!-- Stats -->
     <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Total Students</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-1/10">
+          <Users class="text-chart-1 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ students.length }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.students.stats.total') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Active This Week</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-2/10">
+          <TrendingUp class="text-chart-2 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ activeStudents }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.students.stats.active') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Avg. Score</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-4/10">
+          <BarChart2 class="text-chart-4 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ avgScore }}%</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.students.stats.avgScore') }}</p>
       </div>
-      <div class="bg-card border-border rounded-xl border p-4">
-        <p class="text-muted-foreground text-sm">Tests Completed</p>
+      <div class="bg-card border-border rounded-2xl border p-5">
+        <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-3/10">
+          <CheckSquare class="text-chart-3 h-4 w-4" />
+        </div>
         <p class="text-foreground text-2xl font-bold">{{ totalTestsCompleted }}</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.students.stats.topPerformers') }}</p>
       </div>
     </div>
 
@@ -41,7 +53,7 @@
         v-model="selectedClass"
         class="bg-secondary text-foreground h-10 rounded-xl border-0 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
       >
-        <option value="">All Classes</option>
+        <option value="">{{ $t('teacher.students.filters.allClasses') }}</option>
         <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
       </select>
     </div>
@@ -53,12 +65,12 @@
           <table class="w-full">
             <thead class="bg-secondary">
               <tr>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Student</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Classes</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Avg. Score</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Tests Done</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Last Active</th>
-                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">Actions</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.students.table.student') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.students.table.class') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.students.table.avgScore') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.students.table.progress') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.students.table.lastActive') }}</th>
+                <th class="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{{ $t('teacher.students.table.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-border divide-y">
@@ -106,7 +118,7 @@
         </div>
 
         <div v-if="filteredStudents.length === 0" class="p-8 text-center">
-          <p class="text-muted-foreground">No students found</p>
+          <p class="text-muted-foreground">{{ $t('teacher.students.noStudentsFound') }}</p>
         </div>
       </div>
     </div>
@@ -115,7 +127,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Search, Eye } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
+import { Search, Eye, Users, TrendingUp, BarChart2, CheckSquare } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
 
 const searchQuery = ref('')
@@ -123,9 +136,9 @@ const selectedClass = ref('')
 
 // Mock classes
 const classes = ref([
-  { id: 1, name: 'Business English 101' },
-  { id: 2, name: 'IELTS Preparation' },
-  { id: 3, name: 'Conversation Practice' },
+  { id: 1, name: 'Business English 101', code: 'BUS101' },
+  { id: 2, name: 'IELTS Preparation', code: 'IELTS01' },
+  { id: 3, name: 'Conversation Practice', code: 'CONV01' },
 ])
 
 // Mock students
@@ -145,6 +158,13 @@ const filteredStudents = computed(() => {
     result = result.filter(
       s => s.name.toLowerCase().includes(query) || s.email.toLowerCase().includes(query)
     )
+  }
+
+  if (selectedClass.value) {
+    const cls = classes.value.find(c => c.id === Number(selectedClass.value))
+    if (cls) {
+      result = result.filter(s => s.classes.includes(cls.code))
+    }
   }
 
   return result

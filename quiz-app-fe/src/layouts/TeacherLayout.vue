@@ -73,13 +73,13 @@
           class="text-muted-foreground hover:text-foreground flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
         >
           <ArrowLeft class="h-4 w-4" />
-          Student View
+          {{ $t('nav.items.dashboard') }}
         </router-link>
       </header>
 
       <!-- Page Content -->
       <main class="min-h-[calc(100vh-4rem)]">
-        <router-view />
+        <router-view :key="locale" />
       </main>
     </div>
 
@@ -95,6 +95,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   GraduationCap,
   LayoutDashboard,
@@ -108,19 +109,19 @@ import {
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth.store'
 
+const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
 const isSidebarOpen = ref(false)
 
-const navItems = [
-  { path: '/teacher/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/teacher/classes', label: 'My Classes', icon: BookOpen },
-  { path: '/teacher/students', label: 'Students', icon: Users },
-  { path: '/teacher/videos', label: 'Videos', icon: Video },
-  { path: '/teacher/tests', label: 'Tests & Exams', icon: FileText },
-]
+const navItems = computed(() => [
+  { path: '/teacher/dashboard', label: t('teacher.dashboard.title'), icon: LayoutDashboard },
+  { path: '/teacher/classes', label: t('teacher.classes.title'), icon: BookOpen },
+  { path: '/teacher/students', label: t('teacher.students.title'), icon: Users },
+  { path: '/teacher/tests', label: t('teacher.tests.title'), icon: FileText },
+])
 
 const userName = computed(() => {
   if (authStore.user?.name) return authStore.user.name

@@ -84,7 +84,7 @@
             class="whitespace-nowrap transition-opacity duration-300"
             :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"
           >
-            Collapse
+            {{ $t('nav.sidebar.collapse') }}
           </span>
         </button>
       </div>
@@ -116,6 +116,21 @@
           >
             <Search class="h-5 w-5" />
           </button>
+
+          <!-- Streak Badge -->
+          <div
+            v-if="progressStore.streakCount > 0"
+            class="hidden items-center gap-1.5 rounded-lg bg-orange-500/10 px-2.5 py-1.5 sm:flex"
+          >
+            <span class="text-base leading-none">🔥</span>
+            <span class="text-sm font-semibold text-orange-500">{{ progressStore.streakCount }}</span>
+          </div>
+
+          <!-- XP Pill -->
+          <div class="hidden items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 sm:flex">
+            <Zap class="text-primary h-4 w-4" />
+            <span class="text-primary text-sm font-semibold">{{ progressStore.xp.toLocaleString() }}</span>
+          </div>
 
           <!-- Notifications -->
           <div class="relative" ref="notificationRef">
@@ -179,7 +194,7 @@
                     @click="handleLogout"
                   >
                     <LogOut class="h-4 w-4" />
-                    Sign out
+                    {{ $t('nav.userMenu.signOut') }}
                   </button>
                 </div>
               </div>
@@ -192,7 +207,7 @@
       <main class="bg-background flex-1 overflow-y-auto">
         <router-view v-slot="{ Component, route }">
           <Transition :name="transitionName" mode="out-in">
-            <component :is="Component" :key="route.path" />
+            <component :is="Component" :key="`${route.path}-${locale}`" />
           </Transition>
         </router-view>
       </main>
@@ -206,6 +221,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth.store'
 import {
   Sparkles,
@@ -225,13 +241,17 @@ import {
   PanelLeftOpen,
   Gamepad2,
   Target,
+  Zap,
 } from 'lucide-vue-next'
 import SearchModal from '@/components/ui/SearchModal.vue'
 import NotificationPanel from '@/components/ui/NotificationPanel.vue'
+import { useProgressStore } from '@/stores/progress.store'
 
+const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const progressStore = useProgressStore()
 
 // Sidebar state
 const isCollapsed = ref(false)
@@ -299,31 +319,31 @@ const userInitials = computed(() => {
 })
 
 // Navigation menu
-const menuSections = [
+const menuSections = computed(() => [
   {
-    title: 'Main',
+    title: t('nav.sections.main'),
     items: [
-      { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { path: '/courses', label: 'My Courses', icon: BookOpen },
-      { path: '/flashcards', label: 'Flashcards', icon: Layers },
-      { path: '/quizzes', label: 'Quizzes', icon: Gamepad2 },
+      { path: '/dashboard', label: t('nav.items.dashboard'), icon: LayoutDashboard },
+      { path: '/courses', label: t('nav.items.myCourses'), icon: BookOpen },
+      { path: '/flashcards', label: t('nav.items.flashcards'), icon: Layers },
+      { path: '/quizzes', label: t('nav.items.quizzes'), icon: Gamepad2 },
     ],
   },
   {
-    title: 'Progress',
+    title: t('nav.sections.progress'),
     items: [
-      { path: '/goals', label: 'Goals', icon: Target },
-      { path: '/achievements', label: 'Achievements', icon: Trophy },
-      { path: '/statistics', label: 'Statistics', icon: BarChart3 },
+      { path: '/goals', label: t('nav.items.goals'), icon: Target },
+      { path: '/achievements', label: t('nav.items.achievements'), icon: Trophy },
+      { path: '/statistics', label: t('nav.items.statistics'), icon: BarChart3 },
     ],
   },
-]
+])
 
 // Dropdown menu items
-const dropdownItems = [
-  { path: '/profile', label: 'My Profile', icon: User },
-  { path: '/settings', label: 'Settings', icon: Settings },
-]
+const dropdownItems = computed(() => [
+  { path: '/profile', label: t('nav.userMenu.myProfile'), icon: User },
+  { path: '/settings', label: t('nav.userMenu.settings'), icon: Settings },
+])
 
 // Check active route
 const isActiveRoute = (path: string) => {
@@ -332,9 +352,9 @@ const isActiveRoute = (path: string) => {
 
 // Current page title
 const currentPageTitle = computed(() => {
-  const allItems = menuSections.flatMap(s => s.items)
+  const allItems = menuSections.value.flatMap(s => s.items)
   const current = allItems.find(item => isActiveRoute(item.path))
-  return current?.label || 'Dashboard'
+  return current?.label || t('nav.items.dashboard')
 })
 
 // Page transition

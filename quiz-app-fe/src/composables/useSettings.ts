@@ -33,8 +33,6 @@ export interface NotificationSettings {
 export interface StudySettings {
   cardsPerDay: number
   studyMinutes: number
-  language: string
-  learningLanguage: string
 }
 
 export interface PrivacySettings {
@@ -111,8 +109,6 @@ export function useSettings() {
   const studySettings = reactive<StudySettings>({
     cardsPerDay: 30,
     studyMinutes: 20,
-    language: 'en',
-    learningLanguage: 'en',
   })
 
   // Privacy
