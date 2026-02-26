@@ -28,7 +28,7 @@ export class AuthService {
       exp: Math.floor(Date.now() / 1000) + (15 * 60), // 15 minutes
     })).toString('base64url');
 
-    const secret = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || 'secret';
+    const secret = this.configService.get<string>('JWT_SECRET') || 'secret';
     const signature = crypto
       .createHmac('sha256', secret)
       .update(`${header}.${payloadStr}`)
@@ -38,7 +38,7 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<UserOutDto> {
-    const { email, password } = registerDto;
+    const { email, password, role_id } = registerDto;
 
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
@@ -48,7 +48,7 @@ export class AuthService {
     const hashedPassword = this.hashPassword(password);
 
     try {
-      const user = await this.usersService.create(email, hashedPassword);
+      const user = await this.usersService.create(email, hashedPassword, role_id);
 
       return {
         id: user.id,

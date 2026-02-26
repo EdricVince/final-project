@@ -502,12 +502,11 @@ import {
   X,
   FileSpreadsheet,
   BookOpen,
-  Code2,
   Globe,
-  Music,
-  Calculator,
-  Palette,
-  Beaker,
+  MessageCircle,
+  ArrowUpDown,
+  Mic,
+  GraduationCap,
 } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
 
@@ -530,12 +529,12 @@ const importDeckName = ref('')
 
 // Categories
 const categories = [
-  'Language',
-  'Programming',
-  'Science',
-  'Math',
-  'Music',
-  'Art',
+  'Vocabulary',
+  'Grammar',
+  'Idioms',
+  'Phrasal Verbs',
+  'Pronunciation',
+  'IELTS/TOEFL',
   'General',
 ]
 
@@ -568,45 +567,45 @@ interface Deck {
 const decks = ref<Deck[]>([
   {
     id: 1,
-    title: 'JavaScript Fundamentals',
-    description: 'Core concepts and syntax of JavaScript programming language',
-    category: 'Programming',
-    cardCount: 45,
+    title: 'Essential English Vocabulary',
+    description: '500 most common English words with examples and usage',
+    category: 'Vocabulary',
+    cardCount: 120,
     progress: 72,
     lastStudied: '2 hours ago',
   },
   {
     id: 2,
-    title: 'Japanese N5 Vocabulary',
-    description: 'Essential Japanese vocabulary for JLPT N5 level',
-    category: 'Language',
-    cardCount: 120,
+    title: 'English Idioms & Expressions',
+    description: 'Common English idioms, proverbs, and everyday expressions',
+    category: 'Idioms',
+    cardCount: 80,
     progress: 45,
     lastStudied: 'Yesterday',
   },
   {
     id: 3,
-    title: 'Chemistry Elements',
-    description: 'Periodic table elements and their properties',
-    category: 'Science',
-    cardCount: 30,
+    title: 'IELTS Academic Vocabulary',
+    description: 'High-frequency words for IELTS Academic test preparation',
+    category: 'IELTS/TOEFL',
+    cardCount: 200,
     progress: 90,
     lastStudied: '3 days ago',
   },
   {
     id: 4,
-    title: 'Music Theory Basics',
-    description: 'Fundamental concepts of music theory and notation',
-    category: 'Music',
-    cardCount: 25,
+    title: 'English Phrasal Verbs',
+    description: 'Essential phrasal verbs with meanings and example sentences',
+    category: 'Phrasal Verbs',
+    cardCount: 60,
     progress: 60,
     lastStudied: 'Last week',
   },
   {
     id: 5,
-    title: 'Spanish Common Phrases',
-    description: 'Everyday Spanish phrases for beginners',
-    category: 'Language',
+    title: 'English Grammar Rules',
+    description: 'Key grammar rules: tenses, articles, prepositions, and more',
+    category: 'Grammar',
     cardCount: 50,
     progress: 35,
     lastStudied: '2 days ago',
@@ -626,28 +625,19 @@ const filteredDecks = computed(() => {
 // Methods
 const getCategoryIcon = (category: string): Component => {
   const icons: Record<string, Component> = {
-    Language: Globe,
-    Programming: Code2,
-    Science: Beaker,
-    Math: Calculator,
-    Music: Music,
-    Art: Palette,
+    Vocabulary: Globe,
+    Grammar: BookOpen,
+    Idioms: MessageCircle,
+    'Phrasal Verbs': ArrowUpDown,
+    Pronunciation: Mic,
+    'IELTS/TOEFL': GraduationCap,
     General: BookOpen,
   }
   return icons[category] || BookOpen
 }
 
-const getCategoryColor = (category: string): string => {
-  const colors: Record<string, string> = {
-    Language: 'bg-primary/10 text-primary',
-    Programming: 'bg-primary/10 text-primary',
-    Science: 'bg-primary/10 text-primary',
-    Math: 'bg-primary/10 text-primary',
-    Music: 'bg-primary/10 text-primary',
-    Art: 'bg-primary/10 text-primary',
-    General: 'bg-primary/10 text-primary',
-  }
-  return colors[category] || 'bg-primary/10 text-primary'
+const getCategoryColor = (_category: string): string => {
+  return 'bg-primary/10 text-primary'
 }
 
 const toggleDeckMenu = (deckId: number) => {

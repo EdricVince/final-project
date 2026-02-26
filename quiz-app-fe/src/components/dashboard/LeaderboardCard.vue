@@ -54,7 +54,7 @@
         <div class="text-right">
           <div
             class="flex items-center gap-1 text-sm"
-            :class="rankChange > 0 ? 'text-green-500' : rankChange < 0 ? 'text-red-500' : 'text-muted-foreground'"
+            :class="rankChange > 0 ? 'text-chart-2' : rankChange < 0 ? 'text-destructive' : 'text-muted-foreground'"
           >
             <TrendingUp v-if="rankChange > 0" class="h-4 w-4" />
             <TrendingDown v-else-if="rankChange < 0" class="h-4 w-4" />
@@ -174,9 +174,9 @@ const xpToNextRank = computed(() => {
 })
 
 const getRankClass = (index: number) => {
-  if (index === 0) return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
-  if (index === 1) return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
-  return 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+  if (index === 0) return 'bg-chart-5/10 text-chart-5'
+  if (index === 1) return 'bg-secondary text-secondary-foreground'
+  return 'bg-chart-4/10 text-chart-4'
 }
 
 const viewAll = () => {

@@ -56,7 +56,7 @@
                 </span>
                 <span
                   class="rounded-full px-2 py-0.5 text-xs"
-                  :class="test.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-secondary text-muted-foreground'"
+                  :class="test.is_active ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'"
                 >
                   {{ test.is_active ? 'Active' : 'Draft' }}
                 </span>

@@ -82,7 +82,7 @@ const getActivityBgClass = (type: ActivityType): string => {
     lesson: 'bg-chart-2/10',
     quiz: 'bg-chart-1/10',
     achievement: 'bg-chart-4/10',
-    streak: 'bg-orange-500/10',
+    streak: 'bg-chart-4/10',
     milestone: 'bg-chart-5/10',
     review: 'bg-chart-3/10',
   }
@@ -94,7 +94,7 @@ const getActivityIconClass = (type: ActivityType): string => {
     lesson: 'text-chart-2',
     quiz: 'text-chart-1',
     achievement: 'text-chart-4',
-    streak: 'text-orange-500',
+    streak: 'text-chart-4',
     milestone: 'text-chart-5',
     review: 'text-chart-3',
   }

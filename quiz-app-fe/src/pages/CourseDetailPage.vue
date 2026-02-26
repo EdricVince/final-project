@@ -105,9 +105,9 @@
                 <div
                   class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
                   :class="lesson.completed
-                    ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                    ? 'bg-primary/10 text-primary'
                     : lesson.unlocked
-                      ? 'bg-primary/10 text-primary'
+                      ? 'bg-chart-1/10 text-chart-1'
                       : 'bg-secondary text-muted-foreground'"
                 >
                   <CheckCircle v-if="lesson.completed" class="h-5 w-5" />
@@ -163,11 +163,7 @@ import {
   CheckCircle,
   Lock,
   ChevronRight,
-  Code,
   Languages,
-  Calculator,
-  Palette,
-  Music,
   BookOpen,
 } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
@@ -215,9 +211,9 @@ const course = computed(() => {
   }> = {
     1: {
       id: 1,
-      title: 'JavaScript Fundamentals',
-      description: 'Learn the fundamentals of JavaScript programming. This comprehensive course covers variables, functions, objects, arrays, and modern ES6+ features.',
-      category: 'Programming',
+      title: 'English Grammar Fundamentals',
+      description: 'Master essential English grammar rules including tenses, articles, prepositions, and sentence structure for clear communication.',
+      category: 'Grammar',
       difficulty: 'Beginner',
       progress: 68,
       completedLessons: 12,
@@ -226,9 +222,9 @@ const course = computed(() => {
     },
     2: {
       id: 2,
-      title: 'Spanish Vocabulary',
-      description: 'Build your Spanish vocabulary with essential words and phrases for everyday conversations.',
-      category: 'Languages',
+      title: 'English Vocabulary Builder',
+      description: 'Expand your English vocabulary with essential words, collocations, and usage examples for everyday conversations.',
+      category: 'Vocabulary',
       difficulty: 'Beginner',
       progress: 45,
       completedLessons: 9,
@@ -237,9 +233,9 @@ const course = computed(() => {
     },
     3: {
       id: 3,
-      title: 'Advanced Mathematics',
-      description: 'Master advanced mathematical concepts including calculus, linear algebra, and statistics.',
-      category: 'Math',
+      title: 'IELTS Preparation Course',
+      description: 'Comprehensive IELTS preparation covering Reading, Writing, Listening, and Speaking sections with practice tests.',
+      category: 'Test Prep',
       difficulty: 'Advanced',
       progress: 32,
       completedLessons: 8,
@@ -263,21 +259,23 @@ const lessons = ref([
 ])
 
 const getCourseIcon = (category: string) => {
-  const icons: Record<string, typeof Code> = {
-    Programming: Code,
-    Languages: Languages,
-    Math: Calculator,
-    Design: Palette,
-    Music: Music,
+  const icons: Record<string, typeof BookOpen> = {
+    Grammar: BookOpen,
+    Vocabulary: Languages,
+    'Test Prep': BookOpen,
+    Business: BookOpen,
+    Pronunciation: BookOpen,
+    Writing: BookOpen,
+    Listening: BookOpen,
   }
   return icons[category] || BookOpen
 }
 
 const getDifficultyClass = (difficulty: string) => {
   const classes: Record<string, string> = {
-    Beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    Intermediate: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    Advanced: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    Beginner: 'bg-chart-2/10 text-chart-2',
+    Intermediate: 'bg-chart-5/10 text-chart-5',
+    Advanced: 'bg-destructive/10 text-destructive',
   }
   return classes[difficulty] || 'bg-secondary text-secondary-foreground'
 }

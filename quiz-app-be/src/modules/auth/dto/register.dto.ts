@@ -1,6 +1,7 @@
 export class RegisterDto {
   email: string;
   password: string;
+  role_id?: number;
 }
 
 export class LoginDto {

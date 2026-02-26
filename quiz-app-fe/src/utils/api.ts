@@ -125,7 +125,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 
       throw new ApiError(
         response.status,
-        errorData?.code || 'ERROR',
+        errorData?.code || (errorData as any)?.error || 'ERROR',
         errorData?.message || 'An error occurred',
         errorData?.details
       )

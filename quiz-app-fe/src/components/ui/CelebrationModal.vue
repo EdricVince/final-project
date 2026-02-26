@@ -43,7 +43,7 @@
             <!-- Achievement Badge (optional) -->
             <div
               v-if="badge"
-              class="mb-6 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-4 py-2 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+              class="mb-6 inline-flex items-center gap-2 rounded-full bg-chart-5/10 px-4 py-2 text-chart-5"
             >
               <Trophy class="h-5 w-5" />
               <span class="font-medium">{{ badge }}</span>

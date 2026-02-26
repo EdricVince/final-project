@@ -191,9 +191,9 @@ const getInitials = (name: string) => {
 }
 
 const getScoreClass = (score: number) => {
-  if (score >= 80) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-  if (score >= 60) return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-  return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+  if (score >= 80) return 'bg-chart-2/10 text-chart-2'
+  if (score >= 60) return 'bg-chart-5/10 text-chart-5'
+  return 'bg-destructive/10 text-destructive'
 }
 
 const formatDate = (date: string) => {

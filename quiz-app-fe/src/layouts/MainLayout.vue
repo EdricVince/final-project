@@ -110,15 +110,24 @@
         <!-- Right: Actions -->
         <div class="flex items-center gap-3">
           <!-- Search -->
-          <button class="text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg p-2 transition-colors">
+          <button
+            class="text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg p-2 transition-colors"
+            @click="showSearch = true"
+          >
             <Search class="h-5 w-5" />
           </button>
 
           <!-- Notifications -->
-          <button class="text-muted-foreground hover:text-foreground hover:bg-accent relative rounded-lg p-2 transition-colors">
-            <Bell class="h-5 w-5" />
-            <span class="bg-destructive absolute top-1.5 right-1.5 h-2 w-2 rounded-full"></span>
-          </button>
+          <div class="relative" ref="notificationRef">
+            <button
+              class="text-muted-foreground hover:text-foreground hover:bg-accent relative rounded-lg p-2 transition-colors"
+              @click="showNotifications = !showNotifications"
+            >
+              <Bell class="h-5 w-5" />
+              <span v-if="notificationCount > 0" class="bg-destructive absolute top-1.5 right-1.5 h-2 w-2 rounded-full"></span>
+            </button>
+            <NotificationPanel :show="showNotifications" ref="notificationPanelRef" />
+          </div>
 
           <!-- Divider -->
           <div class="bg-border h-8 w-px"></div>
@@ -188,6 +197,9 @@
         </router-view>
       </main>
     </div>
+
+    <!-- Search Modal -->
+    <SearchModal :show="showSearch" @close="showSearch = false" />
   </div>
 </template>
 
@@ -214,6 +226,8 @@ import {
   Gamepad2,
   Target,
 } from 'lucide-vue-next'
+import SearchModal from '@/components/ui/SearchModal.vue'
+import NotificationPanel from '@/components/ui/NotificationPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -225,6 +239,13 @@ const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
 }
 
+// Search & Notifications
+const showSearch = ref(false)
+const showNotifications = ref(false)
+const notificationRef = ref<HTMLElement | null>(null)
+const notificationPanelRef = ref<InstanceType<typeof NotificationPanel> | null>(null)
+const notificationCount = computed(() => notificationPanelRef.value?.unreadCount ?? 3)
+
 // Dropdown state
 const isDropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
@@ -233,19 +254,32 @@ const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value
 }
 
-// Close dropdown when clicking outside
+// Close dropdown/notifications when clicking outside
 const handleClickOutside = (event: MouseEvent) => {
   if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
     isDropdownOpen.value = false
+  }
+  if (notificationRef.value && !notificationRef.value.contains(event.target as Node)) {
+    showNotifications.value = false
+  }
+}
+
+// Keyboard shortcut for search (Ctrl+K)
+const handleKeydown = (event: KeyboardEvent) => {
+  if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+    event.preventDefault()
+    showSearch.value = !showSearch.value
   }
 }
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  document.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('keydown', handleKeydown)
 })
 
 // User data - get from auth store

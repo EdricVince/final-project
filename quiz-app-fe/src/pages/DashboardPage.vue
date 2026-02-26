@@ -108,9 +108,9 @@ import {
   Medal,
   Crown,
   Rocket,
-  Code,
+  BookOpen,
   Languages,
-  Calculator,
+  Headphones,
   Layers,
 } from 'lucide-vue-next'
 
@@ -171,17 +171,17 @@ const isLoading = ref(true)
 
 // Continue Learning data
 const continueLearning = ref<DashboardCourse[]>([
-  { id: 1, title: 'JavaScript Fundamentals', progress: 68, icon: Code },
-  { id: 2, title: 'Spanish Vocabulary', progress: 45, icon: Languages },
-  { id: 3, title: 'Advanced Mathematics', progress: 32, icon: Calculator },
+  { id: 1, title: 'English Grammar Basics', progress: 68, icon: BookOpen },
+  { id: 2, title: 'English Vocabulary Builder', progress: 45, icon: Languages },
+  { id: 3, title: 'English Listening Practice', progress: 32, icon: Headphones },
 ])
 
 // Recent Flashcards
 const recentFlashcards = ref<DashboardFlashcard[]>([
-  { id: 1, question: 'What is a closure in JavaScript?', difficulty: 'Medium', lastStudied: '2 hours ago' },
-  { id: 2, question: 'Explain the difference between let and const', difficulty: 'Easy', lastStudied: '5 hours ago' },
-  { id: 3, question: 'What is the event loop?', difficulty: 'Hard', lastStudied: '1 day ago' },
-  { id: 4, question: 'How does prototypal inheritance work?', difficulty: 'Medium', lastStudied: '2 days ago' },
+  { id: 1, question: 'What does "ubiquitous" mean?', difficulty: 'Medium', lastStudied: '2 hours ago' },
+  { id: 2, question: 'What is the past tense of "teach"?', difficulty: 'Easy', lastStudied: '5 hours ago' },
+  { id: 3, question: 'What does the idiom "break the ice" mean?', difficulty: 'Hard', lastStudied: '1 day ago' },
+  { id: 4, question: 'Choose the correct form: "She ___ to school every day"', difficulty: 'Medium', lastStudied: '2 days ago' },
 ])
 
 // Study Modes - linked to actual pages

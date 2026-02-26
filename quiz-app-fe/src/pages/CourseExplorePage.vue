@@ -80,14 +80,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, BookOpen, Code, Languages, Calculator, Palette, Music, Camera } from 'lucide-vue-next'
+import { Search, BookOpen, Languages, GraduationCap, Briefcase, Mic, PenTool, Headphones } from 'lucide-vue-next'
 
 const router = useRouter()
 
 const searchQuery = ref('')
 const selectedCategory = ref('All')
 
-const categories = ['All', 'Programming', 'Languages', 'Math', 'Design', 'Music']
+const categories = ['All', 'Grammar', 'Vocabulary', 'Test Prep', 'Business', 'Speaking', 'Writing']
 
 interface ExploreCourse {
   id: number
@@ -102,55 +102,55 @@ interface ExploreCourse {
 const courses = ref<ExploreCourse[]>([
   {
     id: 101,
-    title: 'JavaScript Mastery',
-    description: 'Master JavaScript from basics to advanced concepts including ES6+, async/await, and more.',
-    category: 'Programming',
+    title: 'Advanced English Grammar',
+    description: 'Master complex grammar structures including conditionals, reported speech, and advanced tenses.',
+    category: 'Grammar',
     difficulty: 'Intermediate',
     totalLessons: 48,
     estimatedHours: 24,
   },
   {
     id: 102,
-    title: 'Python for Beginners',
-    description: 'Learn Python programming from scratch. Perfect for absolute beginners.',
-    category: 'Programming',
+    title: 'Essential English Vocabulary',
+    description: 'Build a strong vocabulary foundation with 3000+ most common English words and phrases.',
+    category: 'Vocabulary',
     difficulty: 'Beginner',
     totalLessons: 36,
     estimatedHours: 18,
   },
   {
     id: 103,
-    title: 'Spanish Essentials',
-    description: 'Learn essential Spanish vocabulary and grammar for everyday conversations.',
-    category: 'Languages',
-    difficulty: 'Beginner',
+    title: 'TOEFL Preparation',
+    description: 'Complete TOEFL iBT preparation with practice tests and strategies for all sections.',
+    category: 'Test Prep',
+    difficulty: 'Advanced',
     totalLessons: 30,
     estimatedHours: 15,
   },
   {
     id: 104,
-    title: 'Advanced Calculus',
-    description: 'Deep dive into calculus concepts including integrals, derivatives, and limits.',
-    category: 'Math',
-    difficulty: 'Advanced',
+    title: 'Business English Communication',
+    description: 'Professional English for meetings, presentations, emails, and negotiations in the workplace.',
+    category: 'Business',
+    difficulty: 'Intermediate',
     totalLessons: 42,
     estimatedHours: 28,
   },
   {
     id: 105,
-    title: 'UI/UX Design Fundamentals',
-    description: 'Learn the principles of user interface and experience design.',
-    category: 'Design',
+    title: 'English Conversation & Speaking',
+    description: 'Improve your speaking fluency with guided conversations, pronunciation drills, and role plays.',
+    category: 'Speaking',
     difficulty: 'Beginner',
     totalLessons: 24,
     estimatedHours: 12,
   },
   {
     id: 106,
-    title: 'Music Theory Basics',
-    description: 'Understand the fundamentals of music theory, scales, and chord progressions.',
-    category: 'Music',
-    difficulty: 'Beginner',
+    title: 'Academic English Writing',
+    description: 'Learn to write essays, reports, and research papers with proper structure and academic style.',
+    category: 'Writing',
+    difficulty: 'Intermediate',
     totalLessons: 20,
     estimatedHours: 10,
   },
@@ -166,21 +166,23 @@ const filteredCourses = computed(() => {
 })
 
 const getCourseIcon = (category: string) => {
-  const icons: Record<string, typeof Code> = {
-    Programming: Code,
-    Languages: Languages,
-    Math: Calculator,
-    Design: Palette,
-    Music: Music,
+  const icons: Record<string, typeof BookOpen> = {
+    Grammar: BookOpen,
+    Vocabulary: Languages,
+    'Test Prep': GraduationCap,
+    Business: Briefcase,
+    Speaking: Mic,
+    Writing: PenTool,
+    Listening: Headphones,
   }
   return icons[category] || BookOpen
 }
 
 const getDifficultyClass = (difficulty: string) => {
   const classes: Record<string, string> = {
-    Beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    Intermediate: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    Advanced: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    Beginner: 'bg-chart-2/10 text-chart-2',
+    Intermediate: 'bg-chart-5/10 text-chart-5',
+    Advanced: 'bg-destructive/10 text-destructive',
   }
   return classes[difficulty] || 'bg-secondary text-secondary-foreground'
 }

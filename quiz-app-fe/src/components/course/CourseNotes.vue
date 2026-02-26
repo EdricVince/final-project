@@ -44,7 +44,7 @@
                 <Pencil class="h-4 w-4" />
               </button>
               <button
-                class="text-muted-foreground rounded p-1 transition-colors hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                class="text-muted-foreground rounded p-1 transition-colors hover:bg-destructive/10 hover:text-destructive"
                 @click="deleteNote(note.id)"
               >
                 <Trash2 class="h-4 w-4" />
@@ -229,11 +229,11 @@ const formatDate = (date: Date) => {
 
 const getLessonTagClass = (lessonId: number) => {
   const colors = [
-    'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-    'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+    'bg-chart-1/10 text-chart-1',
+    'bg-chart-2/10 text-chart-2',
+    'bg-chart-3/10 text-chart-3',
+    'bg-chart-4/10 text-chart-4',
+    'bg-chart-5/10 text-chart-5',
   ]
   return colors[(lessonId - 1) % colors.length]
 }

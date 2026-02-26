@@ -20,16 +20,14 @@
         :key="challenge.id"
         class="group relative overflow-hidden rounded-xl border p-4 transition-all"
         :class="challenge.completed
-          ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+          ? 'border-primary/20 bg-primary/5'
           : 'border-border bg-secondary/30 hover:bg-secondary/50'"
       >
         <div class="flex items-center gap-4">
           <!-- Icon -->
           <div
             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all"
-            :class="challenge.completed
-              ? 'bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-400'
-              : 'bg-primary/10 text-primary'"
+            :class="'bg-primary/10 text-primary'"
           >
             <component :is="challenge.icon" class="h-5 w-5" />
           </div>
@@ -40,7 +38,7 @@
               <h4 class="text-foreground font-medium">{{ challenge.title }}</h4>
               <span
                 v-if="challenge.completed"
-                class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-800 dark:text-green-300"
+                class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
               >
                 Completed
               </span>
@@ -65,7 +63,7 @@
           <div class="text-right">
             <div
               class="flex items-center gap-1 font-bold"
-              :class="challenge.completed ? 'text-green-600 dark:text-green-400' : 'text-primary'"
+              :class="'text-primary'"
             >
               <Zap class="h-4 w-4" />
               {{ challenge.xp }} XP
@@ -78,7 +76,7 @@
           v-if="challenge.completed"
           class="absolute right-4 top-4"
         >
-          <CheckCircle class="h-5 w-5 text-green-600 dark:text-green-400" />
+          <CheckCircle class="h-5 w-5 text-primary" />
         </div>
       </div>
     </div>

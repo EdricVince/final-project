@@ -263,9 +263,9 @@ const upcomingTests = ref([
 
 const getActivityClass = (type: string) => {
   const classes: Record<string, string> = {
-    student_join: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-    test_complete: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-    video_upload: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+    student_join: 'bg-chart-2/10 text-chart-2',
+    test_complete: 'bg-chart-1/10 text-chart-1',
+    video_upload: 'bg-chart-3/10 text-chart-3',
   }
   return classes[type] || 'bg-secondary text-muted-foreground'
 }

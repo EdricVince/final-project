@@ -71,7 +71,7 @@
         <div class="mb-4 flex items-center justify-between">
           <span
             class="rounded-full px-3 py-1 text-xs font-medium"
-            :class="cls.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-secondary text-muted-foreground'"
+            :class="cls.is_active ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'"
           >
             {{ cls.is_active ? 'Active' : 'Inactive' }}
           </span>
