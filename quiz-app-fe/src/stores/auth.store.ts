@@ -92,6 +92,19 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         localStorage.removeItem(REMEMBER_EMAIL_KEY)
       }
+      // Fetch full profile (includes name/avatar) — non-critical
+      try {
+        const profileData = await api.getProfile()
+        setUser({
+          id: profileData.id,
+          email: profileData.email,
+          name: profileData.name,
+          is_active: profileData.is_active ?? resp.user.is_active,
+          role_id: profileData.role_id ?? resp.user.role_id,
+        })
+      } catch {
+        // Non-critical: continue with basic data from login response
+      }
       // Fetch progress stats after login
       const progressStore = useProgressStore()
       progressStore.fetchProgress()

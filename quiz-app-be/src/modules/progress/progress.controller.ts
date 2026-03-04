@@ -9,7 +9,8 @@ import {
 } from '@nestjs/common';
 import { ProgressService } from './progress.service';
 import { JwtGuard } from '../../core/guards/jwt.guard';
-import { CurrentUser, CurrentUserData } from '../../core/decorators/current-user.decorator';
+import { CurrentUser } from '../../core/decorators/current-user.decorator';
+import type { CurrentUserData } from '../../core/decorators/current-user.decorator';
 import { LogActivityDto } from './dto/log-activity.dto';
 
 interface ApiResponse<T> {

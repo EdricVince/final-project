@@ -23,6 +23,12 @@ export class User {
   @Column({ default: 1 })
   role_id: number;
 
+  @Column({ type: 'varchar', nullable: true, default: null })
+  name: string | null;
+
+  @Column({ type: 'varchar', nullable: true, default: null })
+  avatar: string | null;
+
   @CreateDateColumn()
   created_at: Date;
 

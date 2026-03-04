@@ -26,4 +26,8 @@ export class UsersService {
   async findById(id: number): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
   }
+
+  async update(id: number, data: Partial<Pick<User, 'name' | 'avatar'>>): Promise<void> {
+    await this.usersRepository.update(id, data);
+  }
 }

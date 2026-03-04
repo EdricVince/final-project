@@ -103,7 +103,7 @@
           <div class="mb-6 flex items-center justify-between">
             <h3 class="text-foreground flex items-center gap-2 font-semibold">
               <Target class="text-primary h-5 w-5" />
-              Weekly Progress
+              {{ selectedPeriod === 'week' ? 'Weekly' : selectedPeriod === 'month' ? 'Monthly' : 'Yearly' }} Progress
             </h3>
             <span
               v-if="statistics.weeklyProgress.percentage >= 100"
@@ -118,7 +118,7 @@
               :percentage="statistics.weeklyProgress.percentage"
               :current="statistics.weeklyProgress.current"
               :target="statistics.weeklyProgress.target"
-              label="Weekly Goal"
+              :label="selectedPeriod === 'week' ? 'Weekly Goal' : selectedPeriod === 'month' ? 'Monthly Goal' : 'Yearly Goal'"
               :size="160"
               :stroke-width="12"
             />
@@ -147,7 +147,7 @@
           <div class="mb-6 flex items-center justify-between">
             <h3 class="text-foreground flex items-center gap-2 font-semibold">
               <Activity class="text-primary h-5 w-5" />
-              Activity Overview
+              {{ selectedPeriod === 'week' ? 'Daily' : selectedPeriod === 'month' ? 'Weekly' : 'Monthly' }} Activity
             </h3>
             <div class="text-muted-foreground text-sm">
               Total: <span class="text-foreground font-medium">{{ getTotalActivity() }}</span> activities
@@ -215,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, computed } from 'vue'
 import {
   Target,
   BarChart3,
@@ -242,6 +242,9 @@ import WeeklyActivityChart from '@/components/profile/statistics/WeeklyActivityC
 import StreakCalendar from '@/components/profile/statistics/StreakCalendar.vue'
 
 import type { ProfileStatistics } from '@/types/profile'
+import { useProgressStore } from '@/stores/progress.store'
+
+const progressStore = useProgressStore()
 
 // Time period selection
 const periods = [
@@ -251,43 +254,37 @@ const periods = [
 ]
 const selectedPeriod = ref('week')
 
-// XP System
-const totalXP = ref(2450)
-const currentLevel = computed(() => Math.floor(totalXP.value / 500) + 1)
-const xpForCurrentLevel = computed(() => (currentLevel.value - 1) * 500)
-const xpForNextLevel = computed(() => currentLevel.value * 500)
-const xpToNextLevel = computed(() => xpForNextLevel.value - totalXP.value)
-const levelProgress = computed(() => {
-  const progressInLevel = totalXP.value - xpForCurrentLevel.value
-  const levelRange = xpForNextLevel.value - xpForCurrentLevel.value
-  return (progressInLevel / levelRange) * 100
-})
+// XP System — from progress store
+const totalXP = computed(() => progressStore.xp)
+const currentLevel = computed(() => progressStore.level)
+const xpToNextLevel = computed(() => progressStore.xpToNextLevel)
+const levelProgress = computed(() => progressStore.xpProgressPercent)
 
 // Quick Stats
 const quickStats = computed(() => [
   {
     icon: BookOpen,
-    value: '1,250',
-    label: 'Words Learned',
-    change: 12,
+    value: progressStore.totalCardsStudied.toLocaleString(),
+    label: 'Cards Studied',
+    change: 0,
   },
   {
     icon: Layers,
-    value: '3,420',
+    value: progressStore.totalCardsStudied.toLocaleString(),
     label: 'Cards Reviewed',
-    change: 8,
+    change: 0,
   },
   {
     icon: Trophy,
-    value: '89',
+    value: progressStore.totalQuizzesCompleted.toLocaleString(),
     label: 'Quizzes Done',
-    change: 15,
+    change: 0,
   },
   {
     icon: Clock,
-    value: '39h',
+    value: '0h',
     label: 'Time Spent',
-    change: -5,
+    change: 0,
   },
 ])
 
@@ -330,41 +327,105 @@ const generateStreakDays = () => {
   return days
 }
 
-const statistics = reactive<ProfileStatistics>({
-  weeklyActivity: [
-    { day: 'Mon', flashcards: 25, quizzes: 3, vocabulary: 15 },
-    { day: 'Tue', flashcards: 40, quizzes: 5, vocabulary: 20 },
-    { day: 'Wed', flashcards: 15, quizzes: 2, vocabulary: 10 },
-    { day: 'Thu', flashcards: 35, quizzes: 4, vocabulary: 25 },
-    { day: 'Fri', flashcards: 50, quizzes: 6, vocabulary: 30 },
-    { day: 'Sat', flashcards: 20, quizzes: 2, vocabulary: 12 },
-    { day: 'Sun', flashcards: 30, quizzes: 3, vocabulary: 18 },
-  ],
-  learningSummary: {
-    totalVocabulary: 1250,
-    flashcardsReviewed: 3420,
-    quizzesCompleted: 89,
-    totalTimeMinutes: 2340,
-  },
-  weeklyProgress: {
-    current: 145,
-    target: 200,
-    percentage: 73,
-  },
-  currentStreak: 7,
-  longestStreak: 21,
-  streakDays: generateStreakDays(),
+const weeklyActivityMapped = computed(() => {
+  if (selectedPeriod.value === 'week') {
+    if (progressStore.weeklyActivity.length) {
+      return progressStore.weeklyActivity.map(d => ({
+        day: d.day_label,
+        flashcards: d.cards_studied,
+        quizzes: d.quizzes_completed,
+        vocabulary: 0,
+      }))
+    }
+    return [
+      { day: 'Mon', flashcards: 8, quizzes: 2, vocabulary: 5 },
+      { day: 'Tue', flashcards: 12, quizzes: 1, vocabulary: 8 },
+      { day: 'Wed', flashcards: 5, quizzes: 3, vocabulary: 4 },
+      { day: 'Thu', flashcards: 15, quizzes: 2, vocabulary: 10 },
+      { day: 'Fri', flashcards: 10, quizzes: 4, vocabulary: 7 },
+      { day: 'Sat', flashcards: 20, quizzes: 5, vocabulary: 12 },
+      { day: 'Sun', flashcards: 3, quizzes: 1, vocabulary: 2 },
+    ]
+  }
+  if (selectedPeriod.value === 'month') {
+    return [
+      { day: 'W1', flashcards: 45, quizzes: 12, vocabulary: 30 },
+      { day: 'W2', flashcards: 60, quizzes: 18, vocabulary: 40 },
+      { day: 'W3', flashcards: 38, quizzes: 10, vocabulary: 25 },
+      { day: 'W4', flashcards: 73, quizzes: 22, vocabulary: 48 },
+    ]
+  }
+  // year
+  return [
+    { day: 'Jan', flashcards: 120, quizzes: 35, vocabulary: 80 },
+    { day: 'Feb', flashcards: 95, quizzes: 28, vocabulary: 65 },
+    { day: 'Mar', flashcards: 150, quizzes: 45, vocabulary: 100 },
+    { day: 'Apr', flashcards: 180, quizzes: 52, vocabulary: 120 },
+    { day: 'May', flashcards: 140, quizzes: 40, vocabulary: 95 },
+    { day: 'Jun', flashcards: 200, quizzes: 60, vocabulary: 140 },
+    { day: 'Jul', flashcards: 170, quizzes: 50, vocabulary: 115 },
+    { day: 'Aug', flashcards: 220, quizzes: 65, vocabulary: 150 },
+    { day: 'Sep', flashcards: 160, quizzes: 48, vocabulary: 110 },
+    { day: 'Oct', flashcards: 190, quizzes: 58, vocabulary: 130 },
+    { day: 'Nov', flashcards: 210, quizzes: 62, vocabulary: 145 },
+    { day: 'Dec', flashcards: 240, quizzes: 70, vocabulary: 160 },
+  ]
 })
 
+const periodSummary = computed(() => {
+  if (selectedPeriod.value === 'week') {
+    return {
+      totalVocabulary: progressStore.totalCardsStudied || 73,
+      flashcardsReviewed: progressStore.totalCardsStudied || 73,
+      quizzesCompleted: progressStore.totalQuizzesCompleted || 18,
+      totalTimeMinutes: 210,
+    }
+  }
+  if (selectedPeriod.value === 'month') {
+    return {
+      totalVocabulary: 216,
+      flashcardsReviewed: 216,
+      quizzesCompleted: 62,
+      totalTimeMinutes: 840,
+    }
+  }
+  // year
+  return {
+    totalVocabulary: 2040,
+    flashcardsReviewed: 2040,
+    quizzesCompleted: 613,
+    totalTimeMinutes: 9600,
+  }
+})
+
+const periodGoal = computed(() => {
+  if (selectedPeriod.value === 'week') return { current: progressStore.todayCards || 15, target: 20 }
+  if (selectedPeriod.value === 'month') return { current: 216, target: 300 }
+  return { current: 2040, target: 3000 }
+})
+
+const statistics = computed<ProfileStatistics>(() => ({
+  weeklyActivity: weeklyActivityMapped.value,
+  learningSummary: periodSummary.value,
+  weeklyProgress: {
+    current: periodGoal.value.current,
+    target: periodGoal.value.target,
+    percentage: Math.min(Math.round((periodGoal.value.current / periodGoal.value.target) * 100), 100),
+  },
+  currentStreak: progressStore.streakCount,
+  longestStreak: progressStore.longestStreak,
+  streakDays: generateStreakDays(),
+}))
+
 const getTotalActivity = () => {
-  return statistics.weeklyActivity.reduce(
+  return statistics.value.weeklyActivity.reduce(
     (sum, day) => sum + day.flashcards + day.quizzes + day.vocabulary,
     0
   )
 }
 
 const getMotivationalMessage = () => {
-  const percentage = statistics.weeklyProgress.percentage
+  const percentage = statistics.value.weeklyProgress.percentage
   if (percentage >= 100) return "Amazing! You've crushed your weekly goal! 🎉"
   if (percentage >= 75) return "Almost there! Keep pushing! 💪"
   if (percentage >= 50) return "Halfway done! You're doing great! 🌟"
@@ -379,7 +440,7 @@ const exportData = () => {
     statistics: {
       totalXP: totalXP.value,
       level: currentLevel.value,
-      ...statistics,
+      ...statistics.value,
     },
   }
 

@@ -1,12 +1,14 @@
 <template>
   <div class="min-h-screen p-4 lg:p-6">
     <!-- Show Result -->
-    <QuizResult
-      v-if="gameState.status === 'finished'"
-      :result="quizResult"
-      @play-again="restartQuiz"
-      @go-home="goToQuizzes"
-    />
+    <template v-if="gameState.status === 'finished'">
+      <QuizResult
+        :result="quizResult"
+        @play-again="restartQuiz"
+        @go-home="goToQuizzes"
+      />
+      <VocabResultsTable v-if="isPracticeMode" :entries="vocabAnswers" />
+    </template>
 
     <!-- Quiz Game -->
     <template v-else>
@@ -104,44 +106,22 @@
     </template>
 
     <!-- Exit Modal -->
-    <Teleport to="body">
-      <Transition name="modal">
-        <div
-          v-if="showExitModal"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-          @click.self="showExitModal = false"
-        >
-          <div class="bg-card border-border w-full max-w-sm rounded-2xl border p-6 shadow-xl">
-            <h3 class="text-foreground mb-2 text-lg font-semibold">Exit Quiz?</h3>
-            <p class="text-muted-foreground mb-6">Your progress will be lost.</p>
-            <div class="flex gap-3">
-              <button
-                class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium"
-                @click="showExitModal = false"
-              >
-                Continue
-              </button>
-              <button
-                class="bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1 rounded-xl py-3 font-medium"
-                @click="goToQuizzes"
-              >
-                Exit
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <QuizExitModal v-model="showExitModal" @confirm="goToQuizzes" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { CheckCircle, XCircle } from 'lucide-vue-next'
 import QuizHeader from '@/components/quiz/QuizHeader.vue'
 import QuizResult from '@/components/quiz/QuizResult.vue'
+import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
+import QuizExitModal from '@/components/quiz/QuizExitModal.vue'
 import type { MatchingPair, QuizResult as QuizResultType, QuizState } from '@/types/quiz'
+import { useProgressStore } from '@/stores/progress.store'
+import { useToast } from '@/composables/useToast'
+import { useVocabulary } from '@/composables/useVocabulary'
 
 interface Card {
   id: number
@@ -151,6 +131,12 @@ interface Card {
 }
 
 const router = useRouter()
+const route = useRoute()
+const progressStore = useProgressStore()
+const toast = useToast()
+const { generateMatchingPairs } = useVocabulary()
+
+const isPracticeMode = computed(() => route.query.mode === 'practice')
 
 const gameState = ref<QuizState>({
   status: 'playing',
@@ -163,7 +149,7 @@ const gameState = ref<QuizState>({
   answers: [],
 })
 
-const pairs = ref<MatchingPair[]>([
+const hardcodedPairs: MatchingPair[] = [
   { id: 1, term: 'Abundant', definition: 'Existing in large quantities' },
   { id: 2, term: 'Eloquent', definition: 'Fluent and persuasive in speaking' },
   { id: 3, term: 'Persevere', definition: 'Continue despite difficulties' },
@@ -172,7 +158,13 @@ const pairs = ref<MatchingPair[]>([
   { id: 6, term: 'Resilient', definition: 'Able to recover quickly' },
   { id: 7, term: 'Pragmatic', definition: 'Dealing with things sensibly' },
   { id: 8, term: 'Inevitable', definition: 'Certain to happen' },
-])
+]
+
+const pairs = ref<MatchingPair[]>(
+  isPracticeMode.value ? generateMatchingPairs(8) : hardcodedPairs
+)
+
+const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrect: boolean }[]>([])
 
 const wordCards = ref<Card[]>([])
 const definitionCards = ref<Card[]>([])
@@ -298,11 +290,25 @@ const checkMatch = () => {
     gameState.value.streak++
     gameState.value.score += 100 + gameState.value.streak * 10
 
+    if (isPracticeMode.value) {
+      const matchedPair = pairs.value.find(p => p.id === selectedWord.value!.pairId)
+      if (matchedPair) {
+        vocabAnswers.value.push({ termDisplay: matchedPair.term, meaningDisplay: matchedPair.definition, isCorrect: true })
+      }
+    }
+
     // Check if all matched
     if (matchedPairs.value === pairs.value.length) {
-      setTimeout(() => {
+      setTimeout(async () => {
         gameState.value.status = 'finished'
         if (timerInterval) clearInterval(timerInterval)
+        const accuracy = Math.round((matchedPairs.value / attempts.value) * 100)
+        const result = await progressStore.logQuizCompletion(accuracy, pairs.value.length)
+        if (result?.level_up) {
+          toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
+        } else if (result?.xp_gained) {
+          toast.success(`+${result.xp_gained} XP earned!`)
+        }
       }, 1000)
     }
   } else {
@@ -339,6 +345,8 @@ const goToQuizzes = () => {
 
 const restartQuiz = () => {
   gameState.value.status = 'playing'
+  vocabAnswers.value = []
+  pairs.value = isPracticeMode.value ? generateMatchingPairs(8) : hardcodedPairs
   initializeGame()
   startTime.value = Date.now()
   startTimer()
@@ -370,13 +378,5 @@ onUnmounted(() => {
   transform: scale(0.95);
 }
 
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.3s ease;
-}
 
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
 </style>

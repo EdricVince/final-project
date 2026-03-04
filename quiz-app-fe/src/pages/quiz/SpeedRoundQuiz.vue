@@ -1,12 +1,14 @@
 <template>
   <div class="min-h-screen p-4 lg:p-6">
     <!-- Show Result -->
-    <QuizResult
-      v-if="gameState.status === 'finished'"
-      :result="quizResult"
-      @play-again="restartQuiz"
-      @go-home="goToQuizzes"
-    />
+    <template v-if="gameState.status === 'finished'">
+      <QuizResult
+        :result="quizResult"
+        @play-again="restartQuiz"
+        @go-home="goToQuizzes"
+      />
+      <VocabResultsTable v-if="isPracticeMode" :entries="vocabAnswers" />
+    </template>
 
     <!-- Countdown Start -->
     <template v-else-if="showCountdown">
@@ -125,45 +127,29 @@
     </template>
 
     <!-- Exit Modal -->
-    <Teleport to="body">
-      <Transition name="modal">
-        <div
-          v-if="showExitModal"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-          @click.self="showExitModal = false"
-        >
-          <div class="bg-card border-border w-full max-w-sm rounded-2xl border p-6 shadow-xl">
-            <h3 class="text-foreground mb-2 text-lg font-semibold">Exit Speed Round?</h3>
-            <p class="text-muted-foreground mb-6">Your progress will be lost.</p>
-            <div class="flex gap-3">
-              <button
-                class="bg-secondary text-secondary-foreground flex-1 rounded-xl py-3 font-medium"
-                @click="showExitModal = false"
-              >
-                Continue
-              </button>
-              <button
-                class="bg-destructive text-destructive-foreground flex-1 rounded-xl py-3 font-medium"
-                @click="goToQuizzes"
-              >
-                Exit
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <QuizExitModal v-model="showExitModal" @confirm="goToQuizzes" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { X, Flame } from 'lucide-vue-next'
 import QuizResult from '@/components/quiz/QuizResult.vue'
+import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
+import QuizExitModal from '@/components/quiz/QuizExitModal.vue'
 import type { MultipleChoiceQuestion, QuizResult as QuizResultType, QuizState } from '@/types/quiz'
+import { useProgressStore } from '@/stores/progress.store'
+import { useToast } from '@/composables/useToast'
+import { useVocabulary, type VocabMCQuestion } from '@/composables/useVocabulary'
 
 const router = useRouter()
+const route = useRoute()
+const progressStore = useProgressStore()
+const toast = useToast()
+const { generateSpeedQuestions } = useVocabulary()
+
+const isPracticeMode = computed(() => route.query.mode === 'practice')
 
 const QUESTION_TIME = 10 // seconds per question
 const circumference = 2 * Math.PI * 24
@@ -186,11 +172,12 @@ const selectedAnswer = ref<string | null>(null)
 const showExitModal = ref(false)
 const startTime = ref(Date.now())
 const questionResults = ref<boolean[]>([])
+const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrect: boolean }[]>([])
 
 let countdownInterval: ReturnType<typeof setInterval> | null = null
 let questionTimer: ReturnType<typeof setInterval> | null = null
 
-const questions = ref<MultipleChoiceQuestion[]>([
+const hardcodedQuestions: MultipleChoiceQuestion[] = [
   { id: 1, question: 'Past tense of "eat"?', options: ['ate', 'eated', 'eaten', 'eating'], correctAnswer: 'ate' },
   { id: 2, question: 'Synonym of "big"?', options: ['small', 'large', 'tiny', 'little'], correctAnswer: 'large' },
   { id: 3, question: 'Opposite of "hot"?', options: ['warm', 'cool', 'cold', 'heat'], correctAnswer: 'cold' },
@@ -206,7 +193,11 @@ const questions = ref<MultipleChoiceQuestion[]>([
   { id: 13, question: 'Synonym of "small"?', options: ['big', 'tiny', 'huge', 'large'], correctAnswer: 'tiny' },
   { id: 14, question: '"I ___ English"', options: ['speaks', 'speak', 'speaking', 'spoke'], correctAnswer: 'speak' },
   { id: 15, question: 'Opposite of "dark"?', options: ['dim', 'light', 'black', 'shade'], correctAnswer: 'light' },
-])
+]
+
+const questions = ref<MultipleChoiceQuestion[]>(
+  isPracticeMode.value ? generateSpeedQuestions(15) : hardcodedQuestions
+)
 
 const currentQuestion = computed(() => questions.value[gameState.value.currentQuestion])
 const isLastQuestion = computed(() => gameState.value.currentQuestion >= questions.value.length - 1)
@@ -327,14 +318,28 @@ const selectAnswer = (option: string) => {
     questionResults.value.push(false)
   }
 
+  if (isPracticeMode.value) {
+    const q = currentQuestion.value as VocabMCQuestion
+    if (q?.vocabWord) {
+      vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect })
+    }
+  }
+
   setTimeout(() => {
     nextQuestion()
   }, 800)
 }
 
-const nextQuestion = () => {
+const nextQuestion = async () => {
   if (isLastQuestion.value) {
     gameState.value.status = 'finished'
+    const accuracy = Math.round((gameState.value.correctCount / questions.value.length) * 100)
+    const result = await progressStore.logQuizCompletion(accuracy, questions.value.length)
+    if (result?.level_up) {
+      toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
+    } else if (result?.xp_gained) {
+      toast.success(`+${result.xp_gained} XP earned!`)
+    }
   } else {
     gameState.value.currentQuestion++
     selectedAnswer.value = null
@@ -366,6 +371,8 @@ const restartQuiz = () => {
   }
   selectedAnswer.value = null
   questionResults.value = []
+  vocabAnswers.value = []
+  questions.value = isPracticeMode.value ? generateSpeedQuestions(15) : hardcodedQuestions
   showCountdown.value = true
   countdownValue.value = 3
   startCountdown()
@@ -395,16 +402,6 @@ onUnmounted(() => {
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(-20px) scale(0.98);
-}
-
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.3s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
 }
 
 .option-btn:not(:disabled):active {

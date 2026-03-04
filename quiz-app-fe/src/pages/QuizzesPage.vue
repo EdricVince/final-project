@@ -52,19 +52,39 @@
       </div>
     </div>
 
-    <!-- Game Modes Grid -->
-    <div class="animate-fade-in-up delay-200 mb-8">
+    <!-- Section 1: Assigned by Teacher -->
+    <div class="animate-fade-in-up delay-150 mb-8">
       <h2 class="text-foreground mb-5 flex items-center gap-2 text-xl font-semibold">
-        <Gamepad2 class="text-primary h-6 w-6" />
-        Choose Your Game
+        <BookOpen class="text-primary h-6 w-6" />
+        Bài Giáo Viên Giao
       </h2>
+      <div class="bg-card border-border rounded-2xl border p-10 flex flex-col items-center justify-center text-center">
+        <div class="bg-secondary mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+          <BookOpen class="text-muted-foreground h-8 w-8" />
+        </div>
+        <h3 class="text-foreground mb-2 text-lg font-semibold">Chưa có bài được giao</h3>
+        <p class="text-muted-foreground max-w-md text-sm">
+          Giáo viên chưa giao bài nào. Các bài tập sẽ xuất hiện ở đây khi được giao.
+        </p>
+      </div>
+    </div>
+
+    <!-- Section 2: Practice Games -->
+    <div class="animate-fade-in-up delay-200 mb-8">
+      <h2 class="text-foreground mb-2 flex items-center gap-2 text-xl font-semibold">
+        <Gamepad2 class="text-primary h-6 w-6" />
+        Luyện Tập
+      </h2>
+      <p class="text-muted-foreground mb-5 text-sm">
+        Chơi game với từ vựng ngẫu nhiên — kết quả hiện nghĩa bằng ngôn ngữ của bạn
+      </p>
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <QuizModeCard
           v-for="(mode, index) in quizModes"
           :key="mode.id"
           :mode="mode"
           :index="index"
-          @click="startQuiz(mode.id)"
+          @click="startPractice(mode.id)"
         />
       </div>
     </div>
@@ -106,13 +126,32 @@
       <!-- Leaderboard -->
       <div class="animate-fade-in-up delay-400">
         <div class="bg-card border-border rounded-2xl border p-6">
-          <h3 class="text-foreground mb-4 flex items-center gap-2 font-semibold">
-            <Medal class="text-primary h-5 w-5" />
-            Weekly Leaderboard
-          </h3>
+          <div class="mb-4 flex items-center justify-between">
+            <h3 class="text-foreground flex items-center gap-2 font-semibold">
+              <Medal class="text-primary h-5 w-5" />
+              Leaderboard
+            </h3>
+            <div class="flex items-center gap-2">
+              <button
+                class="hover:bg-secondary rounded-lg p-1.5 transition-colors"
+                @click="changeWeek(-1)"
+              >
+                <ChevronLeft class="text-muted-foreground h-4 w-4" />
+              </button>
+              <span class="text-muted-foreground text-sm font-medium">{{ weekLabel }}</span>
+              <button
+                class="hover:bg-secondary rounded-lg p-1.5 transition-colors"
+                :disabled="currentWeekOffset >= 0"
+                :class="currentWeekOffset >= 0 ? 'opacity-30 cursor-default' : ''"
+                @click="changeWeek(1)"
+              >
+                <ChevronRight class="text-muted-foreground h-4 w-4" />
+              </button>
+            </div>
+          </div>
           <div class="space-y-3">
             <div
-              v-for="entry in leaderboard"
+              v-for="entry in currentLeaderboard"
               :key="entry.rank"
               class="flex items-center gap-4 rounded-xl p-3 transition-colors"
               :class="entry.rank <= 3 ? 'bg-primary/5' : 'bg-secondary/50'"
@@ -143,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, type Component } from 'vue'
+import { ref, computed, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Flame,
@@ -160,21 +199,26 @@ import {
   Link,
   Timer,
   CircleCheck,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-vue-next'
 import QuizModeCard from '@/components/quiz/QuizModeCard.vue'
 import type { QuizMode, LeaderboardEntry } from '@/types/quiz'
+import { useProgressStore } from '@/stores/progress.store'
 
 const router = useRouter()
+const progressStore = useProgressStore()
 
-// User stats
-const userStats = ref({
-  streak: 7,
-  xp: 2450,
-  totalGames: 45,
-  accuracy: 78,
-  badges: 12,
-  totalTime: 8,
-})
+// User stats — live from progress store
+const userStats = computed(() => ({
+  streak: progressStore.streakCount,
+  xp: progressStore.xp,
+  totalGames: progressStore.totalQuizzesCompleted,
+  accuracy: 0, // no per-quiz accuracy tracked yet
+  badges: 0,
+  totalTime: 0,
+}))
 
 // Quiz modes
 const quizModes = ref<QuizMode[]>([
@@ -246,14 +290,49 @@ const recentGames = ref<RecentGame[]>([
   { id: 3, mode: 'Speed Round', icon: Timer, score: 1200, accuracy: 80, date: 'Yesterday' },
 ])
 
-// Leaderboard
-const leaderboard = ref<LeaderboardEntry[]>([
-  { rank: 1, username: 'ProLearner', avatar: '', score: 15420, accuracy: 94, time: 0 },
-  { rank: 2, username: 'WordMaster', avatar: '', score: 14350, accuracy: 91, time: 0 },
-  { rank: 3, username: 'QuizKing', avatar: '', score: 13800, accuracy: 89, time: 0 },
-  { rank: 4, username: 'StudyStar', avatar: '', score: 12500, accuracy: 85, time: 0 },
-  { rank: 5, username: 'LearnFast', avatar: '', score: 11200, accuracy: 82, time: 0 },
-])
+// Leaderboard week navigation
+const currentWeekOffset = ref(0) // 0 = this week, -1 = last week, -2 = two weeks ago
+
+const leaderboardData: Record<number, LeaderboardEntry[]> = {
+  0: [
+    { rank: 1, username: 'ProLearner', avatar: '', score: 15420, accuracy: 94, time: 0 },
+    { rank: 2, username: 'WordMaster', avatar: '', score: 14350, accuracy: 91, time: 0 },
+    { rank: 3, username: 'QuizKing', avatar: '', score: 13800, accuracy: 89, time: 0 },
+    { rank: 4, username: 'StudyStar', avatar: '', score: 12500, accuracy: 85, time: 0 },
+    { rank: 5, username: 'LearnFast', avatar: '', score: 11200, accuracy: 82, time: 0 },
+  ],
+  [-1]: [
+    { rank: 1, username: 'QuizKing', avatar: '', score: 18200, accuracy: 96, time: 0 },
+    { rank: 2, username: 'ProLearner', avatar: '', score: 16800, accuracy: 93, time: 0 },
+    { rank: 3, username: 'LearnFast', avatar: '', score: 15400, accuracy: 90, time: 0 },
+    { rank: 4, username: 'WordMaster', avatar: '', score: 13900, accuracy: 87, time: 0 },
+    { rank: 5, username: 'StudyStar', avatar: '', score: 12100, accuracy: 84, time: 0 },
+  ],
+  [-2]: [
+    { rank: 1, username: 'StudyStar', avatar: '', score: 20100, accuracy: 97, time: 0 },
+    { rank: 2, username: 'LearnFast', avatar: '', score: 17500, accuracy: 92, time: 0 },
+    { rank: 3, username: 'ProLearner', avatar: '', score: 14200, accuracy: 88, time: 0 },
+    { rank: 4, username: 'QuizKing', avatar: '', score: 13000, accuracy: 86, time: 0 },
+    { rank: 5, username: 'WordMaster', avatar: '', score: 11800, accuracy: 83, time: 0 },
+  ],
+}
+
+const currentLeaderboard = computed(() => {
+  return leaderboardData[currentWeekOffset.value] || leaderboardData[0]
+})
+
+const weekLabel = computed(() => {
+  if (currentWeekOffset.value === 0) return 'This Week'
+  if (currentWeekOffset.value === -1) return 'Last Week'
+  return `${Math.abs(currentWeekOffset.value)} Weeks Ago`
+})
+
+const changeWeek = (delta: number) => {
+  const next = currentWeekOffset.value + delta
+  if (next > 0) return // can't go into the future
+  if (next < -2) return // only keep 3 weeks of data
+  currentWeekOffset.value = next
+}
 
 const getRankClass = (rank: number): string => {
   if (rank === 1) return 'bg-primary text-primary-foreground'
@@ -262,7 +341,7 @@ const getRankClass = (rank: number): string => {
   return 'bg-muted text-muted-foreground'
 }
 
-const startQuiz = (modeId: string) => {
-  router.push(`/quizzes/${modeId}`)
+const startPractice = (modeId: string) => {
+  router.push(`/quizzes/${modeId}?mode=practice`)
 }
 </script>

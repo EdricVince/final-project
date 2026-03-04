@@ -107,6 +107,12 @@ const routes = [
         meta: { requiresAuth: false },
       },
       {
+        path: 'courses/:courseId/lessons/:lessonId',
+        name: 'Lesson',
+        component: () => import('@/pages/LessonPage.vue'),
+        meta: { requiresAuth: false },
+      },
+      {
         path: 'flashcards',
         name: 'Flashcards',
         component: () => import('@/pages/FlashcardsPage.vue'),
@@ -116,6 +122,12 @@ const routes = [
         path: 'flashcards/:id',
         name: 'FlashcardDeck',
         component: () => import('@/pages/FlashcardDeckPage.vue'),
+        meta: { requiresAuth: false },
+      },
+      {
+        path: 'flashcards/vocab-practice',
+        name: 'FlashcardVocabPractice',
+        component: () => import('@/pages/FlashcardStudyPage.vue'),
         meta: { requiresAuth: false },
       },
       {

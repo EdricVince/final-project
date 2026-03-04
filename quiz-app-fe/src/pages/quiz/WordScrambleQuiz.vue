@@ -1,12 +1,14 @@
 <template>
   <div class="min-h-screen p-4 lg:p-6">
     <!-- Show Result -->
-    <QuizResult
-      v-if="gameState.status === 'finished'"
-      :result="quizResult"
-      @play-again="restartQuiz"
-      @go-home="goToQuizzes"
-    />
+    <template v-if="gameState.status === 'finished'">
+      <QuizResult
+        :result="quizResult"
+        @play-again="restartQuiz"
+        @go-home="goToQuizzes"
+      />
+      <VocabResultsTable v-if="isPracticeMode" :entries="vocabAnswers" />
+    </template>
 
     <!-- Quiz Game -->
     <template v-else>
@@ -138,46 +140,30 @@
     </template>
 
     <!-- Exit Modal -->
-    <Teleport to="body">
-      <Transition name="modal">
-        <div
-          v-if="showExitModal"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-          @click.self="showExitModal = false"
-        >
-          <div class="bg-card border-border w-full max-w-sm rounded-2xl border p-6 shadow-xl">
-            <h3 class="text-foreground mb-2 text-lg font-semibold">Exit Quiz?</h3>
-            <p class="text-muted-foreground mb-6">Your progress will be lost.</p>
-            <div class="flex gap-3">
-              <button
-                class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium"
-                @click="showExitModal = false"
-              >
-                Continue
-              </button>
-              <button
-                class="bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1 rounded-xl py-3 font-medium"
-                @click="goToQuizzes"
-              >
-                Exit
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <QuizExitModal v-model="showExitModal" @confirm="goToQuizzes" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { RotateCcw, Check, CheckCircle, XCircle, ArrowRight } from 'lucide-vue-next'
 import QuizHeader from '@/components/quiz/QuizHeader.vue'
 import QuizResult from '@/components/quiz/QuizResult.vue'
+import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
+import QuizExitModal from '@/components/quiz/QuizExitModal.vue'
 import type { WordScrambleQuestion, QuizResult as QuizResultType, QuizState } from '@/types/quiz'
+import { useProgressStore } from '@/stores/progress.store'
+import { useToast } from '@/composables/useToast'
+import { useVocabulary, type VocabScrambleQuestion } from '@/composables/useVocabulary'
 
 const router = useRouter()
+const route = useRoute()
+const progressStore = useProgressStore()
+const toast = useToast()
+const { generateScrambleQuestions } = useVocabulary()
+
+const isPracticeMode = computed(() => route.query.mode === 'practice')
 
 const gameState = ref<QuizState>({
   status: 'playing',
@@ -197,8 +183,9 @@ const isAnswered = ref(false)
 const isCorrect = ref(false)
 const showExitModal = ref(false)
 const startTime = ref(Date.now())
+const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrect: boolean }[]>([])
 
-const questions = ref<WordScrambleQuestion[]>([
+const hardcodedQuestions: WordScrambleQuestion[] = [
   { id: 1, word: 'language', hint: 'A system of communication used by a country or community', scrambled: [] },
   { id: 2, word: 'beautiful', hint: 'Pleasing the senses or mind aesthetically', scrambled: [] },
   { id: 3, word: 'knowledge', hint: 'Facts, information, and skills acquired through experience or education', scrambled: [] },
@@ -209,7 +196,11 @@ const questions = ref<WordScrambleQuestion[]>([
   { id: 8, word: 'discover', hint: 'To find something unexpectedly or for the first time', scrambled: [] },
   { id: 9, word: 'different', hint: 'Not the same as another or each other', scrambled: [] },
   { id: 10, word: 'together', hint: 'With each other; in proximity or union', scrambled: [] },
-])
+]
+
+const questions = ref<WordScrambleQuestion[]>(
+  isPracticeMode.value ? generateScrambleQuestions(10) : hardcodedQuestions
+)
 
 const currentQuestion = computed(() => questions.value[gameState.value.currentQuestion])
 const isLastQuestion = computed(() => gameState.value.currentQuestion >= questions.value.length - 1)
@@ -298,11 +289,25 @@ const submitAnswer = () => {
     gameState.value.wrongCount++
     gameState.value.streak = 0
   }
+
+  if (isPracticeMode.value) {
+    const q = currentQuestion.value as VocabScrambleQuestion
+    if (q?.vocabWord) {
+      vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect: isCorrect.value })
+    }
+  }
 }
 
-const nextQuestion = () => {
+const nextQuestion = async () => {
   if (isLastQuestion.value) {
     gameState.value.status = 'finished'
+    const accuracy = Math.round((gameState.value.correctCount / questions.value.length) * 100)
+    const result = await progressStore.logQuizCompletion(accuracy, questions.value.length)
+    if (result?.level_up) {
+      toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
+    } else if (result?.xp_gained) {
+      toast.success(`+${result.xp_gained} XP earned!`)
+    }
   } else {
     gameState.value.currentQuestion++
   }
@@ -328,6 +333,8 @@ const restartQuiz = () => {
     answers: [],
   }
   startTime.value = Date.now()
+  vocabAnswers.value = []
+  questions.value = isPracticeMode.value ? generateScrambleQuestions(10) : hardcodedQuestions
   initializeQuestion()
 }
 
@@ -360,16 +367,6 @@ watch(() => gameState.value.currentQuestion, initializeQuestion, { immediate: tr
 .fade-scale-leave-to {
   opacity: 0;
   transform: scale(0.95);
-}
-
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.3s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
 }
 
 .letter-btn {

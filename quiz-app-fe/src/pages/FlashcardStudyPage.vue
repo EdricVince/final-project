@@ -57,10 +57,21 @@
           <div class="card-face card-front bg-card border-border absolute inset-0 flex flex-col rounded-3xl border shadow-lg">
             <!-- Card Header -->
             <div class="flex items-center justify-between p-5">
-              <span class="text-muted-foreground text-sm font-medium">Term</span>
+              <span class="text-muted-foreground text-sm font-medium">
+                <template v-if="isVocabMode">{{ currentLearningOption.flag }} {{ currentLearningOption.label }}</template>
+                <template v-else>Term</template>
+              </span>
               <div class="flex items-center gap-2">
+                <!-- Speech button always shown -->
                 <button
-                  v-if="currentCard?.audio"
+                  class="hover:bg-secondary rounded-lg p-2 transition-colors"
+                  title="Listen to pronunciation"
+                  @click.stop="speakCurrentTerm"
+                >
+                  <Volume2 class="text-primary h-5 w-5" />
+                </button>
+                <button
+                  v-if="currentCard?.audio && !isVocabMode"
                   class="hover:bg-secondary rounded-lg p-2 transition-colors"
                   @click.stop="playAudio"
                 >
@@ -97,7 +108,10 @@
           <div class="card-face card-back bg-card border-border absolute inset-0 flex flex-col rounded-3xl border shadow-lg">
             <!-- Card Header -->
             <div class="flex items-center justify-between p-5">
-              <span class="text-primary text-sm font-medium">Definition</span>
+              <span class="text-primary text-sm font-medium">
+                <template v-if="isVocabMode">{{ uiLang.toUpperCase() }} Meaning</template>
+                <template v-else>Definition</template>
+              </span>
               <div class="flex items-center gap-2">
                 <button
                   v-if="currentCard?.audio"
@@ -238,6 +252,11 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Hammer from 'hammerjs'
+import { useProgressStore } from '@/stores/progress.store'
+import { useToast } from '@/composables/useToast'
+import { useLearningLanguage } from '@/composables/useLearningLanguage'
+import { useLocale } from '@/composables/useLocale'
+import { useVocabulary } from '@/composables/useVocabulary'
 import {
   X,
   Check,
@@ -253,6 +272,13 @@ import Button from '@/components/ui/button/Button.vue'
 
 const route = useRoute()
 const router = useRouter()
+const progressStore = useProgressStore()
+const toast = useToast()
+const { currentOption: currentLearningOption } = useLearningLanguage()
+const { locale: uiLang } = useLocale()
+const { getRandomWords, getWordInLang } = useVocabulary()
+
+const isVocabMode = computed(() => route.name === 'FlashcardVocabPractice' || route.query.mode === 'vocab')
 
 // Card container ref for HammerJS
 const cardContainer = ref<HTMLElement | null>(null)
@@ -265,12 +291,12 @@ const swipeDirection = ref<'left' | 'right' | null>(null)
 const cardOffset = ref({ x: 0, y: 0, rotation: 0 })
 const showCompletionModal = ref(false)
 
-// Deck data (would come from route params/store in real app)
-const currentDeck = ref({
-  id: route.params.deckId || 1,
-  title: 'JavaScript Fundamentals',
-  description: 'Core concepts and syntax',
-})
+// Deck data
+const currentDeck = computed(() =>
+  isVocabMode.value
+    ? { id: 'vocab', title: `${currentLearningOption.value.flag} Vocabulary Practice`, description: `Learn ${currentLearningOption.value.name} words with ${uiLang.value.toUpperCase()} translations` }
+    : { id: route.params.id || 1, title: 'JavaScript Fundamentals', description: 'Core concepts and syntax' }
+)
 
 // Flashcard interface
 interface Flashcard {
@@ -284,8 +310,22 @@ interface Flashcard {
   isKnown: boolean | null
 }
 
+// Generate vocab flashcards when in vocab mode
+function buildVocabCards(): Flashcard[] {
+  const words = getRandomWords(15)
+  return words.map((w, i) => ({
+    id: i + 1,
+    term: getWordInLang(w, currentLearningOption.value.value),
+    definition: getWordInLang(w, uiLang.value as string),
+    example: undefined,
+    isFavorite: false,
+    isKnown: null,
+  }))
+}
+
 // Sample flashcards (would be loaded from API/store based on deckId)
-const cards = ref<Flashcard[]>([
+const cards = ref<Flashcard[]>(
+  isVocabMode.value ? buildVocabCards() : [
   {
     id: 1,
     term: 'Closure',
@@ -371,12 +411,18 @@ const animateSwipe = (direction: 'left' | 'right') => {
   }, 200)
 }
 
-const goToNext = () => {
+const goToNext = async () => {
   isFlipped.value = false
   if (currentIndex.value < cards.value.length - 1) {
     currentIndex.value++
   } else {
     showCompletionModal.value = true
+    const result = await progressStore.logFlashcardSession(knownCount.value)
+    if (result?.level_up) {
+      toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
+    } else if (result?.xp_gained) {
+      toast.success(`+${result.xp_gained} XP! Great session!`)
+    }
   }
 }
 
@@ -393,6 +439,20 @@ const playAudio = () => {
       console.log('Audio playback failed')
     })
   }
+}
+
+const speakCurrentTerm = () => {
+  if (!('speechSynthesis' in window) || !currentCard.value) return
+  window.speechSynthesis.cancel()
+  const u = new SpeechSynthesisUtterance(currentCard.value.term)
+  u.lang = currentLearningOption.value.speechCode
+  const voices = window.speechSynthesis.getVoices()
+  const langPrefix = u.lang.split('-')[0]
+  const v = voices.find(v => v.lang === u.lang && v.localService)
+    || voices.find(v => v.lang === u.lang)
+    || voices.find(v => v.lang.startsWith(langPrefix))
+  if (v) u.voice = v
+  window.speechSynthesis.speak(u)
 }
 
 const restartSession = () => {

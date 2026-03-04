@@ -1,4 +1,4 @@
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import {
   Star,
   Trophy,
@@ -15,6 +15,8 @@ import {
 } from 'lucide-vue-next'
 import { useToast } from './useToast'
 import { useAuthStore } from '@/stores/auth.store'
+import { useProgressStore } from '@/stores/progress.store'
+import { api } from '@/utils/api'
 import type {
   ProfileData,
   ProfileStats,
@@ -22,6 +24,11 @@ import type {
   SocialLinkForm,
 } from '@/types/profile'
 import type { Component } from 'vue'
+
+const LEVEL_TITLES = [
+  'Beginner', 'Explorer', 'Learner', 'Scholar', 'Thinker',
+  'Achiever', 'Expert', 'Master', 'Champion', 'Legend',
+]
 
 export type ActivityType = 'lesson' | 'quiz' | 'achievement' | 'streak' | 'milestone' | 'review'
 export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary'
@@ -63,6 +70,7 @@ export interface ShowcaseAchievement {
 export function useProfile() {
   const toast = useToast()
   const authStore = useAuthStore()
+  const progressStore = useProgressStore()
 
   // Get user info from auth store
   const getUserName = () => {
@@ -99,26 +107,57 @@ export function useProfile() {
     { immediate: true }
   )
 
-  // Avatar stats
+  // Avatar stats - sourced from progressStore
   const avatarStats = reactive<ProfileStats>({
-    courses: 12,
-    streak: 21,
-    xp: 2450,
+    courses: 0,
+    streak: progressStore.streakCount,
+    xp: progressStore.xp,
   })
 
-  // Learning stats
+  watch(
+    () => ({ streak: progressStore.streakCount, xp: progressStore.xp }),
+    ({ streak, xp }) => {
+      avatarStats.streak = streak
+      avatarStats.xp = xp
+    },
+  )
+
+  // Learning stats - sourced from progressStore
   const learningStats = reactive<LearningStats>({
-    level: 15,
-    levelTitle: 'Knowledge Seeker',
-    currentXP: 2450,
-    nextLevelXP: 3000,
-    totalXP: 12450,
-    wordsLearned: 750,
-    quizzesCompleted: 48,
-    studyHours: 86,
-    currentStreak: 21,
-    longestStreak: 35,
+    level: progressStore.level,
+    levelTitle: LEVEL_TITLES[(progressStore.level - 1)] || 'Beginner',
+    currentXP: progressStore.xp,
+    nextLevelXP: progressStore.xpToNextLevel,
+    totalXP: progressStore.xp,
+    wordsLearned: progressStore.totalCardsStudied,
+    quizzesCompleted: progressStore.totalQuizzesCompleted,
+    studyHours: 0,
+    currentStreak: progressStore.streakCount,
+    longestStreak: progressStore.longestStreak,
   })
+
+  watch(
+    () => ({
+      level: progressStore.level,
+      xp: progressStore.xp,
+      xpToNextLevel: progressStore.xpToNextLevel,
+      totalCardsStudied: progressStore.totalCardsStudied,
+      totalQuizzesCompleted: progressStore.totalQuizzesCompleted,
+      streakCount: progressStore.streakCount,
+      longestStreak: progressStore.longestStreak,
+    }),
+    (v) => {
+      learningStats.level = v.level
+      learningStats.levelTitle = LEVEL_TITLES[v.level - 1] || 'Beginner'
+      learningStats.currentXP = v.xp
+      learningStats.nextLevelXP = v.xpToNextLevel
+      learningStats.totalXP = v.xp
+      learningStats.wordsLearned = v.totalCardsStudied
+      learningStats.quizzesCompleted = v.totalQuizzesCompleted
+      learningStats.currentStreak = v.streakCount
+      learningStats.longestStreak = v.longestStreak
+    },
+  )
 
   // Recent activities
   const recentActivities = reactive<RecentActivity[]>([
@@ -312,9 +351,35 @@ export function useProfile() {
     return Math.min((learningStats.currentXP / learningStats.nextLevelXP) * 100, 100)
   })
 
+  // Fetch profile from BE on mount to sync name/avatar
+  onMounted(async () => {
+    try {
+      const data = await api.getProfile()
+      if (data.name) {
+        profile.fullName = data.name
+        profile.username = data.name.toLowerCase().replace(/\s+/g, '')
+      }
+      if (data.avatar) profile.avatar = data.avatar
+      authStore.setUser({
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        is_active: data.is_active,
+        role_id: data.role_id,
+      })
+    } catch {
+      // Non-critical — keep current data from authStore
+    }
+  })
+
   // Avatar handlers
-  const handleAvatarChange = (avatar: string) => {
+  const handleAvatarChange = async (avatar: string) => {
     profile.avatar = avatar
+    try {
+      await api.updateProfile({ avatar })
+    } catch {
+      // Non-critical
+    }
     toast.success('Avatar updated!')
   }
 
@@ -338,7 +403,7 @@ export function useProfile() {
     isEditing.value = false
   }
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
     profile.fullName = editForm.fullName
     profile.username = editForm.username
     profile.email = editForm.email
@@ -347,7 +412,13 @@ export function useProfile() {
     profile.location = editForm.location
     profile.bio = editForm.bio
     isEditing.value = false
-    toast.success('Profile updated successfully!')
+    try {
+      await api.updateProfile({ name: editForm.fullName })
+      authStore.setUser({ ...authStore.user!, name: editForm.fullName })
+      toast.success('Profile updated successfully!')
+    } catch {
+      toast.error('Failed to save profile to server.')
+    }
   }
 
   // Social links

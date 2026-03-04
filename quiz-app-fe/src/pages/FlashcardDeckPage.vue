@@ -163,7 +163,7 @@ import {
   Music,
   Calculator,
   Palette,
-  Beaker,
+  FlaskConical,
 } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
 import FlashcardCardItem from '@/components/flashcard/FlashcardCardItem.vue'
@@ -261,7 +261,7 @@ const getCategoryIcon = (category: string): Component => {
   const icons: Record<string, Component> = {
     Language: Globe,
     Programming: Code2,
-    Science: Beaker,
+    Science: FlaskConical,
     Math: Calculator,
     Music: Music,
     Art: Palette,

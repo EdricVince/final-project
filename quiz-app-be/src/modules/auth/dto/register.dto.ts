@@ -20,3 +20,18 @@ export class LoginResponseDto {
   access_token: string;
   user: UserOutDto;
 }
+
+export class ProfileDto {
+  id: number;
+  email: string;
+  name: string | null;
+  avatar: string | null;
+  role_id: number;
+  is_active: boolean;
+  created_at: Date;
+}
+
+export class UpdateProfileDto {
+  name?: string;
+  avatar?: string;
+}

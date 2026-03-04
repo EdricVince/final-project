@@ -6,7 +6,7 @@
         <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('flashcards.title') }}</h1>
         <p class="text-muted-foreground mt-1 text-base">{{ $t('flashcards.subtitle') }}</p>
       </div>
-      <div class="flex flex-wrap gap-3">
+      <div v-if="!authStore.isStudent" class="flex flex-wrap gap-3">
         <Button variant="outline" @click="showImportModal = true">
           <Upload class="mr-2 h-5 w-5" />
           {{ $t('flashcards.import') }}
@@ -58,6 +58,23 @@
         </div>
         <span class="text-foreground text-3xl font-bold lg:text-4xl">{{ stats.studyStreak }}</span>
         <p class="text-muted-foreground mt-1 text-base">{{ $t('flashcards.stats.dayStreak') }}</p>
+      </div>
+    </div>
+
+    <!-- Vocab Practice Banner -->
+    <div
+      class="animate-fade-in-up delay-125 mb-6 cursor-pointer rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 p-5 flex items-center gap-4 hover:border-primary/40 transition-all"
+      @click="router.push('/flashcards/vocab-practice')"
+    >
+      <div class="bg-primary/10 flex h-14 w-14 shrink-0 items-center justify-center rounded-xl">
+        <span class="text-2xl">🎯</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-foreground font-semibold text-lg">Vocab Practice</h3>
+        <p class="text-muted-foreground text-sm">Study random vocabulary with instant translation — flip to see meaning in your language</p>
+      </div>
+      <div class="shrink-0">
+        <span class="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-xl">Start →</span>
       </div>
     </div>
 
@@ -510,9 +527,11 @@ import {
 } from 'lucide-vue-next'
 import Button from '@/components/ui/button/Button.vue'
 import { useProgressStore } from '@/stores/progress.store'
+import { useAuthStore } from '@/stores/auth.store'
 
 const router = useRouter()
 const progressStore = useProgressStore()
+const authStore = useAuthStore()
 
 // State
 const searchQuery = ref('')

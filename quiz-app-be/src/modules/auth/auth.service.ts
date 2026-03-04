@@ -2,11 +2,12 @@ import {
   Injectable,
   ConflictException,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
-import { RegisterDto, LoginDto, UserOutDto, LoginResponseDto } from './dto/register.dto';
+import { RegisterDto, LoginDto, UserOutDto, LoginResponseDto, ProfileDto, UpdateProfileDto } from './dto/register.dto';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -93,5 +94,24 @@ export class AuthService {
         role_id: user.role_id,
       },
     };
+  }
+
+  async getMe(userId: number): Promise<ProfileDto> {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar,
+      role_id: user.role_id,
+      is_active: user.is_active,
+      created_at: user.created_at,
+    };
+  }
+
+  async updateMe(userId: number, dto: UpdateProfileDto): Promise<ProfileDto> {
+    await this.usersService.update(userId, dto);
+    return this.getMe(userId);
   }
 }
