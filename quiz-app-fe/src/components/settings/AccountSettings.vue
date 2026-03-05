@@ -106,12 +106,51 @@
         </button>
       </div>
     </div>
+
+    <!-- Developer / Testing -->
+    <div class="bg-card border-border rounded-2xl border p-6">
+      <h2 class="text-foreground mb-1 flex items-center gap-2 text-lg font-semibold">
+        <FlaskConical class="text-primary h-5 w-5" />
+        Developer Testing
+      </h2>
+      <p class="text-muted-foreground mb-5 text-sm">Access teacher features for testing purposes. This does not affect normal user restrictions.</p>
+
+      <div class="flex items-center justify-between rounded-xl border border-dashed p-4"
+        :class="authStore.teacherModeEnabled ? 'border-primary/40 bg-primary/5' : 'border-border bg-secondary/30'"
+      >
+        <div>
+          <p class="text-foreground font-medium text-sm">Teacher Mode</p>
+          <p class="text-muted-foreground text-xs mt-0.5">
+            {{ authStore.teacherModeEnabled ? 'Active — Teacher Portal accessible' : 'Inactive — student view only' }}
+          </p>
+        </div>
+        <button
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200"
+          :class="authStore.teacherModeEnabled ? 'bg-primary' : 'bg-secondary border border-border'"
+          @click="authStore.teacherModeEnabled ? authStore.disableTeacherMode() : authStore.enableTeacherMode()"
+        >
+          <span
+            class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200"
+            :class="authStore.teacherModeEnabled ? 'translate-x-6' : 'translate-x-1'"
+          />
+        </button>
+      </div>
+
+      <p v-if="authStore.teacherModeEnabled" class="text-muted-foreground mt-3 text-xs">
+        Go to <button class="text-primary underline" @click="router.push('/teacher/dashboard')">Teacher Dashboard</button> to start testing.
+      </p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { User, Lock } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { User, Lock, FlaskConical } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth.store'
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 export interface AccountData {
   fullName: string

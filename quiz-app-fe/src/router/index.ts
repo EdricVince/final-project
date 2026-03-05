@@ -11,7 +11,7 @@ import { UserRole } from '@/types/role'
 const TEACHER_ROUTES = {
   path: '/teacher',
   component: () => import('@/layouts/TeacherLayout.vue'),
-  meta: { requiresAuth: true, requiredRole: UserRole.TEACHER },
+  meta: { requiresAuth: false },
   children: [
     {
       path: '',
@@ -61,6 +61,26 @@ const TEACHER_ROUTES = {
       path: 'students',
       name: 'TeacherStudents',
       component: () => import('@/pages/teacher/StudentsPage.vue'),
+    },
+    {
+      path: 'lessons',
+      name: 'TeacherLessons',
+      component: () => import('@/pages/teacher/LessonsPage.vue'),
+    },
+    {
+      path: 'vocabulary',
+      name: 'TeacherVocabulary',
+      component: () => import('@/pages/teacher/VocabularyPage.vue'),
+    },
+    {
+      path: 'live',
+      name: 'TeacherLiveQuiz',
+      component: () => import('@/pages/teacher/LiveQuizPage.vue'),
+    },
+    {
+      path: 'analytics',
+      name: 'TeacherAnalytics',
+      component: () => import('@/pages/teacher/AnalyticsPage.vue'),
     },
   ],
 }
@@ -173,6 +193,12 @@ const routes = [
         meta: { requiresAuth: false },
       },
       {
+        path: 'quizzes/battle',
+        name: 'BattleMode',
+        component: () => import('@/pages/quiz/BattleMode.vue'),
+        meta: { requiresAuth: false },
+      },
+      {
         path: 'goals',
         name: 'Goals',
         component: () => import('@/pages/GoalsPage.vue'),
@@ -218,6 +244,14 @@ router.beforeEach((to, _from, next) => {
   if (to.meta.requiresGuest && authStore.isAuthenticated) {
     next('/dashboard')
     return
+  }
+
+  // Teacher routes: accessible if teacher mode enabled OR @teacher_spr.com email
+  if (to.path.startsWith('/teacher')) {
+    if (!authStore.canAccessTeacher) {
+      next('/dashboard')
+      return
+    }
   }
 
   // Check if route requires specific role

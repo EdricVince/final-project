@@ -151,17 +151,13 @@ const toast = useToast()
 
 const test = ref({
   id: Number(route.params.id),
-  title: 'Business Vocabulary Quiz',
+  title: '',
 })
 
-// Mock results
-const results = ref([
-  { id: 1, student_name: 'John Doe', student_email: 'john@example.com', score: 85, correct_answers: 17, total_questions: 20, time_taken: 18, completed_at: '2024-02-01T10:30:00' },
-  { id: 2, student_name: 'Jane Smith', student_email: 'jane@example.com', score: 92, correct_answers: 18, total_questions: 20, time_taken: 15, completed_at: '2024-02-01T11:00:00' },
-  { id: 3, student_name: 'Mike Johnson', student_email: 'mike@example.com', score: 75, correct_answers: 15, total_questions: 20, time_taken: 20, completed_at: '2024-02-01T11:30:00' },
-  { id: 4, student_name: 'Sarah Williams', student_email: 'sarah@example.com', score: 60, correct_answers: 12, total_questions: 20, time_taken: 19, completed_at: '2024-02-01T12:00:00' },
-  { id: 5, student_name: 'David Brown', student_email: 'david@example.com', score: 95, correct_answers: 19, total_questions: 20, time_taken: 12, completed_at: '2024-02-01T12:30:00' },
-])
+const results = ref<{
+  id: number; student_name: string; student_email: string; score: number
+  correct_answers: number; total_questions: number; time_taken: number; completed_at: string
+}[]>([])
 
 const avgScore = computed(() => {
   if (results.value.length === 0) return 0

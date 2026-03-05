@@ -210,37 +210,20 @@ const tabs = [
   { label: 'Tests', value: 'tests' },
 ]
 
-// Mock class data
 const classData = ref({
   id: Number(route.params.id),
-  name: 'Business English 101',
-  description: 'Introduction to business communication and vocabulary',
-  subject: 'Business',
-  class_code: 'BUS101',
-  student_limit: 20,
-  is_active: true,
+  name: '',
+  description: '',
+  subject: '',
+  class_code: '—',
+  student_limit: 0,
+  is_active: false,
 })
 
-// Mock students
-const students = ref<ClassStudent[]>([
-  { id: 1, class_id: 1, student_id: 1, student_email: 'john@example.com', student_name: 'John Doe', joined_at: '2024-01-15' },
-  { id: 2, class_id: 1, student_id: 2, student_email: 'jane@example.com', student_name: 'Jane Smith', joined_at: '2024-01-16' },
-  { id: 3, class_id: 1, student_id: 3, student_email: 'mike@example.com', student_name: 'Mike Johnson', joined_at: '2024-01-17' },
-])
-
-// Mock videos
-const videos = ref([
-  { id: 1, title: 'Introduction to Business English', lesson_name: 'Lesson 1' },
-  { id: 2, title: 'Business Email Writing', lesson_name: 'Lesson 2' },
-])
-
-// Mock tests
-const tests = ref([
-  { id: 1, title: 'Vocabulary Quiz 1', question_count: 20, time_limit: 20 },
-  { id: 2, title: 'Mid-term Test', question_count: 50, time_limit: 60 },
-])
-
-const avgScore = ref(78)
+const students = ref<ClassStudent[]>([])
+const videos = ref<{ id: number; title: string; lesson_name: string }[]>([])
+const tests = ref<{ id: number; title: string; question_count: number; time_limit: number }[]>([])
+const avgScore = ref(0)
 
 const goBack = () => {
   router.push('/teacher/classes')

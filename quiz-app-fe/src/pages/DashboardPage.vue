@@ -173,20 +173,11 @@ const todayGoal = ref(20)
 // Loading state
 const isLoading = computed(() => progressStore.isLoading)
 
-// Continue Learning data
-const continueLearning = ref<DashboardCourse[]>([
-  { id: 1, title: 'English Grammar Basics', progress: 68, icon: BookOpen },
-  { id: 2, title: 'English Vocabulary Builder', progress: 45, icon: Languages },
-  { id: 3, title: 'English Listening Practice', progress: 32, icon: Headphones },
-])
+// Continue Learning data — empty until user enrolls in courses
+const continueLearning = ref<DashboardCourse[]>([])
 
-// Recent Flashcards
-const recentFlashcards = ref<DashboardFlashcard[]>([
-  { id: 1, question: 'What does "ubiquitous" mean?', difficulty: 'Medium', lastStudied: '2 hours ago' },
-  { id: 2, question: 'What is the past tense of "teach"?', difficulty: 'Easy', lastStudied: '5 hours ago' },
-  { id: 3, question: 'What does the idiom "break the ice" mean?', difficulty: 'Hard', lastStudied: '1 day ago' },
-  { id: 4, question: 'Choose the correct form: "She ___ to school every day"', difficulty: 'Medium', lastStudied: '2 days ago' },
-])
+// Recent Flashcards — empty until user studies flashcards
+const recentFlashcards = ref<DashboardFlashcard[]>([])
 
 // Study Modes - linked to actual pages
 const studyModes = ref<StudyMode[]>([
@@ -204,13 +195,8 @@ const weeklyActivity = computed<DayActivity[]>(() =>
   }))
 )
 
-// Recent Badges
-const recentBadges = ref<BadgeItem[]>([
-  { id: 1, name: 'First Steps', icon: Star },
-  { id: 2, name: 'Quiz Master', icon: Medal },
-  { id: 3, name: 'Week Warrior', icon: Crown },
-  { id: 4, name: 'Speed Demon', icon: Rocket },
-])
+// Recent Badges — empty until user earns achievements
+const recentBadges = ref<BadgeItem[]>([])
 
 // Navigation actions
 const navigateToCourses = () => {

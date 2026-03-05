@@ -99,62 +99,8 @@ interface ExploreCourse {
   estimatedHours: number
 }
 
-const courses = ref<ExploreCourse[]>([
-  {
-    id: 101,
-    title: 'Advanced English Grammar',
-    description: 'Master complex grammar structures including conditionals, reported speech, and advanced tenses.',
-    category: 'Grammar',
-    difficulty: 'Intermediate',
-    totalLessons: 48,
-    estimatedHours: 24,
-  },
-  {
-    id: 102,
-    title: 'Essential English Vocabulary',
-    description: 'Build a strong vocabulary foundation with 3000+ most common English words and phrases.',
-    category: 'Vocabulary',
-    difficulty: 'Beginner',
-    totalLessons: 36,
-    estimatedHours: 18,
-  },
-  {
-    id: 103,
-    title: 'TOEFL Preparation',
-    description: 'Complete TOEFL iBT preparation with practice tests and strategies for all sections.',
-    category: 'Test Prep',
-    difficulty: 'Advanced',
-    totalLessons: 30,
-    estimatedHours: 15,
-  },
-  {
-    id: 104,
-    title: 'Business English Communication',
-    description: 'Professional English for meetings, presentations, emails, and negotiations in the workplace.',
-    category: 'Business',
-    difficulty: 'Intermediate',
-    totalLessons: 42,
-    estimatedHours: 28,
-  },
-  {
-    id: 105,
-    title: 'English Conversation & Speaking',
-    description: 'Improve your speaking fluency with guided conversations, pronunciation drills, and role plays.',
-    category: 'Speaking',
-    difficulty: 'Beginner',
-    totalLessons: 24,
-    estimatedHours: 12,
-  },
-  {
-    id: 106,
-    title: 'Academic English Writing',
-    description: 'Learn to write essays, reports, and research papers with proper structure and academic style.',
-    category: 'Writing',
-    difficulty: 'Intermediate',
-    totalLessons: 20,
-    estimatedHours: 10,
-  },
-])
+// Courses — empty until loaded from API
+const courses = ref<ExploreCourse[]>([])
 
 const filteredCourses = computed(() => {
   return courses.value.filter(course => {

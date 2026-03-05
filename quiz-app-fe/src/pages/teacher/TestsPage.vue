@@ -132,40 +132,14 @@ import { useToast } from '@/composables/useToast'
 
 const toast = useToast()
 
-// Mock tests
-const tests = ref([
-  {
-    id: 1,
-    title: 'Business Vocabulary Quiz',
-    description: 'Test your knowledge of business English vocabulary',
-    question_count: 20,
-    time_limit: 20,
-    is_active: true,
-    assigned_classes: ['Business English 101'],
-  },
-  {
-    id: 2,
-    title: 'IELTS Practice Test 1',
-    description: 'Full IELTS reading and listening practice',
-    question_count: 40,
-    time_limit: 60,
-    is_active: true,
-    assigned_classes: ['IELTS Preparation'],
-  },
-  {
-    id: 3,
-    title: 'Grammar Mid-term',
-    description: 'Comprehensive grammar test covering units 1-5',
-    question_count: 50,
-    time_limit: 45,
-    is_active: false,
-    assigned_classes: [],
-  },
-])
+const tests = ref<{
+  id: number; title: string; description: string; question_count: number
+  time_limit: number; is_active: boolean; assigned_classes: string[]
+}[]>([])
 
 const totalQuestions = computed(() => tests.value.reduce((sum, t) => sum + t.question_count, 0))
-const totalSubmissions = ref(156)
-const avgScore = ref(72)
+const totalSubmissions = ref(0)
+const avgScore = ref(0)
 
 const deleteTest = (id: number) => {
   tests.value = tests.value.filter(t => t.id !== id)

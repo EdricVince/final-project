@@ -30,6 +30,20 @@ export const useAuthStore = defineStore('auth', () => {
   const savedUser = localStorage.getItem(USER_KEY)
   const currentUser = ref<AuthUser | null>(savedUser ? JSON.parse(savedUser) : null)
 
+  // Teacher mode flag — set when user explicitly logs in as Teacher
+  const TEACHER_MODE_KEY = 'teacher_mode'
+  const teacherModeEnabled = ref(localStorage.getItem(TEACHER_MODE_KEY) === 'true')
+
+  const enableTeacherMode = () => {
+    teacherModeEnabled.value = true
+    localStorage.setItem(TEACHER_MODE_KEY, 'true')
+  }
+
+  const disableTeacherMode = () => {
+    teacherModeEnabled.value = false
+    localStorage.removeItem(TEACHER_MODE_KEY)
+  }
+
   const isAuthenticated = computed(() => !!getCookie(ACCESS_TOKEN_KEY))
 
   const user = computed(() => currentUser.value)
@@ -39,6 +53,10 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => currentUser.value?.role_id === UserRole.ADMIN)
   const isStudent = computed(() => !currentUser.value?.role_id || currentUser.value.role_id === UserRole.STUDENT)
   const userRole = computed(() => currentUser.value?.role_id ?? UserRole.STUDENT)
+  // Email-based teacher access: only @teacher_spr.com emails can access teacher portal
+  const isTeacherEmail = computed(() => currentUser.value?.email?.toLowerCase().endsWith('@teacher_spr.com') ?? false)
+  // Combined: can access teacher portal if email matches OR teacher mode was explicitly enabled at login
+  const canAccessTeacher = computed(() => isTeacherEmail.value || teacherModeEnabled.value)
 
   const setTokens = (accessToken: string, refreshToken?: string) => {
     setCookie(ACCESS_TOKEN_KEY, accessToken, {
@@ -206,6 +224,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const logout = () => {
     clearTokens()
+    disableTeacherMode()
     const progressStore = useProgressStore()
     progressStore.$reset()
   }
@@ -265,6 +284,11 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     // Role helpers
     isTeacher,
+    isTeacherEmail,
+    canAccessTeacher,
+    teacherModeEnabled,
+    enableTeacherMode,
+    disableTeacherMode,
     isAdmin,
     isStudent,
     userRole,

@@ -30,20 +30,20 @@ export function useGoals() {
     return endDate
   }
 
-  // Goals Data
+  // Goals Data — all progress starts at 0 for new users
   const goals = reactive<ProfileGoals>({
     dailyGoals: [
-      { id: '1', type: 'vocabulary', label: 'Learn new words', current: 15, target: 20, unit: 'words' },
-      { id: '2', type: 'flashcard', label: 'Review flashcards', current: 50, target: 50, unit: 'cards' },
-      { id: '3', type: 'quiz', label: 'Complete quizzes', current: 2, target: 3, unit: 'quizzes' },
-      { id: '4', type: 'time', label: 'Study time', current: 25, target: 30, unit: 'min' },
+      { id: '1', type: 'vocabulary', label: 'Learn new words', current: 0, target: 20, unit: 'words' },
+      { id: '2', type: 'flashcard', label: 'Review flashcards', current: 0, target: 50, unit: 'cards' },
+      { id: '3', type: 'quiz', label: 'Complete quizzes', current: 0, target: 3, unit: 'quizzes' },
+      { id: '4', type: 'time', label: 'Study time', current: 0, target: 30, unit: 'min' },
     ],
     weeklyChallenges: [
       {
         id: '1',
         title: 'Vocabulary Champion',
         description: 'Learn 100 new words this week',
-        current: 68,
+        current: 0,
         target: 100,
         completed: false,
         expiresAt: getWeekEndDate(),
@@ -52,7 +52,7 @@ export function useGoals() {
         id: '2',
         title: 'Quiz Master',
         description: 'Complete 15 quizzes with 80%+ accuracy',
-        current: 12,
+        current: 0,
         target: 15,
         completed: false,
         expiresAt: getWeekEndDate(),
@@ -61,9 +61,9 @@ export function useGoals() {
         id: '3',
         title: 'Streak Keeper',
         description: 'Maintain a 7-day learning streak',
-        current: 7,
+        current: 0,
         target: 7,
-        completed: true,
+        completed: false,
         expiresAt: getWeekEndDate(),
       },
     ],
@@ -73,8 +73,8 @@ export function useGoals() {
         title: 'Word Beginner',
         description: 'Learn your first 100 words',
         target: 100,
-        current: 100,
-        completed: true,
+        current: 0,
+        completed: false,
         icon: BookOpen,
       },
       {
@@ -82,8 +82,8 @@ export function useGoals() {
         title: 'Word Explorer',
         description: 'Learn 500 words',
         target: 500,
-        current: 500,
-        completed: true,
+        current: 0,
+        completed: false,
         icon: Award,
       },
       {
@@ -91,7 +91,7 @@ export function useGoals() {
         title: 'Word Master',
         description: 'Learn 1,000 words',
         target: 1000,
-        current: 750,
+        current: 0,
         completed: false,
         icon: GraduationCap,
       },
@@ -100,7 +100,7 @@ export function useGoals() {
         title: 'Word Legend',
         description: 'Learn 5,000 words',
         target: 5000,
-        current: 750,
+        current: 0,
         completed: false,
         icon: Crown,
       },

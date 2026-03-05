@@ -34,16 +34,10 @@ export function useAchievements() {
   const selectedAchievement = ref<EnhancedAchievement | null>(null)
   const showModal = ref(false)
 
-  // Leaderboard data
-  const leaderboard: LeaderboardUser[] = [
-    { name: 'Sarah Chen', achievements: 42, points: 1850, isCurrentUser: false },
-    { name: 'Alex Johnson', achievements: 35, points: 1420, isCurrentUser: true },
-    { name: 'Mike Wilson', achievements: 31, points: 1280, isCurrentUser: false },
-    { name: 'Emma Davis', achievements: 28, points: 1150, isCurrentUser: false },
-    { name: 'James Brown', achievements: 25, points: 980, isCurrentUser: false },
-  ]
+  // Leaderboard — empty until real data loads from backend
+  const leaderboard: LeaderboardUser[] = []
 
-  // Achievements data
+  // Achievements data — all locked for new users (earned: false, progress: 0)
   const achievementsData = reactive<ProfileAchievements>({
     achievements: [
       // Learning category
@@ -54,8 +48,9 @@ export function useAchievements() {
         icon: Star,
         category: 'learning',
         rarity: 'common',
-        earned: true,
-        earnedAt: new Date('2024-01-15'),
+        earned: false,
+        progress: 0,
+        target: 1,
       },
       {
         id: '2',
@@ -64,8 +59,9 @@ export function useAchievements() {
         icon: BookOpen,
         category: 'learning',
         rarity: 'common',
-        earned: true,
-        earnedAt: new Date('2024-02-01'),
+        earned: false,
+        progress: 0,
+        target: 100,
       },
       {
         id: '3',
@@ -74,8 +70,9 @@ export function useAchievements() {
         icon: Brain,
         category: 'learning',
         rarity: 'rare',
-        earned: true,
-        earnedAt: new Date('2024-03-10'),
+        earned: false,
+        progress: 0,
+        target: 500,
       },
       {
         id: '4',
@@ -85,7 +82,7 @@ export function useAchievements() {
         category: 'learning',
         rarity: 'epic',
         earned: false,
-        progress: 750,
+        progress: 0,
         target: 1000,
       },
       // Streak category
@@ -96,8 +93,9 @@ export function useAchievements() {
         icon: Flame,
         category: 'streak',
         rarity: 'common',
-        earned: true,
-        earnedAt: new Date('2024-01-22'),
+        earned: false,
+        progress: 0,
+        target: 7,
       },
       {
         id: '6',
@@ -107,7 +105,7 @@ export function useAchievements() {
         category: 'streak',
         rarity: 'rare',
         earned: false,
-        progress: 21,
+        progress: 0,
         target: 30,
       },
       {
@@ -118,7 +116,7 @@ export function useAchievements() {
         category: 'streak',
         rarity: 'legendary',
         earned: false,
-        progress: 21,
+        progress: 0,
         target: 100,
       },
       // Social category
@@ -129,8 +127,9 @@ export function useAchievements() {
         icon: Users,
         category: 'social',
         rarity: 'common',
-        earned: true,
-        earnedAt: new Date('2024-02-15'),
+        earned: false,
+        progress: 0,
+        target: 1,
       },
       {
         id: '9',
@@ -140,7 +139,7 @@ export function useAchievements() {
         category: 'social',
         rarity: 'rare',
         earned: false,
-        progress: 6,
+        progress: 0,
         target: 10,
       },
       // Mastery category
@@ -151,8 +150,9 @@ export function useAchievements() {
         icon: Trophy,
         category: 'mastery',
         rarity: 'common',
-        earned: true,
-        earnedAt: new Date('2024-03-01'),
+        earned: false,
+        progress: 0,
+        target: 50,
       },
       {
         id: '11',
@@ -161,8 +161,9 @@ export function useAchievements() {
         icon: Sparkles,
         category: 'mastery',
         rarity: 'epic',
-        earned: true,
-        earnedAt: new Date('2024-03-15'),
+        earned: false,
+        progress: 0,
+        target: 10,
       },
       {
         id: '12',
@@ -171,11 +172,12 @@ export function useAchievements() {
         icon: Rocket,
         category: 'mastery',
         rarity: 'rare',
-        earned: true,
-        earnedAt: new Date('2024-02-28'),
+        earned: false,
+        progress: 0,
+        target: 1,
       },
     ],
-    totalEarned: 8,
+    totalEarned: 0,
     totalAvailable: 12,
   })
 

@@ -67,6 +67,7 @@ export default {
       backToCourses: 'Quay lại khóa học', save: 'Lưu', saved: 'Đã lưu',
       startCourse: 'Bắt đầu học', continueCourse: 'Tiếp tục',
       courseContent: 'Nội dung khóa học', yourProgress: 'Tiến độ của bạn',
+      notFound: 'Không tìm thấy khóa học', notFoundDesc: 'Khóa học này chưa có sẵn. Vui lòng quay lại sau.',
       stats: { lessons: 'Bài học', duration: 'Thời lượng', progress: 'Tiến độ', completed: 'Hoàn thành' },
     },
     difficulty: { Beginner: 'Cơ bản', Intermediate: 'Trung cấp', Advanced: 'Nâng cao' },

@@ -288,41 +288,39 @@ const quickStats = computed(() => [
   },
 ])
 
-// Performance Insights
+// Performance Insights — generic tips, not fake user-specific stats
 const insights = [
   {
     icon: Brain,
-    title: 'Best Learning Time',
-    description: 'You learn best between 9-11 AM. Try to study during these hours!',
+    title: 'Study Consistently',
+    description: 'Short daily sessions are more effective than occasional long ones.',
     bgClass: 'bg-chart-2/10',
     iconClass: 'text-chart-2',
   },
   {
     icon: Zap,
-    title: 'Fastest Improvement',
-    description: 'Your vocabulary speed has improved by 23% this week!',
+    title: 'Build Your Streak',
+    description: 'Start your streak today! Even 5 minutes of study counts.',
     bgClass: 'bg-chart-1/10',
     iconClass: 'text-chart-1',
   },
   {
     icon: Calendar,
-    title: 'Consistency Tip',
-    description: 'You often skip Sundays. A short 10-min session can keep your streak!',
+    title: 'Track Your Progress',
+    description: 'Complete quizzes and review flashcards to see your stats grow here.',
     bgClass: 'bg-chart-4/10',
     iconClass: 'text-chart-4',
   },
 ]
 
+// Generate streak calendar — all days start as not completed for new user
 const generateStreakDays = () => {
   const days = []
   const today = new Date()
   for (let i = 27; i >= 0; i--) {
     const date = new Date(today)
     date.setDate(today.getDate() - i)
-    days.push({
-      date,
-      completed: Math.random() > 0.3,
-    })
+    days.push({ date, completed: false })
   }
   return days
 }
@@ -338,70 +336,52 @@ const weeklyActivityMapped = computed(() => {
       }))
     }
     return [
-      { day: 'Mon', flashcards: 8, quizzes: 2, vocabulary: 5 },
-      { day: 'Tue', flashcards: 12, quizzes: 1, vocabulary: 8 },
-      { day: 'Wed', flashcards: 5, quizzes: 3, vocabulary: 4 },
-      { day: 'Thu', flashcards: 15, quizzes: 2, vocabulary: 10 },
-      { day: 'Fri', flashcards: 10, quizzes: 4, vocabulary: 7 },
-      { day: 'Sat', flashcards: 20, quizzes: 5, vocabulary: 12 },
-      { day: 'Sun', flashcards: 3, quizzes: 1, vocabulary: 2 },
+      { day: 'Mon', flashcards: 0, quizzes: 0, vocabulary: 0 },
+      { day: 'Tue', flashcards: 0, quizzes: 0, vocabulary: 0 },
+      { day: 'Wed', flashcards: 0, quizzes: 0, vocabulary: 0 },
+      { day: 'Thu', flashcards: 0, quizzes: 0, vocabulary: 0 },
+      { day: 'Fri', flashcards: 0, quizzes: 0, vocabulary: 0 },
+      { day: 'Sat', flashcards: 0, quizzes: 0, vocabulary: 0 },
+      { day: 'Sun', flashcards: 0, quizzes: 0, vocabulary: 0 },
     ]
   }
   if (selectedPeriod.value === 'month') {
     return [
-      { day: 'W1', flashcards: 45, quizzes: 12, vocabulary: 30 },
-      { day: 'W2', flashcards: 60, quizzes: 18, vocabulary: 40 },
-      { day: 'W3', flashcards: 38, quizzes: 10, vocabulary: 25 },
-      { day: 'W4', flashcards: 73, quizzes: 22, vocabulary: 48 },
+      { day: 'W1', flashcards: 0, quizzes: 0, vocabulary: 0 },
+      { day: 'W2', flashcards: 0, quizzes: 0, vocabulary: 0 },
+      { day: 'W3', flashcards: 0, quizzes: 0, vocabulary: 0 },
+      { day: 'W4', flashcards: 0, quizzes: 0, vocabulary: 0 },
     ]
   }
   // year
   return [
-    { day: 'Jan', flashcards: 120, quizzes: 35, vocabulary: 80 },
-    { day: 'Feb', flashcards: 95, quizzes: 28, vocabulary: 65 },
-    { day: 'Mar', flashcards: 150, quizzes: 45, vocabulary: 100 },
-    { day: 'Apr', flashcards: 180, quizzes: 52, vocabulary: 120 },
-    { day: 'May', flashcards: 140, quizzes: 40, vocabulary: 95 },
-    { day: 'Jun', flashcards: 200, quizzes: 60, vocabulary: 140 },
-    { day: 'Jul', flashcards: 170, quizzes: 50, vocabulary: 115 },
-    { day: 'Aug', flashcards: 220, quizzes: 65, vocabulary: 150 },
-    { day: 'Sep', flashcards: 160, quizzes: 48, vocabulary: 110 },
-    { day: 'Oct', flashcards: 190, quizzes: 58, vocabulary: 130 },
-    { day: 'Nov', flashcards: 210, quizzes: 62, vocabulary: 145 },
-    { day: 'Dec', flashcards: 240, quizzes: 70, vocabulary: 160 },
+    { day: 'Jan', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Feb', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Mar', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Apr', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'May', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Jun', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Jul', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Aug', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Sep', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Oct', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Nov', flashcards: 0, quizzes: 0, vocabulary: 0 },
+    { day: 'Dec', flashcards: 0, quizzes: 0, vocabulary: 0 },
   ]
 })
 
-const periodSummary = computed(() => {
-  if (selectedPeriod.value === 'week') {
-    return {
-      totalVocabulary: progressStore.totalCardsStudied || 73,
-      flashcardsReviewed: progressStore.totalCardsStudied || 73,
-      quizzesCompleted: progressStore.totalQuizzesCompleted || 18,
-      totalTimeMinutes: 210,
-    }
-  }
-  if (selectedPeriod.value === 'month') {
-    return {
-      totalVocabulary: 216,
-      flashcardsReviewed: 216,
-      quizzesCompleted: 62,
-      totalTimeMinutes: 840,
-    }
-  }
-  // year
-  return {
-    totalVocabulary: 2040,
-    flashcardsReviewed: 2040,
-    quizzesCompleted: 613,
-    totalTimeMinutes: 9600,
-  }
-})
+const periodSummary = computed(() => ({
+  totalVocabulary: progressStore.totalCardsStudied,
+  flashcardsReviewed: progressStore.totalCardsStudied,
+  quizzesCompleted: progressStore.totalQuizzesCompleted,
+  totalTimeMinutes: 0,
+}))
 
 const periodGoal = computed(() => {
-  if (selectedPeriod.value === 'week') return { current: progressStore.todayCards || 15, target: 20 }
-  if (selectedPeriod.value === 'month') return { current: 216, target: 300 }
-  return { current: 2040, target: 3000 }
+  const current = progressStore.totalCardsStudied
+  if (selectedPeriod.value === 'week') return { current: progressStore.todayCards, target: 20 }
+  if (selectedPeriod.value === 'month') return { current, target: 300 }
+  return { current, target: 3000 }
 })
 
 const statistics = computed<ProfileStatistics>(() => ({

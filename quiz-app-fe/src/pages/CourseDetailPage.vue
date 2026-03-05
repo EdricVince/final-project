@@ -9,8 +9,18 @@
       {{ $t('courses.detail.backToCourses') }}
     </button>
 
+    <!-- Not found state -->
+    <div v-if="!course" class="flex flex-col items-center justify-center py-20 text-center">
+      <div class="bg-secondary mb-6 flex h-24 w-24 items-center justify-center rounded-2xl">
+        <BookOpen class="text-muted-foreground h-12 w-12" />
+      </div>
+      <h3 class="text-foreground mb-3 text-2xl font-semibold">{{ $t('courses.detail.notFound') }}</h3>
+      <p class="text-muted-foreground mb-8 max-w-md text-lg">{{ $t('courses.detail.notFoundDesc') }}</p>
+      <Button @click="goBack">{{ $t('courses.detail.backToCourses') }}</Button>
+    </div>
+
     <!-- Course Header -->
-    <div class="animate-fade-in-down mb-8">
+    <div v-else class="animate-fade-in-down mb-8">
       <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div class="flex-1">
           <div class="mb-4 flex items-center gap-3">
@@ -47,7 +57,7 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div v-if="course" class="animate-fade-in-up delay-100 mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
       <div class="bg-card border-border rounded-2xl border p-5">
         <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-chart-1/10">
           <BookOpen class="text-chart-1 h-4 w-4" />
@@ -79,7 +89,7 @@
     </div>
 
     <!-- Progress Bar -->
-    <div class="animate-fade-in-up delay-150 mb-8">
+    <div v-if="course" class="animate-fade-in-up delay-150 mb-8">
       <div class="bg-card border-border rounded-xl border p-6">
         <div class="mb-3 flex items-center justify-between">
           <span class="text-foreground font-medium">{{ $t('courses.detail.yourProgress') }}</span>
@@ -95,7 +105,7 @@
     </div>
 
     <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+    <div v-if="course" class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
       <!-- Left Column - Lessons -->
       <div class="lg:col-span-2">
         <div class="animate-fade-in-up delay-200">
@@ -213,67 +223,14 @@ const lessonsForNotes = computed(() => {
 // Get course ID from route
 const courseId = computed(() => Number(route.params.id) || 1)
 
-// Mock course data based on ID
-const course = computed(() => {
-  const courses: Record<number, {
-    id: number
-    title: string
-    description: string
-    category: string
-    difficulty: string
-    progress: number
-    completedLessons: number
-    totalLessons: number
-    estimatedHours: number
-  }> = {
-    1: {
-      id: 1,
-      title: 'English Grammar Fundamentals',
-      description: 'Master essential English grammar rules including tenses, articles, prepositions, and sentence structure for clear communication.',
-      category: 'Grammar',
-      difficulty: 'Beginner',
-      progress: 68,
-      completedLessons: 12,
-      totalLessons: 18,
-      estimatedHours: 12,
-    },
-    2: {
-      id: 2,
-      title: 'English Vocabulary Builder',
-      description: 'Expand your English vocabulary with essential words, collocations, and usage examples for everyday conversations.',
-      category: 'Vocabulary',
-      difficulty: 'Beginner',
-      progress: 45,
-      completedLessons: 9,
-      totalLessons: 20,
-      estimatedHours: 10,
-    },
-    3: {
-      id: 3,
-      title: 'IELTS Preparation Course',
-      description: 'Comprehensive IELTS preparation covering Reading, Writing, Listening, and Speaking sections with practice tests.',
-      category: 'Test Prep',
-      difficulty: 'Advanced',
-      progress: 32,
-      completedLessons: 8,
-      totalLessons: 25,
-      estimatedHours: 20,
-    },
-  }
-  return courses[courseId.value] || courses[1]
-})
+// Course data — empty until loaded from API
+const course = computed<{
+  id: number; title: string; description: string; category: string; difficulty: string
+  progress: number; completedLessons: number; totalLessons: number; estimatedHours: number
+} | null>(() => null)
 
-// Mock lessons data
-const lessons = ref([
-  { id: 1, title: 'Introduction to the Course', duration: 10, completed: true, unlocked: true },
-  { id: 2, title: 'Getting Started', duration: 15, completed: true, unlocked: true },
-  { id: 3, title: 'Core Concepts', duration: 25, completed: true, unlocked: true },
-  { id: 4, title: 'Working with Data', duration: 30, completed: true, unlocked: true },
-  { id: 5, title: 'Advanced Techniques', duration: 35, completed: false, unlocked: true },
-  { id: 6, title: 'Best Practices', duration: 20, completed: false, unlocked: true },
-  { id: 7, title: 'Real-world Projects', duration: 45, completed: false, unlocked: false },
-  { id: 8, title: 'Final Assessment', duration: 30, completed: false, unlocked: false },
-])
+// Lessons — empty until loaded from API
+const lessons = ref<{ id: number; title: string; duration: number; completed: boolean; unlocked: boolean }[]>([])
 
 const getCourseIcon = (category: string) => {
   const icons: Record<string, typeof BookOpen> = {

@@ -18,22 +18,20 @@
       <div
         v-for="challenge in challenges"
         :key="challenge.id"
-        class="group relative overflow-hidden rounded-xl border p-4 transition-all"
+        class="group relative cursor-pointer overflow-hidden rounded-xl border p-4 transition-all"
         :class="challenge.completed
           ? 'border-primary/20 bg-primary/5'
-          : 'border-border bg-secondary/30 hover:bg-secondary/50'"
+          : 'border-border bg-secondary/30 hover:bg-secondary/50 hover:border-primary/30'"
+        @click="openDetail(challenge)"
       >
         <div class="flex items-center gap-4">
           <!-- Icon -->
-          <div
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all"
-            :class="'bg-primary/10 text-primary'"
-          >
+          <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all">
             <component :is="challenge.icon" class="h-5 w-5" />
           </div>
 
           <!-- Content -->
-          <div class="flex-1">
+          <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
               <h4 class="text-foreground font-medium">{{ challenge.title }}</h4>
               <span
@@ -59,23 +57,18 @@
             </div>
           </div>
 
-          <!-- Reward -->
-          <div class="text-right">
-            <div
-              class="flex items-center gap-1 font-bold"
-              :class="'text-primary'"
-            >
+          <!-- Reward + chevron -->
+          <div class="text-right flex flex-col items-end gap-1">
+            <div class="text-primary flex items-center gap-1 font-bold">
               <Zap class="h-4 w-4" />
               {{ challenge.xp }} XP
             </div>
+            <ChevronRight class="text-muted-foreground h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
           </div>
         </div>
 
         <!-- Completion checkmark -->
-        <div
-          v-if="challenge.completed"
-          class="absolute right-4 top-4"
-        >
+        <div v-if="challenge.completed" class="absolute right-4 top-4">
           <CheckCircle class="h-5 w-5 text-primary" />
         </div>
       </div>
@@ -93,11 +86,91 @@
       <p class="text-muted-foreground text-sm">You earned a bonus of <span class="text-primary font-bold">50 XP</span></p>
     </div>
   </div>
+
+  <!-- Detail Modal -->
+  <Teleport to="body">
+    <Transition name="modal">
+      <div
+        v-if="selectedChallenge"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        @click.self="selectedChallenge = null"
+      >
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="selectedChallenge = null" />
+        <div class="bg-card border-border relative z-10 w-full max-w-sm rounded-2xl border p-6 shadow-xl">
+          <!-- Header -->
+          <div class="mb-5 flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="bg-primary/10 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+                <component :is="selectedChallenge.icon" class="text-primary h-6 w-6" />
+              </div>
+              <div>
+                <h3 class="text-foreground font-semibold">{{ selectedChallenge.title }}</h3>
+                <span
+                  class="rounded-full px-2 py-0.5 text-xs font-medium"
+                  :class="selectedChallenge.completed ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'"
+                >
+                  {{ selectedChallenge.completed ? 'Completed' : 'In Progress' }}
+                </span>
+              </div>
+            </div>
+            <button class="text-muted-foreground hover:text-foreground" @click="selectedChallenge = null">
+              <X class="h-5 w-5" />
+            </button>
+          </div>
+
+          <!-- Description -->
+          <p class="text-muted-foreground mb-5 text-sm">{{ selectedChallenge.description }}</p>
+
+          <!-- Progress -->
+          <div class="mb-5">
+            <div class="mb-2 flex items-center justify-between text-sm">
+              <span class="text-foreground font-medium">Progress</span>
+              <span class="text-muted-foreground">{{ selectedChallenge.current }} / {{ selectedChallenge.target }}</span>
+            </div>
+            <div class="bg-secondary h-3 overflow-hidden rounded-full">
+              <div
+                class="bg-primary h-full rounded-full transition-all duration-500"
+                :style="{ width: `${Math.min((selectedChallenge.current / selectedChallenge.target) * 100, 100)}%` }"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Reward -->
+          <div class="border-border bg-secondary/30 mb-5 flex items-center justify-between rounded-xl border px-4 py-3">
+            <span class="text-muted-foreground text-sm">XP Reward</span>
+            <div class="text-primary flex items-center gap-1 font-bold">
+              <Zap class="h-4 w-4" />
+              {{ selectedChallenge.xp }} XP
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-3">
+            <button
+              class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-2.5 text-sm font-medium transition-colors"
+              @click="selectedChallenge = null"
+            >
+              Close
+            </button>
+            <button
+              v-if="!selectedChallenge.completed"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors"
+              @click="goToChallenge(selectedChallenge)"
+            >
+              <ArrowRight class="h-4 w-4" />
+              Start
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { Flame, Clock, Zap, CheckCircle, Trophy, BookOpen, Brain, Layers, Target } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { Flame, Clock, Zap, CheckCircle, Trophy, BookOpen, Brain, Layers, Target, ChevronRight, X, ArrowRight } from 'lucide-vue-next'
 
 interface Challenge {
   id: number
@@ -108,7 +181,11 @@ interface Challenge {
   target: number
   xp: number
   completed: boolean
+  path: string
 }
+
+const router = useRouter()
+const selectedChallenge = ref<Challenge | null>(null)
 
 const challenges = ref<Challenge[]>([
   {
@@ -116,10 +193,11 @@ const challenges = ref<Challenge[]>([
     title: 'Learn 10 Words',
     description: 'Study flashcards to learn new vocabulary',
     icon: BookOpen,
-    current: 10,
+    current: 0,
     target: 10,
     xp: 25,
-    completed: true,
+    completed: false,
+    path: '/flashcards',
   },
   {
     id: 2,
@@ -130,30 +208,42 @@ const challenges = ref<Challenge[]>([
     target: 1,
     xp: 30,
     completed: false,
+    path: '/quizzes',
   },
   {
     id: 3,
     title: 'Review 20 Cards',
     description: 'Review flashcards you\'ve learned before',
     icon: Layers,
-    current: 12,
+    current: 0,
     target: 20,
     xp: 20,
     completed: false,
+    path: '/flashcards',
   },
   {
     id: 4,
     title: 'Reach Daily Goal',
     description: 'Complete your daily study goal',
     icon: Target,
-    current: 15,
+    current: 0,
     target: 20,
     xp: 35,
     completed: false,
+    path: '/goals',
   },
 ])
 
 const allCompleted = computed(() => challenges.value.every(c => c.completed))
+
+const openDetail = (challenge: Challenge) => {
+  selectedChallenge.value = challenge
+}
+
+const goToChallenge = (challenge: Challenge) => {
+  selectedChallenge.value = null
+  router.push(challenge.path)
+}
 
 // Time remaining until reset
 const timeRemaining = ref('')
@@ -184,3 +274,8 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<style scoped>
+.modal-enter-active, .modal-leave-active { transition: all 0.2s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(0.95); }
+</style>

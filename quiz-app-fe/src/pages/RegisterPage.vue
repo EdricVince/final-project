@@ -16,41 +16,6 @@
       <p class="text-sm text-destructive">{{ errorMessage }}</p>
     </div>
 
-    <!-- Role Selection -->
-    <div class="animate-fade-in-up delay-75">
-      <label class="text-foreground mb-3 block text-sm font-medium">I want to join as</label>
-      <div class="grid grid-cols-2 gap-3">
-        <button
-          type="button"
-          class="flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all"
-          :class="
-            selectedRole === UserRole.STUDENT
-              ? 'border-primary bg-primary/5 text-primary'
-              : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
-          "
-          @click="selectedRole = UserRole.STUDENT"
-        >
-          <GraduationCap class="h-8 w-8" />
-          <span class="text-sm font-medium">Student</span>
-          <span class="text-xs opacity-70">Learn and take tests</span>
-        </button>
-        <button
-          type="button"
-          class="flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all"
-          :class="
-            selectedRole === UserRole.TEACHER
-              ? 'border-primary bg-primary/5 text-primary'
-              : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
-          "
-          @click="selectedRole = UserRole.TEACHER"
-        >
-          <Users class="h-8 w-8" />
-          <span class="text-sm font-medium">Teacher</span>
-          <span class="text-xs opacity-70">Create classes & tests</span>
-        </button>
-      </div>
-    </div>
-
     <!-- Register Form -->
     <form class="animate-fade-in-up delay-100 space-y-5" @submit="handleSignUp">
       <!-- Email Field -->
@@ -70,6 +35,11 @@
               />
             </div>
           </FormControl>
+          <!-- Teacher email hint -->
+          <p v-if="isTeacherEmail" class="text-primary flex items-center gap-1.5 text-xs font-medium">
+            <GraduationCap class="h-3.5 w-3.5" />
+            Teacher account will be created
+          </p>
           <FormMessage />
         </FormItem>
       </FormField>
@@ -216,12 +186,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock, GraduationCap, Users } from 'lucide-vue-next'
+import { Eye, EyeOff, Mail, Lock, GraduationCap } from 'lucide-vue-next'
 
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
@@ -237,6 +207,8 @@ import {
 } from '@/components/ui/form'
 import { useAuthStore } from '@/stores/auth.store'
 import { UserRole } from '@/types/role'
+
+const TEACHER_EMAIL_DOMAIN = '@teacher_sp.com'
 
 const registerSchema = z
   .object({
@@ -257,9 +229,8 @@ const agreeTerms = ref(false)
 const isSubmitting = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
-const selectedRole = ref<UserRole>(UserRole.STUDENT)
 
-const { handleSubmit } = useForm({
+const { handleSubmit, values } = useForm({
   validationSchema: toTypedSchema(registerSchema),
   initialValues: {
     email: '',
@@ -268,7 +239,15 @@ const { handleSubmit } = useForm({
   },
 })
 
-const handleSignUp = handleSubmit(async (values) => {
+const isTeacherEmail = computed(() =>
+  values.email?.toLowerCase().endsWith(TEACHER_EMAIL_DOMAIN)
+)
+
+const roleFromEmail = computed(() =>
+  isTeacherEmail.value ? UserRole.TEACHER : UserRole.STUDENT
+)
+
+const handleSignUp = handleSubmit(async (formValues) => {
   if (isSubmitting.value || !agreeTerms.value) return
 
   isSubmitting.value = true
@@ -276,11 +255,10 @@ const handleSignUp = handleSubmit(async (values) => {
   errorMessage.value = ''
 
   try {
-    const result = await authStore.register(values.email, values.password, selectedRole.value)
+    const result = await authStore.register(formValues.email, formValues.password, roleFromEmail.value)
 
     if (result.success) {
       successMessage.value = result.message || 'Registration successful! Redirecting to login...'
-      // Redirect to login after 2 seconds
       setTimeout(() => {
         router.push({ name: 'Login' })
       }, 2000)
@@ -309,7 +287,6 @@ const handleGoogleSignUp = async () => {
 }
 
 const handleFacebookSignUp = () => {
-  // TODO: Implement Facebook OAuth sign up
   console.log('Facebook sign up clicked')
 }
 

@@ -67,6 +67,7 @@ export default {
       backToCourses: '返回课程', save: '收藏', saved: '已收藏',
       startCourse: '开始学习', continueCourse: '继续',
       courseContent: '课程内容', yourProgress: '我的进度',
+      notFound: '课程未找到', notFoundDesc: '该课程暂时不可用，请稍后再来。',
       stats: { lessons: '课时', duration: '时长', progress: '进度', completed: '已完成' },
     },
     difficulty: { Beginner: '初级', Intermediate: '中级', Advanced: '高级' },

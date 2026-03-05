@@ -67,6 +67,7 @@ export default {
       backToCourses: 'コースに戻る', save: '保存', saved: '保存済み',
       startCourse: '学習を始める', continueCourse: '続ける',
       courseContent: 'コース内容', yourProgress: '学習進捗',
+      notFound: 'コースが見つかりません', notFoundDesc: 'このコースはまだご利用いただけません。後ほどご確認ください。',
       stats: { lessons: 'レッスン', duration: '時間', progress: '進捗', completed: '完了' },
     },
     difficulty: { Beginner: '初級', Intermediate: '中級', Advanced: '上級' },

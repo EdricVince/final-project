@@ -8,6 +8,47 @@
       </p>
     </div>
 
+    <!-- Role Selector -->
+    <div class="animate-fade-in-up delay-75 grid grid-cols-2 gap-3">
+      <button
+        type="button"
+        class="flex items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all"
+        :class="
+          selectedRole === UserRole.STUDENT
+            ? 'border-primary bg-primary/5 text-primary'
+            : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
+        "
+        @click="selectedRole = UserRole.STUDENT"
+      >
+        <GraduationCap class="h-5 w-5 shrink-0" />
+        <div class="text-left">
+          <p class="text-sm font-semibold">Student</p>
+          <p class="text-xs opacity-70">Learn & practice</p>
+        </div>
+      </button>
+      <button
+        type="button"
+        class="flex items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all"
+        :class="[
+          isTeacherEmailTyped
+            ? selectedRole === UserRole.TEACHER
+              ? 'border-primary bg-primary/5 text-primary'
+              : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
+            : 'border-border bg-background text-muted-foreground opacity-40 cursor-not-allowed'
+        ]"
+        :disabled="!isTeacherEmailTyped"
+        @click="isTeacherEmailTyped && (selectedRole = UserRole.TEACHER)"
+      >
+        <Users class="h-5 w-5 shrink-0" />
+        <div class="text-left">
+          <p class="text-sm font-semibold">Teacher</p>
+          <p class="text-xs opacity-70">
+            {{ isTeacherEmailTyped ? 'Manage classes' : '@teacher_spr.com only' }}
+          </p>
+        </div>
+      </button>
+    </div>
+
     <!-- Error Message -->
     <div
       v-if="errorMessage"
@@ -24,9 +65,7 @@
           <FormLabel class="text-foreground text-sm font-medium">{{ $t('auth.login.email') }}</FormLabel>
           <FormControl>
             <div class="relative">
-              <Mail
-                class="text-muted-foreground pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2"
-              />
+              <Mail class="text-muted-foreground pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2" />
               <Input
                 v-bind="componentField"
                 type="email"
@@ -57,9 +96,7 @@
           </div>
           <FormControl>
             <div class="relative">
-              <Lock
-                class="text-muted-foreground pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2"
-              />
+              <Lock class="text-muted-foreground pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2" />
               <Input
                 v-bind="componentField"
                 :type="showPassword ? 'text' : 'password'"
@@ -148,11 +185,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, watch } from 'vue'
+import { ref, computed, inject, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-vue-next'
+import { Eye, EyeOff, Mail, Lock, GraduationCap, Users } from 'lucide-vue-next'
 
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
@@ -169,11 +206,10 @@ import {
 import { loginSchema } from '@/types/auth'
 import { useLoginAnimation } from '@/composables'
 import { useAuthStore } from '@/stores/auth.store'
+import { UserRole } from '@/types/role'
 
-// Get animation ref from AuthLayout
 const loginAnimationRef = inject('loginAnimationRef', ref(null))
 
-// Setup animation controls
 const {
   onEmailFocus,
   onEmailChange,
@@ -190,20 +226,25 @@ const showPassword = ref(false)
 const rememberMe = ref(false)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
+const selectedRole = ref<UserRole>(UserRole.STUDENT)
 
 const { handleSubmit, values } = useForm({
   validationSchema: toTypedSchema(loginSchema),
-  initialValues: {
-    email: '',
-    password: '',
-  },
+  initialValues: { email: '', password: '' },
 })
 
-// Watch email changes to update animation
+// Teacher role only unlocks for @teacher_spr.com emails
+const isTeacherEmailTyped = computed(() =>
+  values.email?.toLowerCase().endsWith('@teacher_spr.com') ?? false
+)
+
 watch(
   () => values.email,
   (newEmail) => {
     onEmailChange(newEmail || '')
+    if (!newEmail?.toLowerCase().endsWith('@teacher_spr.com')) {
+      selectedRole.value = UserRole.STUDENT
+    }
   },
 )
 
@@ -218,9 +259,17 @@ const handleSignIn = handleSubmit(async (formValues) => {
 
     if (result.success) {
       onLoginSuccess()
-      // Redirect to dashboard after successful login
+      if (selectedRole.value === UserRole.TEACHER) {
+        authStore.enableTeacherMode()
+      } else {
+        authStore.disableTeacherMode()
+      }
       setTimeout(() => {
-        router.push({ name: 'Dashboard' })
+        if (selectedRole.value === UserRole.TEACHER) {
+          router.push({ name: 'TeacherDashboard' })
+        } else {
+          router.push({ name: 'Dashboard' })
+        }
       }, 500)
     } else {
       errorMessage.value = result.message || 'Login failed'
@@ -234,21 +283,8 @@ const handleSignIn = handleSubmit(async (formValues) => {
   }
 })
 
-const goToRegister = () => {
-  router.push({ name: 'Register' })
-}
-
-const goToForgotPassword = () => {
-  router.push({ name: 'ForgotPassword' })
-}
-
-const handleGoogleSignIn = () => {
-  // TODO: Implement Google OAuth sign in
-  console.log('Google sign in clicked')
-}
-
-const handleFacebookSignIn = () => {
-  // TODO: Implement Facebook OAuth sign in
-  console.log('Facebook sign in clicked')
-}
+const goToRegister = () => router.push({ name: 'Register' })
+const goToForgotPassword = () => router.push({ name: 'ForgotPassword' })
+const handleGoogleSignIn = () => console.log('Google sign in clicked')
+const handleFacebookSignIn = () => console.log('Facebook sign in clicked')
 </script>

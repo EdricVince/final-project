@@ -134,21 +134,8 @@ import Button from '@/components/ui/button/Button.vue'
 const searchQuery = ref('')
 const selectedClass = ref('')
 
-// Mock classes
-const classes = ref([
-  { id: 1, name: 'Business English 101', code: 'BUS101' },
-  { id: 2, name: 'IELTS Preparation', code: 'IELTS01' },
-  { id: 3, name: 'Conversation Practice', code: 'CONV01' },
-])
-
-// Mock students
-const students = ref([
-  { id: 1, name: 'John Doe', email: 'john@example.com', classes: ['BUS101', 'IELTS01'], avg_score: 85, tests_completed: 8, last_active: '2 hours ago' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', classes: ['BUS101'], avg_score: 92, tests_completed: 10, last_active: '1 day ago' },
-  { id: 3, name: 'Mike Johnson', email: 'mike@example.com', classes: ['IELTS01', 'CONV01'], avg_score: 78, tests_completed: 6, last_active: '3 hours ago' },
-  { id: 4, name: 'Sarah Williams', email: 'sarah@example.com', classes: ['BUS101', 'CONV01'], avg_score: 65, tests_completed: 5, last_active: '1 week ago' },
-  { id: 5, name: 'David Brown', email: 'david@example.com', classes: ['IELTS01'], avg_score: 88, tests_completed: 12, last_active: '5 hours ago' },
-])
+const classes = ref<{ id: number; name: string; code: string }[]>([])
+const students = ref<{ id: number; name: string; email: string; classes: string[]; avg_score: number; tests_completed: number; last_active: string }[]>([])
 
 const filteredStudents = computed(() => {
   let result = students.value

@@ -217,7 +217,7 @@
             <Button
               variant="outline"
               size="sm"
-              @click.stop="openDeck(deck.id)"
+              @click.stop="openPreview(deck)"
             >
               <Eye class="h-4 w-4" />
             </Button>
@@ -465,6 +465,70 @@
       </Transition>
     </Teleport>
 
+    <!-- Deck Preview Modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div
+          v-if="showPreviewModal && previewDeck"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          @click.self="showPreviewModal = false"
+        >
+          <div class="bg-card border-border flex w-full max-w-2xl flex-col rounded-3xl border shadow-xl" style="max-height: 85vh">
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-border p-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                  <component :is="getCategoryIcon(previewDeck.category)" class="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 class="text-foreground text-lg font-bold">{{ previewDeck.title }}</h2>
+                  <p class="text-muted-foreground text-sm">{{ previewDeck.cards?.length ?? 0 }} / {{ previewDeck.cardCount }} cards shown</p>
+                </div>
+              </div>
+              <button class="hover:bg-secondary rounded-lg p-2 transition-colors" @click="showPreviewModal = false">
+                <X class="text-muted-foreground h-5 w-5" />
+              </button>
+            </div>
+
+            <!-- Cards List -->
+            <div class="flex-1 overflow-y-auto p-6">
+              <div class="overflow-hidden rounded-2xl border border-border">
+                <table class="w-full text-sm">
+                  <thead class="bg-secondary">
+                    <tr>
+                      <th class="text-foreground px-4 py-3 text-left font-medium w-8">#</th>
+                      <th class="text-foreground px-4 py-3 text-left font-medium">Term</th>
+                      <th class="text-foreground px-4 py-3 text-left font-medium">Definition</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="card in previewDeck.cards"
+                      :key="card.id"
+                      class="border-t border-border hover:bg-secondary/30 transition-colors"
+                    >
+                      <td class="text-muted-foreground px-4 py-3">{{ card.id }}</td>
+                      <td class="text-foreground px-4 py-3 font-medium">{{ card.term }}</td>
+                      <td class="text-muted-foreground px-4 py-3">{{ card.definition }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex gap-3 border-t border-border p-6">
+              <Button variant="outline" class="flex-1" @click="showPreviewModal = false">Close</Button>
+              <Button class="flex-1" @click="startStudy(previewDeck.id); showPreviewModal = false">
+                <Play class="mr-2 h-4 w-4" />
+                Study Now
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Delete Confirmation Modal -->
     <Teleport to="body">
       <Transition name="modal">
@@ -540,6 +604,8 @@ const viewMode = ref<'grid' | 'list'>('grid')
 const showDeckModal = ref(false)
 const showImportModal = ref(false)
 const showDeleteModal = ref(false)
+const showPreviewModal = ref(false)
+const previewDeck = ref<Deck | null>(null)
 const editingDeck = ref<Deck | null>(null)
 const deckToDelete = ref<Deck | null>(null)
 const activeDeckMenu = ref<number | null>(null)
@@ -566,15 +632,21 @@ const deckForm = ref({
   category: '',
 })
 
-// Stats (deck/card counts are local; streak & mastered from progress store)
+// Stats — computed from real decks data
 const stats = ref({
-  totalDecks: 5,
-  totalCards: 234,
+  totalDecks: 0,
+  totalCards: 0,
   masteredCards: 0,
   studyStreak: 0,
 })
 
 // Sample decks
+interface FlashCard {
+  id: number
+  term: string
+  definition: string
+}
+
 interface Deck {
   id: number
   title: string
@@ -583,55 +655,11 @@ interface Deck {
   cardCount: number
   progress: number
   lastStudied: string
+  cards?: FlashCard[]
 }
 
-const decks = ref<Deck[]>([
-  {
-    id: 1,
-    title: 'Essential English Vocabulary',
-    description: '500 most common English words with examples and usage',
-    category: 'Vocabulary',
-    cardCount: 120,
-    progress: 72,
-    lastStudied: '2 hours ago',
-  },
-  {
-    id: 2,
-    title: 'English Idioms & Expressions',
-    description: 'Common English idioms, proverbs, and everyday expressions',
-    category: 'Idioms',
-    cardCount: 80,
-    progress: 45,
-    lastStudied: 'Yesterday',
-  },
-  {
-    id: 3,
-    title: 'IELTS Academic Vocabulary',
-    description: 'High-frequency words for IELTS Academic test preparation',
-    category: 'IELTS/TOEFL',
-    cardCount: 200,
-    progress: 90,
-    lastStudied: '3 days ago',
-  },
-  {
-    id: 4,
-    title: 'English Phrasal Verbs',
-    description: 'Essential phrasal verbs with meanings and example sentences',
-    category: 'Phrasal Verbs',
-    cardCount: 60,
-    progress: 60,
-    lastStudied: 'Last week',
-  },
-  {
-    id: 5,
-    title: 'English Grammar Rules',
-    description: 'Key grammar rules: tenses, articles, prepositions, and more',
-    category: 'Grammar',
-    cardCount: 50,
-    progress: 35,
-    lastStudied: '2 days ago',
-  },
-])
+// Empty decks — user creates their own decks
+const decks = ref<Deck[]>([])
 
 // Computed
 const filteredDecks = computed(() => {
@@ -749,6 +777,11 @@ const openDeck = (deckId: number) => {
   router.push(`/flashcards/${deckId}`)
 }
 
+const openPreview = (deck: Deck) => {
+  previewDeck.value = deck
+  showPreviewModal.value = true
+}
+
 const startStudy = (deckId: number) => {
   router.push(`/flashcards/${deckId}/study`)
 }
@@ -816,6 +849,8 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 onMounted(() => {
+  stats.value.totalDecks = decks.value.length
+  stats.value.totalCards = decks.value.reduce((sum, d) => sum + d.cardCount, 0)
   stats.value.masteredCards = progressStore.totalCardsStudied
   stats.value.studyStreak = progressStore.streakCount
   document.addEventListener('click', handleClickOutside)

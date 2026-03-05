@@ -69,6 +69,37 @@
       </div>
     </div>
 
+    <!-- Battle Mode Banner -->
+    <div class="animate-fade-in-up delay-175 mb-8">
+      <div
+        class="relative overflow-hidden rounded-2xl bg-linear-to-r from-chart-1 to-chart-5 p-6 cursor-pointer"
+        @click="router.push('/quizzes/battle')"
+      >
+        <div class="absolute inset-0 bg-black/10"></div>
+        <div class="relative flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
+              <Swords class="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white">Battle Mode</h3>
+              <p class="text-white/80 text-sm">Challenge an AI opponent — fastest answerer wins!</p>
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-3">
+            <div class="flex items-center gap-1.5 rounded-xl bg-white/20 px-3 py-1.5">
+              <Zap class="h-4 w-4 text-primary-foreground" />
+              <span class="text-white text-sm font-semibold">Speed Bonus</span>
+            </div>
+            <div class="flex items-center gap-1.5 rounded-xl bg-white/20 px-3 py-1.5">
+              <Trophy class="h-4 w-4 text-primary-foreground" />
+              <span class="text-white text-sm font-semibold">Win XP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Section 2: Practice Games -->
     <div class="animate-fade-in-up delay-200 mb-8">
       <h2 class="text-foreground mb-2 flex items-center gap-2 text-xl font-semibold">
@@ -202,6 +233,7 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  Swords,
 } from 'lucide-vue-next'
 import QuizModeCard from '@/components/quiz/QuizModeCard.vue'
 import type { QuizMode, LeaderboardEntry } from '@/types/quiz'

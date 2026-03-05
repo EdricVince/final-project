@@ -2,12 +2,15 @@
   <div class="bg-background flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <aside
-      class="bg-sidebar border-sidebar-border flex flex-col border-r transition-all duration-300 ease-in-out"
+      class="bg-sidebar border-sidebar-border flex flex-col overflow-hidden border-r transition-all duration-300 ease-in-out"
       :class="[isCollapsed ? 'w-20' : 'w-64']"
     >
       <!-- Logo -->
       <div class="border-sidebar-border flex h-16 items-center border-b px-4">
-        <div class="flex items-center gap-3 overflow-hidden">
+        <div
+          class="flex cursor-pointer items-center gap-3 overflow-hidden"
+          @click="router.push('/dashboard')"
+        >
           <div class="bg-sidebar-primary text-sidebar-primary-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
             <Sparkles class="h-5 w-5" />
           </div>
@@ -120,15 +123,15 @@
           <!-- Streak Badge -->
           <div
             v-if="progressStore.streakCount > 0"
-            class="hidden items-center gap-1.5 rounded-lg bg-orange-500/10 px-2.5 py-1.5 sm:flex"
+            class="hidden items-center gap-1.5 rounded-lg bg-chart-1/10 px-2.5 py-1.5 sm:flex"
           >
             <span class="text-base leading-none">🔥</span>
-            <span class="text-sm font-semibold text-orange-500">{{ progressStore.streakCount }}</span>
+            <span class="text-chart-1 text-sm font-semibold">{{ progressStore.streakCount }}</span>
           </div>
 
           <!-- XP Pill -->
-          <div class="hidden items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 sm:flex">
-            <Zap class="text-primary h-4 w-4" />
+          <div class="hidden items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 sm:flex">
+            <span class="text-primary text-xs font-bold uppercase tracking-wide">XP</span>
             <span class="text-primary text-sm font-semibold">{{ progressStore.xp.toLocaleString() }}</span>
           </div>
 
@@ -187,6 +190,14 @@
                     <component :is="item.icon" class="text-muted-foreground h-4 w-4" />
                     {{ item.label }}
                   </router-link>
+                  <button
+                    v-if="canAccessTeacher"
+                    class="text-foreground hover:bg-accent flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors"
+                    @click="isDropdownOpen = false; router.push('/teacher/dashboard')"
+                  >
+                    <GraduationCap class="text-muted-foreground h-4 w-4" />
+                    Teacher Portal
+                  </button>
                 </div>
                 <div class="border-border border-t p-2">
                   <button
@@ -241,7 +252,7 @@ import {
   PanelLeftOpen,
   Gamepad2,
   Target,
-  Zap,
+  GraduationCap,
 } from 'lucide-vue-next'
 import SearchModal from '@/components/ui/SearchModal.vue'
 import NotificationPanel from '@/components/ui/NotificationPanel.vue'
@@ -301,6 +312,9 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   document.removeEventListener('keydown', handleKeydown)
 })
+
+// Teacher access check (email-based OR teacher mode enabled at login)
+const canAccessTeacher = computed(() => authStore.canAccessTeacher)
 
 // User data - get from auth store
 const userName = computed(() => {

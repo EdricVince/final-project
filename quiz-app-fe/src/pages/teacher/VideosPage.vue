@@ -179,19 +179,8 @@ const uploadForm = ref({
   lesson_name: '',
 })
 
-// Mock classes
-const classes = ref([
-  { id: 1, name: 'Business English 101' },
-  { id: 2, name: 'IELTS Preparation' },
-  { id: 3, name: 'Conversation Practice' },
-])
-
-// Mock videos
-const videos = ref([
-  { id: 1, title: 'Introduction to Business English', description: 'Overview of the course', class_id: 1, duration: 1200, lesson_name: 'Lesson 1' },
-  { id: 2, title: 'Business Email Writing', description: 'How to write professional emails', class_id: 1, duration: 900, lesson_name: 'Lesson 2' },
-  { id: 3, title: 'IELTS Speaking Part 1', description: 'Tips and practice', class_id: 2, duration: 1500, lesson_name: 'Lesson 1' },
-])
+const classes = ref<{ id: number; name: string }[]>([])
+const videos = ref<{ id: number; title: string; description: string; class_id: number; duration: number; lesson_name: string }[]>([])
 
 const filteredVideos = computed(() => {
   if (!selectedClass.value) return videos.value

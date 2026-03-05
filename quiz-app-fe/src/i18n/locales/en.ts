@@ -67,6 +67,7 @@ export default {
       backToCourses: 'Back to Courses', save: 'Save', saved: 'Saved',
       startCourse: 'Start Course', continueCourse: 'Continue',
       courseContent: 'Course Content', yourProgress: 'Your Progress',
+      notFound: 'Course Not Found', notFoundDesc: 'This course is not available yet. Please check back later.',
       stats: { lessons: 'Lessons', duration: 'Duration', progress: 'Progress', completed: 'Completed' },
     },
     difficulty: { Beginner: 'Beginner', Intermediate: 'Intermediate', Advanced: 'Advanced' },

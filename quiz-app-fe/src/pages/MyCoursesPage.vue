@@ -128,10 +128,10 @@ const router = useRouter()
 
 // Stats
 const stats = ref({
-  totalCourses: 8,
-  completed: 2,
-  totalHours: 45,
-  avgProgress: 58,
+  totalCourses: 0,
+  completed: 0,
+  totalHours: 0,
+  avgProgress: 0,
 })
 
 // Search & Filters
@@ -148,105 +148,8 @@ const filterTabs = computed(() => [
   { value: 'not-started', label: t('courses.myCourses.filters.notStarted'), icon: PauseCircle, count: courses.value.filter(c => c.progress === 0).length },
 ])
 
-// Courses data
-const courses = ref<Course[]>([
-  {
-    id: 1,
-    title: 'English Grammar Fundamentals',
-    description: 'Master essential English grammar: tenses, articles, prepositions, and sentence structure.',
-    category: 'Grammar',
-    difficulty: 'Beginner',
-    progress: 68,
-    completedLessons: 17,
-    totalLessons: 25,
-    lastAccessed: '2 hours ago',
-    estimatedHours: 12,
-  },
-  {
-    id: 2,
-    title: 'English Vocabulary Builder',
-    description: 'Expand your vocabulary with 2000+ essential words, collocations, and usage examples.',
-    category: 'Vocabulary',
-    difficulty: 'Beginner',
-    progress: 45,
-    completedLessons: 9,
-    totalLessons: 20,
-    lastAccessed: '1 day ago',
-    estimatedHours: 15,
-  },
-  {
-    id: 3,
-    title: 'IELTS Preparation Course',
-    description: 'Comprehensive IELTS prep covering Reading, Writing, Listening, and Speaking sections.',
-    category: 'Test Prep',
-    difficulty: 'Intermediate',
-    progress: 32,
-    completedLessons: 8,
-    totalLessons: 25,
-    lastAccessed: '3 days ago',
-    estimatedHours: 20,
-  },
-  {
-    id: 4,
-    title: 'Business English',
-    description: 'Professional English for meetings, emails, presentations, and negotiations.',
-    category: 'Business',
-    difficulty: 'Intermediate',
-    progress: 100,
-    completedLessons: 18,
-    totalLessons: 18,
-    lastAccessed: '1 week ago',
-    estimatedHours: 10,
-  },
-  {
-    id: 5,
-    title: 'English Pronunciation Mastery',
-    description: 'Perfect your English pronunciation, stress patterns, and intonation.',
-    category: 'Pronunciation',
-    difficulty: 'Beginner',
-    progress: 0,
-    completedLessons: 0,
-    totalLessons: 20,
-    lastAccessed: 'Not started',
-    estimatedHours: 15,
-  },
-  {
-    id: 6,
-    title: 'Advanced English Writing',
-    description: 'Learn to write essays, reports, and formal letters with proper structure and style.',
-    category: 'Writing',
-    difficulty: 'Advanced',
-    progress: 100,
-    completedLessons: 12,
-    totalLessons: 12,
-    lastAccessed: '2 weeks ago',
-    estimatedHours: 8,
-  },
-  {
-    id: 7,
-    title: 'English Listening & Comprehension',
-    description: 'Improve listening skills with native speaker audio, podcasts, and conversations.',
-    category: 'Listening',
-    difficulty: 'Intermediate',
-    progress: 55,
-    completedLessons: 11,
-    totalLessons: 20,
-    lastAccessed: '5 hours ago',
-    estimatedHours: 18,
-  },
-  {
-    id: 8,
-    title: 'TOEFL Test Preparation',
-    description: 'Complete TOEFL iBT preparation with practice tests and strategies for all sections.',
-    category: 'Test Prep',
-    difficulty: 'Advanced',
-    progress: 0,
-    completedLessons: 0,
-    totalLessons: 30,
-    lastAccessed: 'Not started',
-    estimatedHours: 25,
-  },
-])
+// Courses data — empty until loaded from API
+const courses = ref<Course[]>([])
 
 // Filtered courses
 const filteredCourses = computed(() => {
@@ -296,10 +199,7 @@ const openCourse = (courseId: number) => {
   router.push(`/courses/${courseId}`)
 }
 
-// Simulate loading
 onMounted(() => {
-  setTimeout(() => {
-    isLoading.value = false
-  }, 600)
+  isLoading.value = false
 })
 </script>
