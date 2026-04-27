@@ -16,6 +16,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: config.get<boolean>('DB_SYNCHRONIZE', false),
         migrations: ['src/migrations/*{.ts,.js}'],
         autoLoadEntities: true,
+        ssl: config.get<string>('NODE_ENV') === 'production'
+          ? { rejectUnauthorized: true }
+          : { rejectUnauthorized: false },
       }),
     }),
   ],

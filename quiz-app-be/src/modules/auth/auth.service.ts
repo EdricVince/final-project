@@ -21,12 +21,12 @@ export class AuthService {
     return crypto.createHash('sha256').update(password).digest('hex');
   }
 
-  private generateToken(payload: object): string {
+  private generateToken(payload: object, expiresInSeconds = 7 * 24 * 60 * 60): string {
     const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
     const payloadStr = Buffer.from(JSON.stringify({
       ...payload,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (15 * 60), // 15 minutes
+      exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
     })).toString('base64url');
 
     const secret = this.configService.get<string>('JWT_SECRET') || 'secret';
@@ -113,5 +113,10 @@ export class AuthService {
   async updateMe(userId: number, dto: UpdateProfileDto): Promise<ProfileDto> {
     await this.usersService.update(userId, dto);
     return this.getMe(userId);
+  }
+
+  refreshToken(userId: number, email: string, roleId: number): { access_token: string } {
+    const token = this.generateToken({ sub: userId, email, role_id: roleId });
+    return { access_token: token };
   }
 }

@@ -3,8 +3,7 @@ export type ActivityType = 'flashcard_session' | 'quiz_completion';
 export class LogActivityDto {
   type: ActivityType;
   cards_count?: number;   // for flashcard_session
-  score?: number;         // 0-100 percentage, for quiz_completion
-  questions_count?: number; // for quiz_completion
+  score?: number; // 0-100 percentage, for quiz_completion
 }
 
 export class LogActivityResponseDto {

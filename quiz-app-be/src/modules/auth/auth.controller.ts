@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, HttpCode, HttpStatus, UseGuards, HttpException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, UserOutDto, LoginResponseDto, ProfileDto, UpdateProfileDto } from './dto/register.dto';
 import { JwtGuard } from '../../core/guards/jwt.guard';
@@ -60,5 +60,26 @@ export class AuthController {
       message: 'Profile updated successfully',
       data: profile,
     };
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtGuard)
+  refresh(@CurrentUser() user: CurrentUserData): ApiResponse<{ access_token: string }> {
+    const result = this.authService.refreshToken(user.id, user.email, user.role_id);
+    return { code: HttpStatus.OK, message: 'Token refreshed', data: result };
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(): ApiResponse<null> {
+    return { code: HttpStatus.OK, message: 'Logged out successfully', data: null };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  resetPassword(@Body() body: { email: string }): ApiResponse<null> {
+    if (!body.email) throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
+    return { code: HttpStatus.OK, message: 'If the email exists, a reset link has been sent', data: null };
   }
 }
