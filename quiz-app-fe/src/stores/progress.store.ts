@@ -146,13 +146,9 @@ export const useProgressStore = defineStore('progress', () => {
     }
   }
 
-  async function logQuizCompletion(score: number, questionsCount: number): Promise<LogActivityResult | null> {
+  async function logQuizCompletion(score: number, _questionsCount?: number): Promise<LogActivityResult | null> {
     try {
-      const result = await api.logActivity({
-        type: 'quiz_completion',
-        score,
-        questions_count: questionsCount,
-      }) as LogActivityResult
+      const result = await api.logActivity({ type: 'quiz_completion', score }) as LogActivityResult
       xp.value = result.new_xp
       level.value = result.new_level
       streakCount.value = result.streak_count

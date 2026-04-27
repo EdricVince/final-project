@@ -53,10 +53,9 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => currentUser.value?.role_id === UserRole.ADMIN)
   const isStudent = computed(() => !currentUser.value?.role_id || currentUser.value.role_id === UserRole.STUDENT)
   const userRole = computed(() => currentUser.value?.role_id ?? UserRole.STUDENT)
-  // Email-based teacher access: only @teacher_spr.com emails can access teacher portal
   const isTeacherEmail = computed(() => currentUser.value?.email?.toLowerCase().endsWith('@teacher_spr.com') ?? false)
-  // Combined: can access teacher portal if email matches OR teacher mode was explicitly enabled at login
-  const canAccessTeacher = computed(() => isTeacherEmail.value || teacherModeEnabled.value)
+  // Can access teacher portal if: actual role_id=2 from DB, OR @teacher_spr.com email, OR explicitly enabled at login
+  const canAccessTeacher = computed(() => isTeacher.value || isTeacherEmail.value || teacherModeEnabled.value)
 
   const setTokens = (accessToken: string, refreshToken?: string) => {
     setCookie(ACCESS_TOKEN_KEY, accessToken, {
@@ -91,10 +90,6 @@ export const useAuthStore = defineStore('auth', () => {
   const getAccessToken = (): string | undefined => getCookie(ACCESS_TOKEN_KEY)
   const getRefreshToken = (): string | undefined => getCookie(REFRESH_TOKEN_KEY)
 
-  /**
-   * Login with email and password
-   * Note: BE login endpoint needs to be implemented
-   */
   const login = async (email: string, password: string, remember = false): Promise<AuthResult> => {
     try {
       const resp = await api.login(email, password)
@@ -137,13 +132,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Login with Google OAuth
-   * Note: BE Google OAuth needs to be implemented
-   */
+  // Google OAuth — not yet implemented on BE
   const loginWithGoogle = async (): Promise<AuthResult> => {
     try {
-      // TODO: Implement Google OAuth when BE is ready
       await new Promise((r) => setTimeout(r, 1000))
       const mock = {
         access_token: 'google_access_token_' + Date.now(),
@@ -158,12 +149,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Register new user
-   * BE endpoint: POST /api/v1/auth/register
-   * Returns user data (no token - user needs to login after register)
-   * @param roleId - Optional role ID (1=Student, 2=Teacher, 3=Admin)
-   */
   const register = async (email: string, password: string, roleId?: number): Promise<AuthResult> => {
     try {
       const userOut: UserOut = await api.register(email, password, roleId)
@@ -183,13 +168,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Register with Google OAuth
-   * Note: BE Google OAuth needs to be implemented
-   */
   const registerWithGoogle = async (): Promise<AuthResult> => {
     try {
-      // TODO: Implement Google OAuth when BE is ready
       await new Promise((r) => setTimeout(r, 1000))
       const mock = {
         access_token: 'google_register_token_' + Date.now(),
@@ -204,10 +184,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Request password reset
-   * Note: BE endpoint needs to be implemented
-   */
   const resetPassword = async (email: string): Promise<AuthResult> => {
     try {
       await api.resetPassword(email)
@@ -219,9 +195,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Logout user
-   */
   const logout = () => {
     clearTokens()
     disableTeacherMode()
@@ -231,10 +204,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const getRememberedEmail = (): string => localStorage.getItem(REMEMBER_EMAIL_KEY) || ''
 
-  /**
-   * Fetch current user profile
-   * Note: BE endpoint needs to be implemented
-   */
   const fetchUserProfile = async (): Promise<UserProfileData | null> => {
     const token = getAccessToken()
     if (!token) return null
@@ -255,10 +224,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Refresh access token
-   * Note: BE endpoint needs to be implemented
-   */
   const refreshAccessToken = async (): Promise<boolean> => {
     const refreshToken = getRefreshToken()
     if (!refreshToken) return false

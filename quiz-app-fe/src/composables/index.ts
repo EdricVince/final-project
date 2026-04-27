@@ -13,7 +13,6 @@ export { useDashboard } from './useDashboard'
 export type { ToastOptions } from './useToast'
 export type { Theme } from './useTheme'
 export type { CustomGoal } from './useGoals'
-export type { LeaderboardUser } from './useAchievements'
 export type {
   AccountSettings,
   PasswordForm,

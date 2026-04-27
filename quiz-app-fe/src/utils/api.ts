@@ -12,15 +12,12 @@ import type {
   UserOut,
 } from '@/types/api'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://techtus-training-quiz-app-be.onrender.com/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1'
 
 interface RequestOptions extends RequestInit {
   requiresAuth?: boolean
 }
 
-/**
- * Custom API Error class
- */
 export class ApiError extends Error {
   statusCode: number
   errorCode: string
@@ -37,16 +34,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Check if response is successful (2xx status codes)
- */
-function isSuccessStatus(status: number): boolean {
-  return status >= 200 && status < 300
-}
-
-/**
- * API helper function with automatic token handling
- */
 export async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { requiresAuth = true, headers = {}, ...restOptions } = options
   const authStore = useAuthStore()
@@ -56,7 +43,6 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     ...(headers as Record<string, string>),
   }
 
-  // Add Authorization header if required
   if (requiresAuth) {
     const token = authStore.getAccessToken()
     if (token) {
@@ -72,10 +58,8 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
       headers: requestHeaders,
     })
 
-    // Handle empty responses
     const text = await response.text()
     let responseData: ApiResponse<T> | ApiErrorResponse | null = null
-
     if (text) {
       try {
         responseData = JSON.parse(text)
@@ -84,460 +68,202 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
       }
     }
 
-    // Handle error responses
-    if (!isSuccessStatus(response.status)) {
-      const errorData = responseData as ApiErrorResponse
+    if (response.status >= 200 && response.status < 300) {
+      return (responseData as ApiResponse<T>).data
+    }
 
-      // Handle 401 Unauthorized - try to refresh token
-      if (response.status === 401 && requiresAuth) {
-        const refreshed = await authStore.refreshAccessToken()
+    const errorData = responseData as ApiErrorResponse
 
-        if (refreshed) {
-          // Retry the request with new token
-          const newToken = authStore.getAccessToken()
-          requestHeaders['Authorization'] = `Bearer ${newToken}`
-
-          const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...restOptions,
-            headers: requestHeaders,
-          })
-
-          const retryText = await retryResponse.text()
-          if (!isSuccessStatus(retryResponse.status)) {
-            const retryError = JSON.parse(retryText) as ApiErrorResponse
-            throw new ApiError(
-              retryResponse.status,
-              retryError.code || 'ERROR',
-              retryError.message,
-              retryError.details
-            )
-          }
-
-          const retryData = JSON.parse(retryText) as ApiResponse<T>
-          return retryData.data
-        } else {
-          // Refresh failed, logout user
-          authStore.logout()
-          window.location.href = '/login'
-          throw new ApiError(401, 'SESSION_EXPIRED', 'Session expired')
+    if (response.status === 401 && requiresAuth) {
+      const refreshed = await authStore.refreshAccessToken()
+      if (refreshed) {
+        const newToken = authStore.getAccessToken()
+        requestHeaders['Authorization'] = `Bearer ${newToken}`
+        const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+          ...restOptions,
+          headers: requestHeaders,
+        })
+        const retryText = await retryResponse.text()
+        if (retryResponse.status >= 200 && retryResponse.status < 300) {
+          return (JSON.parse(retryText) as ApiResponse<T>).data
         }
+        const retryError = JSON.parse(retryText) as ApiErrorResponse
+        throw new ApiError(retryResponse.status, retryError.code || 'ERROR', retryError.message, retryError.details)
+      } else {
+        authStore.logout()
+        window.location.href = '/login'
+        throw new ApiError(401, 'SESSION_EXPIRED', 'Session expired')
       }
-
-      throw new ApiError(
-        response.status,
-        errorData?.code || (errorData as any)?.error || 'ERROR',
-        errorData?.message || 'An error occurred',
-        errorData?.details
-      )
     }
 
-    // Return data from successful response
-    const successData = responseData as ApiResponse<T>
-    return successData.data
+    throw new ApiError(
+      response.status,
+      errorData?.code || (errorData as any)?.error || 'ERROR',
+      errorData?.message || 'An error occurred',
+      errorData?.details,
+    )
   } catch (error: unknown) {
-    if (error instanceof ApiError) {
-      throw error
-    }
-
+    if (error instanceof ApiError) throw error
     console.error('API request failed:', error)
     throw new ApiError(500, 'NETWORK_ERROR', 'Network error or server unavailable')
   }
 }
 
-/**
- * Specific API methods
- */
 export const api = {
-  // ==================== Auth Endpoints ====================
-
-  /**
-   * Login with email and password
-   * BE endpoint: POST /api/v1/auth/login (needs to be implemented in BE)
-   */
-  login: async (email: string, password: string): Promise<LoginResponseData> => {
-    return apiRequest<LoginResponseData>('/auth/login', {
+  // ── Auth ──────────────────────────────────────────────────────
+  login: (email: string, password: string): Promise<LoginResponseData> =>
+    apiRequest<LoginResponseData>('/auth/login', {
       method: 'POST',
       requiresAuth: false,
       body: JSON.stringify({ email, password } as LoginRequest),
-    })
-  },
+    }),
 
-  /**
-   * Register new user
-   * BE endpoint: POST /api/v1/auth/register
-   * Returns: UserOut (id, email, is_active, role_id)
-   * @param roleId - Optional role ID (1=Student, 2=Teacher, 3=Admin)
-   */
-  register: async (email: string, password: string, roleId?: number): Promise<UserOut> => {
+  register: (email: string, password: string, roleId?: number): Promise<UserOut> => {
     const body: RegisterRequest & { role_id?: number } = { email, password }
-    if (roleId) {
-      body.role_id = roleId
-    }
-    return apiRequest<UserOut>('/auth/register', {
-      method: 'POST',
-      requiresAuth: false,
-      body: JSON.stringify(body),
-    })
+    if (roleId) body.role_id = roleId
+    return apiRequest<UserOut>('/auth/register', { method: 'POST', requiresAuth: false, body: JSON.stringify(body) })
   },
 
-  /**
-   * Request password reset
-   * BE endpoint: POST /api/v1/auth/reset-password (needs to be implemented in BE)
-   */
-  resetPassword: async (email: string): Promise<SuccessResponse> => {
-    return apiRequest<SuccessResponse>('/auth/reset-password', {
+  resetPassword: (email: string): Promise<SuccessResponse> =>
+    apiRequest<SuccessResponse>('/auth/reset-password', {
       method: 'POST',
       requiresAuth: false,
       body: JSON.stringify({ email }),
-    })
-  },
+    }),
 
-  /**
-   * Refresh access token
-   * BE endpoint: POST /api/v1/auth/refresh (needs to be implemented in BE)
-   */
-  refreshToken: async (refreshToken: string): Promise<RefreshTokenResponseData> => {
-    return apiRequest<RefreshTokenResponseData>('/auth/refresh', {
+  refreshToken: (refreshToken: string): Promise<RefreshTokenResponseData> =>
+    apiRequest<RefreshTokenResponseData>('/auth/refresh', {
       method: 'POST',
       requiresAuth: false,
       body: JSON.stringify({ refresh_token: refreshToken } as RefreshTokenRequest),
-    })
-  },
+    }),
 
-  /**
-   * Get current user profile
-   * BE endpoint: GET /api/v1/auth/me (needs to be implemented in BE)
-   */
-  getProfile: (): Promise<UserProfileData> => {
-    return apiRequest<UserProfileData>('/auth/me', {
-      method: 'GET',
-    })
-  },
+  getProfile: (): Promise<UserProfileData> => apiRequest<UserProfileData>('/auth/me'),
 
-  /**
-   * Update user profile
-   * BE endpoint: PUT /api/v1/auth/me (needs to be implemented in BE)
-   */
-  updateProfile: (data: Partial<UserProfileData>): Promise<UserProfileData> => {
-    return apiRequest<UserProfileData>('/auth/me', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  },
+  updateProfile: (data: Partial<UserProfileData>): Promise<UserProfileData> =>
+    apiRequest<UserProfileData>('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
 
-  /**
-   * Logout
-   * BE endpoint: POST /api/v1/auth/logout (needs to be implemented in BE)
-   */
-  logout: (): Promise<SuccessResponse> => {
-    return apiRequest<SuccessResponse>('/auth/logout', {
-      method: 'POST',
-    })
-  },
+  logout: (): Promise<SuccessResponse> => apiRequest<SuccessResponse>('/auth/logout', { method: 'POST' }),
 
-  // ==================== Quiz Endpoints ====================
-
-  /**
-   * Get all quizzes (with optional filters)
-   */
+  // ── Quizzes ───────────────────────────────────────────────────
   getQuizzes: (params?: Record<string, string | number>): Promise<unknown[]> => {
-    const queryString = params
-      ? '?' + new URLSearchParams(params as Record<string, string>).toString()
-      : ''
-
-    return apiRequest<unknown[]>(`/quizzes${queryString}`, {
-      method: 'GET',
-    })
+    const q = params ? '?' + new URLSearchParams(params as Record<string, string>).toString() : ''
+    return apiRequest<unknown[]>(`/quizzes${q}`)
   },
 
-  /**
-   * Get single quiz by ID
-   */
-  getQuiz: (id: string): Promise<unknown> => {
-    return apiRequest<unknown>(`/quizzes/${id}`, {
-      method: 'GET',
-    })
-  },
+  getQuiz: (id: string): Promise<unknown> => apiRequest<unknown>(`/quizzes/${id}`),
 
-  /**
-   * Create new quiz
-   */
-  createQuiz: (quizData: unknown): Promise<unknown> => {
-    return apiRequest<unknown>('/quizzes', {
-      method: 'POST',
-      body: JSON.stringify(quizData),
-    })
-  },
+  createQuiz: (data: unknown): Promise<unknown> =>
+    apiRequest<unknown>('/quizzes', { method: 'POST', body: JSON.stringify(data) }),
 
-  /**
-   * Update quiz
-   */
-  updateQuiz: (id: string, quizData: unknown): Promise<unknown> => {
-    return apiRequest<unknown>(`/quizzes/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(quizData),
-    })
-  },
+  updateQuiz: (id: string, data: unknown): Promise<unknown> =>
+    apiRequest<unknown>(`/quizzes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  /**
-   * Delete quiz
-   */
-  deleteQuiz: (id: string): Promise<SuccessResponse> => {
-    return apiRequest<SuccessResponse>(`/quizzes/${id}`, {
-      method: 'DELETE',
-    })
-  },
+  deleteQuiz: (id: string): Promise<SuccessResponse> =>
+    apiRequest<SuccessResponse>(`/quizzes/${id}`, { method: 'DELETE' }),
 
-  // ==================== Class Endpoints (Teacher) ====================
+  // ── Classes ───────────────────────────────────────────────────
+  getClasses: (): Promise<unknown[]> => apiRequest<unknown[]>('/classes'),
 
-  /**
-   * Get all classes for current teacher
-   */
-  getClasses: (): Promise<unknown[]> => {
-    return apiRequest<unknown[]>('/classes', { method: 'GET' })
-  },
+  getClass: (id: number): Promise<unknown> => apiRequest<unknown>(`/classes/${id}`),
 
-  /**
-   * Get single class by ID
-   */
-  getClass: (id: number): Promise<unknown> => {
-    return apiRequest<unknown>(`/classes/${id}`, { method: 'GET' })
-  },
+  createClass: (data: unknown): Promise<unknown> =>
+    apiRequest<unknown>('/classes', { method: 'POST', body: JSON.stringify(data) }),
 
-  /**
-   * Create new class
-   */
-  createClass: (data: unknown): Promise<unknown> => {
-    return apiRequest<unknown>('/classes', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
+  updateClass: (id: number, data: unknown): Promise<unknown> =>
+    apiRequest<unknown>(`/classes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  /**
-   * Update class
-   */
-  updateClass: (id: number, data: unknown): Promise<unknown> => {
-    return apiRequest<unknown>(`/classes/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  },
+  deleteClass: (id: number): Promise<SuccessResponse> =>
+    apiRequest<SuccessResponse>(`/classes/${id}`, { method: 'DELETE' }),
 
-  /**
-   * Delete class
-   */
-  deleteClass: (id: number): Promise<SuccessResponse> => {
-    return apiRequest<SuccessResponse>(`/classes/${id}`, { method: 'DELETE' })
-  },
+  getClassStudents: (classId: number): Promise<unknown[]> =>
+    apiRequest<unknown[]>(`/classes/${classId}/students`),
 
-  /**
-   * Get students in class
-   */
-  getClassStudents: (classId: number): Promise<unknown[]> => {
-    return apiRequest<unknown[]>(`/classes/${classId}/students`, { method: 'GET' })
-  },
+  removeStudent: (classId: number, studentId: number): Promise<SuccessResponse> =>
+    apiRequest<SuccessResponse>(`/classes/${classId}/students/${studentId}`, { method: 'DELETE' }),
 
-  /**
-   * Remove student from class
-   */
-  removeStudent: (classId: number, studentId: number): Promise<SuccessResponse> => {
-    return apiRequest<SuccessResponse>(`/classes/${classId}/students/${studentId}`, {
-      method: 'DELETE',
-    })
-  },
+  joinClass: (classCode: string): Promise<unknown> =>
+    apiRequest<unknown>('/classes/join', { method: 'POST', body: JSON.stringify({ class_code: classCode }) }),
 
-  /**
-   * Join class by code (Student)
-   */
-  joinClass: (classCode: string): Promise<unknown> => {
-    return apiRequest<unknown>('/classes/join', {
-      method: 'POST',
-      body: JSON.stringify({ class_code: classCode }),
-    })
-  },
+  // ── Videos ───────────────────────────────────────────────────
+  getClassVideos: (classId: number): Promise<unknown[]> => apiRequest<unknown[]>(`/classes/${classId}/videos`),
 
-  // ==================== Video Endpoints (Teacher) ====================
+  getVideo: (id: number): Promise<unknown> => apiRequest<unknown>(`/videos/${id}`),
 
-  /**
-   * Get videos in class
-   */
-  getClassVideos: (classId: number): Promise<unknown[]> => {
-    return apiRequest<unknown[]>(`/classes/${classId}/videos`, { method: 'GET' })
-  },
+  createVideo: (data: unknown): Promise<unknown> =>
+    apiRequest<unknown>('/videos', { method: 'POST', body: JSON.stringify(data) }),
 
-  /**
-   * Get single video
-   */
-  getVideo: (id: number): Promise<unknown> => {
-    return apiRequest<unknown>(`/videos/${id}`, { method: 'GET' })
-  },
+  updateVideo: (id: number, data: unknown): Promise<unknown> =>
+    apiRequest<unknown>(`/videos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  /**
-   * Create video record
-   */
-  createVideo: (data: unknown): Promise<unknown> => {
-    return apiRequest<unknown>('/videos', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
+  deleteVideo: (id: number): Promise<SuccessResponse> =>
+    apiRequest<SuccessResponse>(`/videos/${id}`, { method: 'DELETE' }),
 
-  /**
-   * Update video
-   */
-  updateVideo: (id: number, data: unknown): Promise<unknown> => {
-    return apiRequest<unknown>(`/videos/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  },
+  // ── Tests ─────────────────────────────────────────────────────
+  getTests: (): Promise<unknown[]> => apiRequest<unknown[]>('/tests'),
 
-  /**
-   * Delete video
-   */
-  deleteVideo: (id: number): Promise<SuccessResponse> => {
-    return apiRequest<SuccessResponse>(`/videos/${id}`, { method: 'DELETE' })
-  },
+  getTest: (id: number): Promise<unknown> => apiRequest<unknown>(`/tests/${id}`),
 
-  // ==================== Test Endpoints (Teacher) ====================
+  createTest: (data: unknown): Promise<unknown> =>
+    apiRequest<unknown>('/tests', { method: 'POST', body: JSON.stringify(data) }),
 
-  /**
-   * Get all tests for current teacher
-   */
-  getTests: (): Promise<unknown[]> => {
-    return apiRequest<unknown[]>('/tests', { method: 'GET' })
-  },
+  updateTest: (id: number, data: unknown): Promise<unknown> =>
+    apiRequest<unknown>(`/tests/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  /**
-   * Get single test
-   */
-  getTest: (id: number): Promise<unknown> => {
-    return apiRequest<unknown>(`/tests/${id}`, { method: 'GET' })
-  },
+  deleteTest: (id: number): Promise<SuccessResponse> =>
+    apiRequest<SuccessResponse>(`/tests/${id}`, { method: 'DELETE' }),
 
-  /**
-   * Create new test
-   */
-  createTest: (data: unknown): Promise<unknown> => {
-    return apiRequest<unknown>('/tests', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
+  addQuestion: (testId: number, data: unknown): Promise<unknown> =>
+    apiRequest<unknown>(`/tests/${testId}/questions`, { method: 'POST', body: JSON.stringify(data) }),
 
-  /**
-   * Update test
-   */
-  updateTest: (id: number, data: unknown): Promise<unknown> => {
-    return apiRequest<unknown>(`/tests/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  },
+  updateQuestion: (id: number, data: unknown): Promise<unknown> =>
+    apiRequest<unknown>(`/questions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  /**
-   * Delete test
-   */
-  deleteTest: (id: number): Promise<SuccessResponse> => {
-    return apiRequest<SuccessResponse>(`/tests/${id}`, { method: 'DELETE' })
-  },
+  deleteQuestion: (id: number): Promise<SuccessResponse> =>
+    apiRequest<SuccessResponse>(`/questions/${id}`, { method: 'DELETE' }),
 
-  /**
-   * Add question to test
-   */
-  addQuestion: (testId: number, data: unknown): Promise<unknown> => {
-    return apiRequest<unknown>(`/tests/${testId}/questions`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
+  assignTest: (testId: number, data: unknown): Promise<unknown> =>
+    apiRequest<unknown>(`/tests/${testId}/assign`, { method: 'POST', body: JSON.stringify(data) }),
 
-  /**
-   * Update question
-   */
-  updateQuestion: (id: number, data: unknown): Promise<unknown> => {
-    return apiRequest<unknown>(`/questions/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  },
+  getTestResults: (testId: number): Promise<unknown[]> => apiRequest<unknown[]>(`/tests/${testId}/results`),
 
-  /**
-   * Delete question
-   */
-  deleteQuestion: (id: number): Promise<SuccessResponse> => {
-    return apiRequest<SuccessResponse>(`/questions/${id}`, { method: 'DELETE' })
-  },
+  // ── Student Tests ─────────────────────────────────────────────
+  getStudentTests: (): Promise<unknown[]> => apiRequest<unknown[]>('/student/tests'),
 
-  /**
-   * Assign test to class
-   */
-  assignTest: (testId: number, data: unknown): Promise<unknown> => {
-    return apiRequest<unknown>(`/tests/${testId}/assign`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
+  getStudentTest: (id: number): Promise<unknown> => apiRequest<unknown>(`/student/tests/${id}`),
 
-  /**
-   * Get test results (Teacher)
-   */
-  getTestResults: (testId: number): Promise<unknown[]> => {
-    return apiRequest<unknown[]>(`/tests/${testId}/results`, { method: 'GET' })
-  },
+  submitTest: (testId: number, answers: Record<number, number | string>): Promise<unknown> =>
+    apiRequest<unknown>(`/student/tests/${testId}/submit`, { method: 'POST', body: JSON.stringify({ answers }) }),
 
-  // ==================== Student Test Endpoints ====================
+  getStudentResults: (): Promise<unknown[]> => apiRequest<unknown[]>('/student/results'),
 
-  /**
-   * Get available tests for student
-   */
-  getStudentTests: (): Promise<unknown[]> => {
-    return apiRequest<unknown[]>('/student/tests', { method: 'GET' })
-  },
+  // ── Progress ──────────────────────────────────────────────────
+  getMyProgress: (): Promise<unknown> => apiRequest<unknown>('/progress/me'),
 
-  /**
-   * Get test to take
-   */
-  getStudentTest: (id: number): Promise<unknown> => {
-    return apiRequest<unknown>(`/student/tests/${id}`, { method: 'GET' })
-  },
+  logActivity: (data: { type: string; cards_count?: number; score?: number }): Promise<unknown> =>
+    apiRequest<unknown>('/progress/activity', { method: 'POST', body: JSON.stringify(data) }),
 
-  /**
-   * Submit test answers
-   */
-  submitTest: (testId: number, answers: Record<number, number | string>): Promise<unknown> => {
-    return apiRequest<unknown>(`/student/tests/${testId}/submit`, {
-      method: 'POST',
-      body: JSON.stringify({ answers }),
-    })
-  },
+  getWeeklyActivity: (): Promise<unknown[]> => apiRequest<unknown[]>('/progress/weekly'),
 
-  /**
-   * Get student's own results
-   */
-  getStudentResults: (): Promise<unknown[]> => {
-    return apiRequest<unknown[]>('/student/results', { method: 'GET' })
-  },
+  getLeaderboard: (): Promise<unknown[]> => apiRequest<unknown[]>('/progress/leaderboard'),
 
-  // ==================== Progress Endpoints ====================
+  // ── Goals ─────────────────────────────────────────────────────
+  getGoals: (): Promise<{
+    daily_goals: { type: string; label: string; current: number; target: number; unit: string }[]
+    weekly_challenges: { id: string; title: string; description: string; current: number; target: number; completed: boolean }[]
+    milestones: { id: string; title: string; description: string; current: number; target: number; completed: boolean }[]
+    custom_goals: { id: number; title: string; description: string | null; completed: boolean }[]
+  }> => apiRequest('/goals'),
 
-  getMyProgress: (): Promise<unknown> => {
-    return apiRequest<unknown>('/progress/me', { method: 'GET' })
-  },
+  updateGoalSettings: (data: { target_cards?: number; target_quizzes?: number }): Promise<unknown> =>
+    apiRequest<unknown>('/goals/settings', { method: 'PUT', body: JSON.stringify(data) }),
 
-  logActivity: (data: { type: string; cards_count?: number; score?: number; questions_count?: number }): Promise<unknown> => {
-    return apiRequest<unknown>('/progress/activity', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
+  createCustomGoal: (data: { title: string; description?: string }): Promise<{ id: number; title: string; description: string | null; completed: boolean }> =>
+    apiRequest('/goals/custom', { method: 'POST', body: JSON.stringify(data) }),
 
-  getWeeklyActivity: (): Promise<unknown[]> => {
-    return apiRequest<unknown[]>('/progress/weekly', { method: 'GET' })
-  },
+  updateCustomGoal: (id: number, data: { completed?: boolean; title?: string; description?: string }): Promise<{ id: number; title: string; description: string | null; completed: boolean }> =>
+    apiRequest(`/goals/custom/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  getLeaderboard: (): Promise<unknown[]> => {
-    return apiRequest<unknown[]>('/progress/leaderboard', { method: 'GET' })
-  },
+  deleteCustomGoal: (id: number): Promise<unknown> =>
+    apiRequest<unknown>(`/goals/custom/${id}`, { method: 'DELETE' }),
 }

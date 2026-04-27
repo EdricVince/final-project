@@ -1,13 +1,14 @@
 import { vocabulary, getWordInLang, type VocabWord } from '@/data/vocabulary'
 import { useLearningLanguage } from './useLearningLanguage'
 import { useLocale } from './useLocale'
+import { useQuizStore } from '@/stores/quiz.store'
 import type { MultipleChoiceQuestion, WordScrambleQuestion, MatchingPair, TrueFalseQuestion } from '@/types/quiz'
 
 // Extended interfaces with vocab reference for results screen
 export interface VocabMCQuestion extends MultipleChoiceQuestion {
   vocabWord: VocabWord
-  termDisplay: string   // word in learning lang
-  meaningDisplay: string // word in ui lang
+  termDisplay: string
+  meaningDisplay: string
 }
 
 export interface VocabTFQuestion extends TrueFalseQuestion {
@@ -30,34 +31,55 @@ function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
+    ;[a[i], a[j]] = [a[j]!, a[i]!]
   }
   return a
 }
 
 function scrambleWord(word: string): string[] {
   const letters = word.split('')
-  return shuffleArray(letters)
+  // Ensure the scrambled version differs from the original
+  let shuffled = shuffleArray(letters)
+  let attempts = 0
+  while (shuffled.join('') === word && attempts < 10) {
+    shuffled = shuffleArray(letters)
+    attempts++
+  }
+  return shuffled
 }
 
 export function useVocabulary() {
   const { current: learningLang } = useLearningLanguage()
   const { locale: uiLang } = useLocale()
+  const quizStore = useQuizStore()
 
+  // Pick words that haven't been seen recently; wraps around when all are seen
   function getRandomWords(count: number): VocabWord[] {
-    return shuffleArray([...vocabulary]).slice(0, count)
+    const seenIds = quizStore.getSeenWordIds()
+    const unseen = vocabulary.filter(w => !seenIds.has(w.id))
+    const seenWords = vocabulary.filter(w => seenIds.has(w.id))
+
+    let pool: VocabWord[]
+    if (unseen.length >= count) {
+      pool = unseen
+    } else {
+      // Not enough unseen words — mix in seen ones to fill up
+      pool = [...unseen, ...seenWords]
+    }
+
+    const selected = shuffleArray(pool).slice(0, Math.min(count, vocabulary.length))
+    quizStore.markWordsAsSeen(selected.map(w => w.id), vocabulary.length)
+    return selected
   }
 
   function generateMCQuestions(count = 10): VocabMCQuestion[] {
+    // Need at least 4 words for wrong answers
     const words = getRandomWords(Math.max(count, 4))
     return words.slice(0, count).map((word, i) => {
       const term = getWordInLang(word, learningLang.value)
       const correct = getWordInLang(word, uiLang.value as string)
-      // Pick 3 wrong answers from other words
       const others = words.filter(w => w.id !== word.id)
-      const wrongs = shuffleArray(others)
-        .slice(0, 3)
-        .map(w => getWordInLang(w, uiLang.value as string))
+      const wrongs = shuffleArray(others).slice(0, 3).map(w => getWordInLang(w, uiLang.value as string))
       const options = shuffleArray([correct, ...wrongs])
       return {
         id: i + 1,
@@ -72,7 +94,7 @@ export function useVocabulary() {
     })
   }
 
-  function generateTFQuestions(count = 12): VocabTFQuestion[] {
+  function generateTFQuestions(count = 10): VocabTFQuestion[] {
     const words = getRandomWords(Math.max(count, 4))
     return words.slice(0, count).map((word, i) => {
       const term = getWordInLang(word, learningLang.value)
@@ -82,7 +104,7 @@ export function useVocabulary() {
       if (!isTrue) {
         const others = vocabulary.filter(w => w.id !== word.id)
         const wrong = others[Math.floor(Math.random() * others.length)]
-        shownMeaning = getWordInLang(wrong, uiLang.value as string)
+        if (wrong) shownMeaning = getWordInLang(wrong, uiLang.value as string)
       }
       return {
         id: i + 1,
@@ -101,7 +123,6 @@ export function useVocabulary() {
     return words.map((word, i) => {
       const term = getWordInLang(word, learningLang.value)
       const hint = getWordInLang(word, uiLang.value as string)
-      // Only scramble simple ASCII words (English/romaji); others keep original
       const canScramble = /^[a-zA-Z\s]+$/.test(term) && term.length > 2
       const scrambled = canScramble ? scrambleWord(term) : term.split('')
       return {

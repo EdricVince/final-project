@@ -185,8 +185,6 @@ export function useSettings() {
   }
 
   const deleteAccount = () => {
-    // API call here
-    console.log('Account deleted')
     showDeleteConfirm.value = false
     toast.success('Account deleted')
   }

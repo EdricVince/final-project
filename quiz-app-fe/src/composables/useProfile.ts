@@ -6,8 +6,6 @@ import {
   Flame,
   Zap,
   Crown,
-  Users,
-  Heart,
   Sparkles,
   Rocket,
   Brain,
@@ -159,165 +157,68 @@ export function useProfile() {
     },
   )
 
-  // Recent activities
-  const recentActivities = reactive<RecentActivity[]>([
-    {
-      id: '1',
-      type: 'quiz',
-      title: 'Completed JavaScript Basics Quiz',
-      description: 'Scored 95% on the quiz',
-      xp: 50,
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-    },
-    {
-      id: '2',
-      type: 'lesson',
-      title: 'Learned 15 new vocabulary words',
-      description: 'Advanced English - Business Terms',
-      xp: 30,
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    },
-    {
-      id: '3',
-      type: 'streak',
-      title: '21 Day Streak Achieved!',
-      description: 'Keep up the great work!',
-      xp: 100,
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
-    },
-    {
-      id: '4',
-      type: 'achievement',
-      title: 'Unlocked "Quiz Master" Badge',
-      description: 'Complete 50 quizzes',
-      xp: 75,
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-    },
-    {
-      id: '5',
-      type: 'review',
-      title: 'Reviewed 50 flashcards',
-      description: 'Daily review session completed',
-      xp: 25,
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 26),
-    },
-  ])
+  // Recent activities — derived from real weekly progress data
+  const recentActivities = computed<RecentActivity[]>(() => {
+    const activities: RecentActivity[] = []
+    ;[...progressStore.weeklyActivity]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .forEach((day) => {
+        if (day.cards_studied > 0) {
+          activities.push({
+            id: `flashcard-${day.date}`,
+            type: 'lesson',
+            title: `Studied ${day.cards_studied} flashcard${day.cards_studied > 1 ? 's' : ''}`,
+            description: day.day_label,
+            xp: Math.min(day.cards_studied * 5, 100),
+            timestamp: new Date(day.date),
+          })
+        }
+        if (day.quizzes_completed > 0) {
+          activities.push({
+            id: `quiz-${day.date}`,
+            type: 'quiz',
+            title: `Completed ${day.quizzes_completed} quiz${day.quizzes_completed > 1 ? 'zes' : ''}`,
+            description: day.day_label,
+            xp: day.quizzes_completed * 25,
+            timestamp: new Date(day.date),
+          })
+        }
+      })
+    return activities.slice(0, 5)
+  })
 
-  // Achievements for showcase
-  const achievements = reactive<ShowcaseAchievement[]>([
-    {
-      id: '1',
-      name: 'First Steps',
-      description: 'Complete your first lesson',
-      icon: Star,
-      rarity: 'common',
-      earned: true,
-      earnedAt: new Date('2024-01-15'),
-    },
-    {
-      id: '2',
-      name: 'Word Collector',
-      description: 'Learn 100 vocabulary words',
-      icon: BookOpen,
-      rarity: 'common',
-      earned: true,
-      earnedAt: new Date('2024-02-01'),
-    },
-    {
-      id: '3',
-      name: 'Knowledge Seeker',
-      description: 'Learn 500 vocabulary words',
-      icon: Brain,
-      rarity: 'rare',
-      earned: true,
-      earnedAt: new Date('2024-03-10'),
-    },
-    {
-      id: '4',
-      name: 'Vocabulary Master',
-      description: 'Learn 1000 vocabulary words',
-      icon: GraduationCap,
-      rarity: 'epic',
-      earned: false,
-      progress: 750,
-      target: 1000,
-    },
-    {
-      id: '5',
-      name: 'Week Warrior',
-      description: 'Maintain a 7-day streak',
-      icon: Flame,
-      rarity: 'common',
-      earned: true,
-      earnedAt: new Date('2024-01-22'),
-    },
-    {
-      id: '6',
-      name: 'Streak Champion',
-      description: 'Maintain a 30-day streak',
-      icon: Zap,
-      rarity: 'rare',
-      earned: false,
-      progress: 21,
-      target: 30,
-    },
-    {
-      id: '7',
-      name: 'Unstoppable',
-      description: 'Maintain a 100-day streak',
-      icon: Crown,
-      rarity: 'legendary',
-      earned: false,
-      progress: 21,
-      target: 100,
-    },
-    {
-      id: '8',
-      name: 'Team Player',
-      description: 'Join a study group',
-      icon: Users,
-      rarity: 'common',
-      earned: true,
-      earnedAt: new Date('2024-02-15'),
-    },
-    {
-      id: '9',
-      name: 'Helpful Friend',
-      description: 'Help 10 other learners',
-      icon: Heart,
-      rarity: 'rare',
-      earned: false,
-      progress: 6,
-      target: 10,
-    },
-    {
-      id: '10',
-      name: 'Quiz Master',
-      description: 'Complete 50 quizzes',
-      icon: Trophy,
-      rarity: 'common',
-      earned: true,
-      earnedAt: new Date('2024-03-01'),
-    },
-    {
-      id: '11',
-      name: 'Perfect Score',
-      description: 'Get 100% on 10 quizzes',
-      icon: Sparkles,
-      rarity: 'epic',
-      earned: true,
-      earnedAt: new Date('2024-03-15'),
-    },
-    {
-      id: '12',
-      name: 'Speed Demon',
-      description: 'Complete a quiz in under 1 minute',
-      icon: Rocket,
-      rarity: 'rare',
-      earned: true,
-      earnedAt: new Date('2024-02-28'),
-    },
-  ])
+  // Achievements — computed from real progressStore data
+  const achievements = computed<ShowcaseAchievement[]>(() => {
+    const cards = progressStore.totalCardsStudied
+    const quizzes = progressStore.totalQuizzesCompleted
+    const streak = progressStore.longestStreak
+
+    const make = (
+      id: string,
+      name: string,
+      description: string,
+      icon: Component,
+      rarity: AchievementRarity,
+      current: number,
+      target: number,
+    ): ShowcaseAchievement => {
+      const earned = current >= target
+      return { id, name, description, icon, rarity, earned, earnedAt: earned ? new Date() : undefined, progress: Math.min(current, target), target }
+    }
+
+    return [
+      make('1', 'First Steps',       'Complete your first lesson or quiz',  Star,         'common',    cards + quizzes,  1),
+      make('2', 'Word Collector',    'Study 100 flashcards',                BookOpen,     'common',    cards,           100),
+      make('3', 'Knowledge Seeker',  'Study 500 flashcards',                Brain,        'rare',      cards,           500),
+      make('4', 'Vocabulary Master', 'Study 1000 flashcards',               GraduationCap,'epic',      cards,          1000),
+      make('5', 'Week Warrior',      'Maintain a 7-day streak',             Flame,        'common',    streak,            7),
+      make('6', 'Streak Champion',   'Maintain a 30-day streak',            Zap,          'rare',      streak,           30),
+      make('7', 'Unstoppable',       'Maintain a 100-day streak',           Crown,        'legendary', streak,          100),
+      make('8', 'Quiz Starter',      'Complete 10 quizzes',                 Rocket,       'common',    quizzes,          10),
+      make('9', 'Quiz Master',       'Complete 50 quizzes',                 Trophy,       'rare',      quizzes,          50),
+      make('10','Quiz Legend',       'Complete 100 quizzes',                Sparkles,     'epic',      quizzes,         100),
+    ]
+  })
 
   // Edit state
   const isEditing = ref(false)
