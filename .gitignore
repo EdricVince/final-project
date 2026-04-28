@@ -1,3 +1,23 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+build/
+.output/
+
+# Vite cache
+**/.vite/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Claude AI tools
+.claude/
+
 # Editor directories and files
 .vscode/
 .idea/
@@ -13,3 +33,11 @@ Thumbs.db
 
 # Logs
 *.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Coverage
+coverage/
+
+# TypeScript cache
+*.tsbuildinfo
