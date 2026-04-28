@@ -64,10 +64,25 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtGuard)
-  refresh(@CurrentUser() user: CurrentUserData): ApiResponse<{ access_token: string }> {
-    const result = this.authService.refreshToken(user.id, user.email, user.role_id);
+  refresh(@Body() body: { token?: string; refresh_token?: string }): ApiResponse<{ access_token: string }> {
+    const tokenValue = body?.token ?? body?.refresh_token;
+    if (!tokenValue) {
+      throw new HttpException('Token is required', HttpStatus.BAD_REQUEST);
+    }
+    const result = this.authService.refreshFromToken(tokenValue);
     return { code: HttpStatus.OK, message: 'Token refreshed', data: result };
+  }
+
+  @Post('oauth-login')
+  @HttpCode(HttpStatus.OK)
+  async oauthLogin(
+    @Body() body: { supabase_token: string },
+  ): Promise<ApiResponse<LoginResponseDto>> {
+    if (!body?.supabase_token) {
+      throw new HttpException('supabase_token is required', HttpStatus.BAD_REQUEST);
+    }
+    const result = await this.authService.oauthLogin(body.supabase_token);
+    return { code: HttpStatus.OK, message: 'OAuth login successful', data: result };
   }
 
   @Post('logout')

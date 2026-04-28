@@ -1,9 +1,22 @@
+import { IsEnum, IsOptional, IsInt, Min, Max } from 'class-validator';
+
 export type ActivityType = 'flashcard_session' | 'quiz_completion';
 
 export class LogActivityDto {
+  @IsEnum(['flashcard_session', 'quiz_completion'])
   type: ActivityType;
-  cards_count?: number;   // for flashcard_session
-  score?: number; // 0-100 percentage, for quiz_completion
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(1000)
+  cards_count?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  score?: number;
 }
 
 export class LogActivityResponseDto {

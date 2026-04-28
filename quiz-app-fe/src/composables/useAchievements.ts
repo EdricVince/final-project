@@ -20,18 +20,20 @@ export function useAchievements() {
     const quizzes = progressStore.totalQuizzesCompleted
     const streak = progressStore.streakCount
 
+    const now = new Date().toISOString()
+    const e = (cond: boolean) => (cond ? now : undefined)
     return [
-      { id: '1', name: 'First Steps', description: 'Study your first flashcard', icon: Star, category: 'learning', rarity: 'common', earned: cards >= 1, progress: Math.min(cards, 1), target: 1 },
-      { id: '2', name: 'Word Collector', description: 'Study 100 flashcards', icon: BookOpen, category: 'learning', rarity: 'common', earned: cards >= 100, progress: Math.min(cards, 100), target: 100 },
-      { id: '3', name: 'Knowledge Seeker', description: 'Study 500 flashcards', icon: Brain, category: 'learning', rarity: 'rare', earned: cards >= 500, progress: Math.min(cards, 500), target: 500 },
-      { id: '4', name: 'Vocabulary Master', description: 'Study 1000 flashcards', icon: GraduationCap, category: 'learning', rarity: 'epic', earned: cards >= 1000, progress: Math.min(cards, 1000), target: 1000 },
-      { id: '5', name: 'Week Warrior', description: 'Maintain a 7-day streak', icon: Flame, category: 'streak', rarity: 'common', earned: streak >= 7, progress: Math.min(streak, 7), target: 7 },
-      { id: '6', name: 'Streak Champion', description: 'Maintain a 30-day streak', icon: Zap, category: 'streak', rarity: 'rare', earned: streak >= 30, progress: Math.min(streak, 30), target: 30 },
-      { id: '7', name: 'Unstoppable', description: 'Maintain a 100-day streak', icon: Crown, category: 'streak', rarity: 'legendary', earned: streak >= 100, progress: Math.min(streak, 100), target: 100 },
+      { id: '1', name: 'First Steps', description: 'Study your first flashcard', icon: Star, category: 'learning', rarity: 'common', earned: cards >= 1, progress: Math.min(cards, 1), target: 1, earnedAt: e(cards >= 1) },
+      { id: '2', name: 'Word Collector', description: 'Study 100 flashcards', icon: BookOpen, category: 'learning', rarity: 'common', earned: cards >= 100, progress: Math.min(cards, 100), target: 100, earnedAt: e(cards >= 100) },
+      { id: '3', name: 'Knowledge Seeker', description: 'Study 500 flashcards', icon: Brain, category: 'learning', rarity: 'rare', earned: cards >= 500, progress: Math.min(cards, 500), target: 500, earnedAt: e(cards >= 500) },
+      { id: '4', name: 'Vocabulary Master', description: 'Study 1000 flashcards', icon: GraduationCap, category: 'learning', rarity: 'epic', earned: cards >= 1000, progress: Math.min(cards, 1000), target: 1000, earnedAt: e(cards >= 1000) },
+      { id: '5', name: 'Week Warrior', description: 'Maintain a 7-day streak', icon: Flame, category: 'streak', rarity: 'common', earned: streak >= 7, progress: Math.min(streak, 7), target: 7, earnedAt: e(streak >= 7) },
+      { id: '6', name: 'Streak Champion', description: 'Maintain a 30-day streak', icon: Zap, category: 'streak', rarity: 'rare', earned: streak >= 30, progress: Math.min(streak, 30), target: 30, earnedAt: e(streak >= 30) },
+      { id: '7', name: 'Unstoppable', description: 'Maintain a 100-day streak', icon: Crown, category: 'streak', rarity: 'legendary', earned: streak >= 100, progress: Math.min(streak, 100), target: 100, earnedAt: e(streak >= 100) },
       { id: '8', name: 'Team Player', description: 'Join a study group', icon: Users, category: 'social', rarity: 'common', earned: false, progress: 0, target: 1 },
       { id: '9', name: 'Helpful Friend', description: 'Help 10 other learners', icon: Heart, category: 'social', rarity: 'rare', earned: false, progress: 0, target: 10 },
-      { id: '10', name: 'Quiz Master', description: 'Complete 50 quizzes', icon: Trophy, category: 'mastery', rarity: 'common', earned: quizzes >= 50, progress: Math.min(quizzes, 50), target: 50 },
-      { id: '11', name: 'Quiz Veteran', description: 'Complete 10 quizzes', icon: Sparkles, category: 'mastery', rarity: 'epic', earned: quizzes >= 10, progress: Math.min(quizzes, 10), target: 10 },
+      { id: '10', name: 'Quiz Master', description: 'Complete 50 quizzes', icon: Trophy, category: 'mastery', rarity: 'common', earned: quizzes >= 50, progress: Math.min(quizzes, 50), target: 50, earnedAt: e(quizzes >= 50) },
+      { id: '11', name: 'Quiz Veteran', description: 'Complete 10 quizzes', icon: Sparkles, category: 'mastery', rarity: 'epic', earned: quizzes >= 10, progress: Math.min(quizzes, 10), target: 10, earnedAt: e(quizzes >= 10) },
       { id: '12', name: 'Speed Demon', description: 'Complete a quiz in under 1 minute', icon: Rocket, category: 'mastery', rarity: 'rare', earned: false, progress: 0, target: 1 },
     ]
   })

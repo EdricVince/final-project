@@ -19,7 +19,7 @@ export function setupCors(app: INestApplication) {
       }
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,

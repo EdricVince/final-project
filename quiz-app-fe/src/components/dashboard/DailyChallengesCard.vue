@@ -167,6 +167,8 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Flame, Clock, Zap, CheckCircle, Trophy, BookOpen, Brain, Layers, Target, ChevronRight, X, ArrowRight } from 'lucide-vue-next'
 
+defineEmits<{ claimReward: [challengeId: number] }>()
+
 interface Challenge {
   id: number
   title: string

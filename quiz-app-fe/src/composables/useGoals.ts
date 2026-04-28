@@ -3,6 +3,7 @@ import { BookOpen, Award, GraduationCap, Trophy } from 'lucide-vue-next'
 import type { Component } from 'vue'
 import { api } from '@/utils/api'
 import type { DailyGoal, WeeklyChallenge, Milestone } from '@/types/profile'
+import { useProgressStore } from '@/stores/progress.store'
 
 export interface CustomGoal {
   id: string
@@ -26,6 +27,7 @@ const MILESTONE_ICONS: Record<string, Component> = {
 }
 
 export function useGoals() {
+  const progressStore = useProgressStore()
   const loading = ref(false)
   const dailyGoals = ref<DailyGoal[]>([])
   const weeklyChallenges = ref<WeeklyChallenge[]>([])
@@ -77,10 +79,7 @@ export function useGoals() {
   const dailyProgress = computed(() =>
     dailyGoals.value.length ? Math.round((completedGoals.value / dailyGoals.value.length) * 100) : 0,
   )
-  const todayXP = computed(() => {
-    const XP: Record<string, number> = { flashcard: 15, quiz: 25, vocabulary: 20, time: 10 }
-    return dailyGoals.value.filter((g) => g.current >= g.target).reduce((s, g) => s + (XP[g.type] ?? 10), 0)
-  })
+  const todayXP = computed(() => progressStore.todayXP)
   const daysRemaining = computed(() => {
     const now = new Date()
     const end = new Date(now)

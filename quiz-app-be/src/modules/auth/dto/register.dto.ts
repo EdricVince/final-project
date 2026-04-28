@@ -1,11 +1,26 @@
+import { IsEmail, IsString, MinLength, IsOptional, IsInt, Min, Max } from 'class-validator';
+
 export class RegisterDto {
+  @IsEmail()
   email: string;
+
+  @IsString()
+  @MinLength(8)
   password: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(3)
   role_id?: number;
 }
 
 export class LoginDto {
+  @IsEmail()
   email: string;
+
+  @IsString()
+  @MinLength(1)
   password: string;
 }
 
@@ -32,6 +47,12 @@ export class ProfileDto {
 }
 
 export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
   name?: string;
+
+  @IsOptional()
+  @IsString()
   avatar?: string;
 }

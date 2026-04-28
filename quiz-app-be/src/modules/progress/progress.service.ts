@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, DataSource, Repository } from 'typeorm';
 import { UserProgress } from './entities/user-progress.entity';
 import { DailyActivity } from './entities/daily-activity.entity';
 import { User } from '../users/entities/user.entity';
@@ -68,6 +68,7 @@ export class ProgressService {
     private dailyRepo: Repository<DailyActivity>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    private dataSource: DataSource,
   ) {}
 
   private async getOrCreateProgress(userId: number): Promise<UserProgress> {
@@ -92,55 +93,67 @@ export class ProgressService {
   }
 
   async logActivity(userId: number, dto: LogActivityDto): Promise<LogActivityResponseDto> {
-    const progress = await this.getOrCreateProgress(userId);
-    const todayActivity = await this.getTodayActivity(userId);
-    const today = getTodayString();
-    const xpGained = calculateXpGained(dto);
+    return this.dataSource.transaction(async (manager) => {
+      const progressRepo = manager.getRepository(UserProgress);
+      const dailyRepo = manager.getRepository(DailyActivity);
 
-    // Update streak
-    let streakUpdated = false;
-    if (progress.last_activity_date !== today) {
-      if (progress.last_activity_date === getYesterdayString()) {
-        progress.streak_count += 1;
-      } else {
-        progress.streak_count = 1;
+      let progress = await progressRepo.findOne({ where: { user_id: userId } });
+      if (!progress) {
+        progress = progressRepo.create({ user_id: userId });
+        await progressRepo.save(progress);
       }
-      progress.last_activity_date = today;
-      streakUpdated = true;
-      if (progress.streak_count > progress.longest_streak) {
-        progress.longest_streak = progress.streak_count;
+
+      const today = getTodayString();
+      let todayActivity = await dailyRepo.findOne({ where: { user_id: userId, activity_date: today } });
+      if (!todayActivity) {
+        todayActivity = dailyRepo.create({ user_id: userId, activity_date: today });
+        await dailyRepo.save(todayActivity);
       }
-    }
 
-    // Update XP & level
-    const oldLevel = progress.level;
-    progress.xp += xpGained;
-    progress.level = getLevel(progress.xp);
-    const levelUp = progress.level > oldLevel;
+      const xpGained = calculateXpGained(dto);
 
-    // Update total counts
-    if (dto.type === 'flashcard_session') {
-      progress.total_cards_studied += dto.cards_count ?? 0;
-      todayActivity.cards_studied += dto.cards_count ?? 0;
-    }
-    if (dto.type === 'quiz_completion') {
-      progress.total_quizzes_completed += 1;
-      todayActivity.quizzes_completed += 1;
-    }
+      let streakUpdated = false;
+      if (progress.last_activity_date !== today) {
+        if (progress.last_activity_date === getYesterdayString()) {
+          progress.streak_count += 1;
+        } else {
+          progress.streak_count = 1;
+        }
+        progress.last_activity_date = today;
+        streakUpdated = true;
+        if (progress.streak_count > progress.longest_streak) {
+          progress.longest_streak = progress.streak_count;
+        }
+      }
 
-    todayActivity.xp_earned += xpGained;
+      const oldLevel = progress.level;
+      progress.xp += xpGained;
+      progress.level = getLevel(progress.xp);
+      const levelUp = progress.level > oldLevel;
 
-    await this.progressRepo.save(progress);
-    await this.dailyRepo.save(todayActivity);
+      if (dto.type === 'flashcard_session') {
+        progress.total_cards_studied += dto.cards_count ?? 0;
+        todayActivity.cards_studied += dto.cards_count ?? 0;
+      }
+      if (dto.type === 'quiz_completion') {
+        progress.total_quizzes_completed += 1;
+        todayActivity.quizzes_completed += 1;
+      }
 
-    return {
-      xp_gained: xpGained,
-      level_up: levelUp,
-      new_level: progress.level,
-      new_xp: progress.xp,
-      streak_count: progress.streak_count,
-      streak_updated: streakUpdated,
-    };
+      todayActivity.xp_earned += xpGained;
+
+      await progressRepo.save(progress);
+      await dailyRepo.save(todayActivity);
+
+      return {
+        xp_gained: xpGained,
+        level_up: levelUp,
+        new_level: progress.level,
+        new_xp: progress.xp,
+        streak_count: progress.streak_count,
+        streak_updated: streakUpdated,
+      };
+    });
   }
 
   async getMyStats(userId: number): Promise<ProgressResponseDto> {
@@ -170,20 +183,27 @@ export class ProgressService {
   }
 
   async getWeeklyActivity(userId: number): Promise<WeeklyActivityItemDto[]> {
+    const today = new Date();
+    const sixDaysAgo = new Date();
+    sixDaysAgo.setDate(today.getDate() - 6);
+
+    const startDate = sixDaysAgo.toISOString().split('T')[0];
+    const endDate = today.toISOString().split('T')[0];
+
+    const activities = await this.dailyRepo.find({
+      where: { user_id: userId, activity_date: Between(startDate, endDate) },
+    });
+    const activityMap = new Map(activities.map(a => [a.activity_date, a]));
+
     const result: WeeklyActivityItemDto[] = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
-      const dayLabel = DAY_LABELS[d.getDay()];
-
-      const activity = await this.dailyRepo.findOne({
-        where: { user_id: userId, activity_date: dateStr },
-      });
-
+      const activity = activityMap.get(dateStr);
       result.push({
         date: dateStr,
-        day_label: dayLabel,
+        day_label: DAY_LABELS[d.getDay()],
         xp_earned: activity?.xp_earned ?? 0,
         cards_studied: activity?.cards_studied ?? 0,
         quizzes_completed: activity?.quizzes_completed ?? 0,
@@ -193,28 +213,31 @@ export class ProgressService {
   }
 
   async getLeaderboard(): Promise<LeaderboardItemDto[]> {
-    const topProgress = await this.progressRepo.find({
-      order: { xp: 'DESC' },
-      take: 10,
-    });
+    const rows = await this.progressRepo
+      .createQueryBuilder('p')
+      .leftJoin(User, 'u', 'u.id = p.user_id')
+      .select([
+        'p.user_id AS user_id',
+        'p.xp AS xp',
+        'p.level AS level',
+        'p.streak_count AS streak_count',
+        'u.email AS email',
+      ])
+      .orderBy('p.xp', 'DESC')
+      .limit(10)
+      .getRawMany<{ user_id: number; xp: number; level: number; streak_count: number; email: string }>();
 
-    const result: LeaderboardItemDto[] = [];
-    for (let i = 0; i < topProgress.length; i++) {
-      const p = topProgress[i];
-      const user = await this.userRepo.findOne({ where: { id: p.user_id } });
-      const email = user?.email ?? 'Unknown';
-      const displayName = email.split('@')[0];
-
-      result.push({
+    return rows.map((row, i) => {
+      const email = row.email ?? 'Unknown';
+      return {
         rank: i + 1,
-        user_id: p.user_id,
+        user_id: row.user_id,
         email,
-        display_name: displayName,
-        xp: p.xp,
-        level: p.level,
-        streak_count: p.streak_count,
-      });
-    }
-    return result;
+        display_name: email.split('@')[0],
+        xp: Number(row.xp),
+        level: Number(row.level),
+        streak_count: Number(row.streak_count),
+      };
+    });
   }
 }

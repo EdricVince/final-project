@@ -14,11 +14,11 @@
         type="button"
         class="flex items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all"
         :class="
-          selectedRole === UserRole.STUDENT
+          selectedRole === 'student'
             ? 'border-primary bg-primary/5 text-primary'
             : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
         "
-        @click="selectedRole = UserRole.STUDENT"
+        @click="switchRole('student')"
       >
         <GraduationCap class="h-5 w-5 shrink-0" />
         <div class="text-left">
@@ -30,11 +30,11 @@
         type="button"
         class="flex items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all"
         :class="
-          selectedRole === UserRole.TEACHER
+          selectedRole === 'teacher'
             ? 'border-primary bg-primary/5 text-primary'
             : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
         "
-        @click="selectedRole = UserRole.TEACHER"
+        @click="switchRole('teacher')"
       >
         <Users class="h-5 w-5 shrink-0" />
         <div class="text-left">
@@ -42,6 +42,23 @@
           <p class="text-xs opacity-70">Manage classes</p>
         </div>
       </button>
+    </div>
+
+    <!-- Teacher info banner -->
+    <div
+      v-if="selectedRole === 'teacher'"
+      class="animate-fade-in rounded-xl border border-primary/30 bg-primary/5 p-4"
+    >
+      <div class="flex items-start gap-3">
+        <GraduationCap class="text-primary mt-0.5 h-5 w-5 shrink-0" />
+        <div>
+          <p class="text-foreground text-sm font-semibold">Teacher Portal Access</p>
+          <p class="text-muted-foreground mt-0.5 text-xs">
+            Only accounts with <span class="text-primary font-medium">@teacher.sprk</span> email can access the teacher portal.
+            Teacher accounts are created by the admin — contact your administrator if you don't have one.
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- Error Message -->
@@ -64,7 +81,7 @@
               <Input
                 v-bind="componentField"
                 type="email"
-                placeholder="name@example.com"
+                :placeholder="selectedRole === 'teacher' ? 'yourname@teacher.sprk' : 'name@example.com'"
                 class="border-input bg-background focus:border-primary focus:ring-primary/20 h-12 rounded-xl pl-12 text-base transition-all focus:ring-2"
                 @focus="onEmailFocus"
                 @blur="onEmailBlur"
@@ -132,40 +149,42 @@
       </Button>
     </form>
 
-    <!-- Divider -->
-    <div class="animate-fade-in-up delay-200 relative">
-      <div class="absolute inset-0 flex items-center">
-        <div class="border-border w-full border-t"></div>
+    <!-- Divider (hidden for teacher tab) -->
+    <template v-if="selectedRole === 'student'">
+      <div class="animate-fade-in-up delay-200 relative">
+        <div class="absolute inset-0 flex items-center">
+          <div class="border-border w-full border-t"></div>
+        </div>
+        <div class="relative flex justify-center">
+          <span class="bg-background text-muted-foreground px-4 text-sm">{{ $t('auth.login.orContinueWith') }}</span>
+        </div>
       </div>
-      <div class="relative flex justify-center">
-        <span class="bg-background text-muted-foreground px-4 text-sm">{{ $t('auth.login.orContinueWith') }}</span>
+
+      <!-- Social Login -->
+      <div class="animate-fade-in-up delay-300 grid grid-cols-2 gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          class="border-border hover:bg-accent h-12 cursor-pointer gap-2 rounded-xl text-sm font-medium transition-all"
+          @click="handleGoogleSignIn"
+        >
+          <Icon name="google" class="h-5 w-5" />
+          Google
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          class="border-border hover:bg-accent h-12 cursor-pointer gap-2 rounded-xl text-sm font-medium transition-all"
+          @click="handleFacebookSignIn"
+        >
+          <Icon name="facebook" class="h-5 w-5" />
+          Facebook
+        </Button>
       </div>
-    </div>
+    </template>
 
-    <!-- Social Login -->
-    <div class="animate-fade-in-up delay-300 grid grid-cols-2 gap-4">
-      <Button
-        type="button"
-        variant="outline"
-        class="border-border hover:bg-accent h-12 cursor-pointer gap-2 rounded-xl text-sm font-medium transition-all"
-        @click="handleGoogleSignIn"
-      >
-        <Icon name="google" class="h-5 w-5" />
-        Google
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        class="border-border hover:bg-accent h-12 cursor-pointer gap-2 rounded-xl text-sm font-medium transition-all"
-        @click="handleFacebookSignIn"
-      >
-        <Icon name="facebook" class="h-5 w-5" />
-        Facebook
-      </Button>
-    </div>
-
-    <!-- Sign up link -->
-    <p class="animate-fade-in-up delay-400 text-muted-foreground text-center text-sm">
+    <!-- Sign up link (hidden for teacher tab) -->
+    <p v-if="selectedRole === 'student'" class="animate-fade-in-up delay-400 text-muted-foreground text-center text-sm">
       {{ $t('auth.login.noAccount') }}
       <Button
         type="button"
@@ -201,7 +220,9 @@ import {
 import { loginSchema } from '@/types/auth'
 import { useLoginAnimation } from '@/composables'
 import { useAuthStore } from '@/stores/auth.store'
-import { UserRole } from '@/types/role'
+import { signInWithGoogle, signInWithFacebook } from '@/lib/supabase'
+
+const TEACHER_DOMAIN = '@teacher.sprk'
 
 const loginAnimationRef = inject('loginAnimationRef', ref(null))
 
@@ -221,9 +242,9 @@ const showPassword = ref(false)
 const rememberMe = ref(false)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
-const selectedRole = ref<UserRole>(UserRole.STUDENT)
+const selectedRole = ref<'student' | 'teacher'>('student')
 
-const { handleSubmit, values } = useForm({
+const { handleSubmit, values, resetForm } = useForm({
   validationSchema: toTypedSchema(loginSchema),
   initialValues: { email: '', password: '' },
 })
@@ -233,33 +254,44 @@ watch(
   (newEmail) => onEmailChange(newEmail || ''),
 )
 
+const switchRole = (role: 'student' | 'teacher') => {
+  selectedRole.value = role
+  errorMessage.value = ''
+  resetForm()
+}
+
 const handleSignIn = handleSubmit(async (formValues) => {
   if (isSubmitting.value) return
 
   isSubmitting.value = true
   errorMessage.value = ''
 
+  const emailLower = formValues.email.toLowerCase()
+  const isTeacherEmail = emailLower.endsWith(TEACHER_DOMAIN)
+
+  // Validate: teacher tab must use @teacher.sprk email
+  if (selectedRole.value === 'teacher' && !isTeacherEmail) {
+    errorMessage.value = `Teacher accounts must use a ${TEACHER_DOMAIN} email address.`
+    onLoginFail()
+    isSubmitting.value = false
+    return
+  }
+
+  // Validate: student tab must NOT use @teacher.sprk email
+  if (selectedRole.value === 'student' && isTeacherEmail) {
+    errorMessage.value = `This is a teacher account. Please switch to the Teacher tab to sign in.`
+    onLoginFail()
+    isSubmitting.value = false
+    return
+  }
+
   try {
     const result = await authStore.login(formValues.email, formValues.password, rememberMe.value)
 
     if (result.success) {
       onLoginSuccess()
-      // Determine teacher access: selected Teacher AND has role_id=2 in DB
-      const isActualTeacher = result.user?.role_id === UserRole.TEACHER
-      const wantsTeacher = selectedRole.value === UserRole.TEACHER && isActualTeacher
-      if (wantsTeacher) {
-        authStore.enableTeacherMode()
-      } else {
-        authStore.disableTeacherMode()
-        if (selectedRole.value === UserRole.TEACHER && !isActualTeacher) {
-          errorMessage.value = 'Your account does not have teacher access.'
-          onLoginFail()
-          isSubmitting.value = false
-          return
-        }
-      }
       setTimeout(() => {
-        router.push({ name: wantsTeacher ? 'TeacherDashboard' : 'Dashboard' })
+        router.push(isTeacherEmail ? { name: 'TeacherDashboard' } : { name: 'Dashboard' })
       }, 500)
     } else {
       errorMessage.value = result.message || 'Login failed'
@@ -275,6 +307,22 @@ const handleSignIn = handleSubmit(async (formValues) => {
 
 const goToRegister = () => router.push({ name: 'Register' })
 const goToForgotPassword = () => router.push({ name: 'ForgotPassword' })
-const handleGoogleSignIn = () => {}
-const handleFacebookSignIn = () => {}
+
+const handleGoogleSignIn = async () => {
+  errorMessage.value = ''
+  try {
+    await signInWithGoogle()
+  } catch {
+    errorMessage.value = 'Google sign-in failed. Please try again.'
+  }
+}
+
+const handleFacebookSignIn = async () => {
+  errorMessage.value = ''
+  try {
+    await signInWithFacebook()
+  } catch {
+    errorMessage.value = 'Facebook sign-in failed. Please try again.'
+  }
+}
 </script>

@@ -319,12 +319,27 @@ const checkMatch = () => {
 }
 
 const startTimer = () => {
-  timerInterval = setInterval(() => {
+  timerInterval = setInterval(async () => {
     if (timeRemaining.value > 0) {
       timeRemaining.value--
     } else {
       gameState.value.status = 'finished'
       if (timerInterval) clearInterval(timerInterval)
+      const acc = Math.round((matchedPairs.value / pairs.value.length) * 100)
+      const result = await progressStore.logQuizCompletion(acc, pairs.value.length)
+      quizStore.addGame({
+        modeId: 'matching-pairs',
+        modeName: 'Matching Pairs',
+        score: gameState.value.score,
+        accuracy: acc,
+        questionCount: pairs.value.length,
+        xpEarned: result?.xp_gained ?? 0,
+      })
+      if (result?.level_up) {
+        toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
+      } else if (result?.xp_gained) {
+        toast.success(`+${result.xp_gained} XP earned!`)
+      }
     }
   }, 1000)
 }

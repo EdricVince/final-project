@@ -60,35 +60,23 @@
       </div>
     </div>
 
-    <!-- Teacher Mode -->
-    <div class="bg-card border-border rounded-2xl border p-6">
+    <!-- Teacher Portal (only shown for @teacher.sprk accounts) -->
+    <div v-if="authStore.isTeacherEmail" class="bg-card border-border rounded-2xl border p-6">
       <h2 class="text-foreground mb-4 flex items-center gap-2 text-lg font-semibold">
         <GraduationCap class="text-primary h-5 w-5" />
-        Teacher Mode
+        Teacher Portal
       </h2>
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-foreground text-sm font-medium">Access Teacher Dashboard</p>
-          <p class="text-muted-foreground mt-0.5 text-xs">Enable to access class management, tests, and analytics</p>
+          <p class="text-foreground text-sm font-medium">You have teacher access</p>
+          <p class="text-muted-foreground mt-0.5 text-xs">Access class management, tests, and analytics</p>
         </div>
-        <button
-          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-          :class="authStore.teacherModeEnabled ? 'bg-primary' : 'bg-secondary'"
-          @click="toggleTeacherMode"
-        >
-          <span
-            class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition duration-200"
-            :class="authStore.teacherModeEnabled ? 'translate-x-5' : 'translate-x-0'"
-          />
-        </button>
-      </div>
-      <div v-if="authStore.teacherModeEnabled" class="mt-4">
         <button
           class="bg-primary text-primary-foreground flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all hover:opacity-90"
           @click="goToTeacherDashboard"
         >
           <GraduationCap class="h-4 w-4" />
-          Go to Teacher Dashboard
+          Go to Dashboard
         </button>
       </div>
     </div>
@@ -175,14 +163,6 @@ defineEmits<{
 
 const router = useRouter()
 const authStore = useAuthStore()
-
-const toggleTeacherMode = () => {
-  if (authStore.teacherModeEnabled) {
-    authStore.disableTeacherMode()
-  } else {
-    authStore.enableTeacherMode()
-  }
-}
 
 const goToTeacherDashboard = () => {
   router.push('/teacher/dashboard')

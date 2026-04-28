@@ -124,6 +124,13 @@ export const api = {
     return apiRequest<UserOut>('/auth/register', { method: 'POST', requiresAuth: false, body: JSON.stringify(body) })
   },
 
+  oauthLogin: (supabaseToken: string): Promise<LoginResponseData> =>
+    apiRequest<LoginResponseData>('/auth/oauth-login', {
+      method: 'POST',
+      requiresAuth: false,
+      body: JSON.stringify({ supabase_token: supabaseToken }),
+    }),
+
   resetPassword: (email: string): Promise<SuccessResponse> =>
     apiRequest<SuccessResponse>('/auth/reset-password', {
       method: 'POST',

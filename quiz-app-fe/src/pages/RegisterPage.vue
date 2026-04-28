@@ -35,11 +35,6 @@
               />
             </div>
           </FormControl>
-          <!-- Teacher email hint -->
-          <p v-if="isTeacherEmail" class="text-primary flex items-center gap-1.5 text-xs font-medium">
-            <GraduationCap class="h-3.5 w-3.5" />
-            Teacher account will be created
-          </p>
           <FormMessage />
         </FormItem>
       </FormField>
@@ -191,7 +186,7 @@ import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock, GraduationCap } from 'lucide-vue-next'
+import { Eye, EyeOff, Mail, Lock } from 'lucide-vue-next'
 
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
@@ -207,12 +202,18 @@ import {
 } from '@/components/ui/form'
 import { useAuthStore } from '@/stores/auth.store'
 import { UserRole } from '@/types/role'
+import { signInWithGoogle, signInWithFacebook } from '@/lib/supabase'
 
-const TEACHER_EMAIL_DOMAIN = '@teacher_sp.com'
+const TEACHER_DOMAIN = '@teacher.sprk'
 
 const registerSchema = z
   .object({
-    email: z.string().email('Please enter a valid email address'),
+    email: z
+      .string()
+      .email('Please enter a valid email address')
+      .refine((e) => !e.toLowerCase().endsWith(TEACHER_DOMAIN), {
+        message: 'Teacher accounts are created by admin only. Contact your administrator.',
+      }),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
   })
@@ -239,13 +240,7 @@ const { handleSubmit, values } = useForm({
   },
 })
 
-const isTeacherEmail = computed(() =>
-  values.email?.toLowerCase().endsWith(TEACHER_EMAIL_DOMAIN)
-)
-
-const roleFromEmail = computed(() =>
-  isTeacherEmail.value ? UserRole.TEACHER : UserRole.STUDENT
-)
+const roleFromEmail = computed(() => UserRole.STUDENT)
 
 const handleSignUp = handleSubmit(async (formValues) => {
   if (isSubmitting.value || !agreeTerms.value) return
@@ -278,15 +273,22 @@ const goToLogin = () => {
 }
 
 const handleGoogleSignUp = async () => {
-  const result = await authStore.registerWithGoogle()
-  if (result.success) {
-    router.push({ name: 'Login' })
-  } else {
-    errorMessage.value = result.message || 'Google registration failed'
+  errorMessage.value = ''
+  try {
+    await signInWithGoogle()
+  } catch {
+    errorMessage.value = 'Google sign-up failed. Please try again.'
   }
 }
 
-const handleFacebookSignUp = () => {}
+const handleFacebookSignUp = async () => {
+  errorMessage.value = ''
+  try {
+    await signInWithFacebook()
+  } catch {
+    errorMessage.value = 'Facebook sign-up failed. Please try again.'
+  }
+}
 
 const openTermsOfService = () => {
   window.open('/terms-of-service', '_blank')

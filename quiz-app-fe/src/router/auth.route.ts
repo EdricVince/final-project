@@ -4,6 +4,11 @@ import RegisterPage from '@/pages/RegisterPage.vue'
 
 export const AUTH_ROUTES = [
   {
+    path: '/auth/callback',
+    name: 'OAuthCallback',
+    component: () => import('@/pages/OAuthCallbackPage.vue'),
+  },
+  {
     path: '/',
     component: AuthLayout,
     children: [

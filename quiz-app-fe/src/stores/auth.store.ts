@@ -10,6 +10,7 @@ const ACCESS_TOKEN_KEY = 'access_token'
 const REFRESH_TOKEN_KEY = 'refresh_token'
 const REMEMBER_EMAIL_KEY = 'remembered_email'
 const USER_KEY = 'user_data'
+const TEACHER_DOMAIN = '@teacher.sprk'
 
 export interface AuthUser {
   id: number
@@ -30,21 +31,10 @@ export const useAuthStore = defineStore('auth', () => {
   const savedUser = localStorage.getItem(USER_KEY)
   const currentUser = ref<AuthUser | null>(savedUser ? JSON.parse(savedUser) : null)
 
-  // Teacher mode flag — set when user explicitly logs in as Teacher
-  const TEACHER_MODE_KEY = 'teacher_mode'
-  const teacherModeEnabled = ref(localStorage.getItem(TEACHER_MODE_KEY) === 'true')
-
-  const enableTeacherMode = () => {
-    teacherModeEnabled.value = true
-    localStorage.setItem(TEACHER_MODE_KEY, 'true')
-  }
-
-  const disableTeacherMode = () => {
-    teacherModeEnabled.value = false
-    localStorage.removeItem(TEACHER_MODE_KEY)
-  }
-
-  const isAuthenticated = computed(() => !!getCookie(ACCESS_TOKEN_KEY))
+  // Use a reactive ref so computed re-evaluates when token changes
+  // document.cookie is NOT reactive, so we track it separately
+  const _accessToken = ref<string | undefined>(getCookie(ACCESS_TOKEN_KEY))
+  const isAuthenticated = computed(() => !!_accessToken.value)
 
   const user = computed(() => currentUser.value)
 
@@ -53,11 +43,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => currentUser.value?.role_id === UserRole.ADMIN)
   const isStudent = computed(() => !currentUser.value?.role_id || currentUser.value.role_id === UserRole.STUDENT)
   const userRole = computed(() => currentUser.value?.role_id ?? UserRole.STUDENT)
-  const isTeacherEmail = computed(() => currentUser.value?.email?.toLowerCase().endsWith('@teacher_spr.com') ?? false)
-  // Can access teacher portal if: actual role_id=2 from DB, OR @teacher_spr.com email, OR explicitly enabled at login
-  const canAccessTeacher = computed(() => isTeacher.value || isTeacherEmail.value || teacherModeEnabled.value)
+  // Teacher access is determined solely by email domain @teacher.sprk
+  const isTeacherEmail = computed(() => currentUser.value?.email?.toLowerCase().endsWith(TEACHER_DOMAIN) ?? false)
+  const canAccessTeacher = computed(() => isTeacherEmail.value)
 
   const setTokens = (accessToken: string, refreshToken?: string) => {
+    _accessToken.value = accessToken
     setCookie(ACCESS_TOKEN_KEY, accessToken, {
       expires: 1,
       secure: true,
@@ -82,12 +73,13 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const clearTokens = () => {
+    _accessToken.value = undefined
     removeCookie(ACCESS_TOKEN_KEY)
     removeCookie(REFRESH_TOKEN_KEY)
     setUser(null)
   }
 
-  const getAccessToken = (): string | undefined => getCookie(ACCESS_TOKEN_KEY)
+  const getAccessToken = (): string | undefined => _accessToken.value ?? getCookie(ACCESS_TOKEN_KEY)
   const getRefreshToken = (): string | undefined => getCookie(REFRESH_TOKEN_KEY)
 
   const login = async (email: string, password: string, remember = false): Promise<AuthResult> => {
@@ -132,21 +124,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Google OAuth — not yet implemented on BE
+  // Google OAuth — not implemented
   const loginWithGoogle = async (): Promise<AuthResult> => {
-    try {
-      await new Promise((r) => setTimeout(r, 1000))
-      const mock = {
-        access_token: 'google_access_token_' + Date.now(),
-        user: { id: 1, email: 'user@gmail.com', name: 'Google User' },
-      }
-      setTokens(mock.access_token)
-      setUser(mock.user)
-      return { success: true, user: mock.user }
-    } catch (error) {
-      console.error('Google login error:', error)
-      return { success: false, message: 'Google login failed' }
-    }
+    return { success: false, message: 'Google login is not available yet' }
   }
 
   const register = async (email: string, password: string, roleId?: number): Promise<AuthResult> => {
@@ -169,19 +149,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const registerWithGoogle = async (): Promise<AuthResult> => {
-    try {
-      await new Promise((r) => setTimeout(r, 1000))
-      const mock = {
-        access_token: 'google_register_token_' + Date.now(),
-        user: { id: 2, email: 'newuser@gmail.com', name: 'New Google User' },
-      }
-      setTokens(mock.access_token)
-      setUser(mock.user)
-      return { success: true, user: mock.user }
-    } catch (error) {
-      console.error('Google registration error:', error)
-      return { success: false, message: 'Google registration failed' }
-    }
+    return { success: false, message: 'Google registration is not available yet' }
   }
 
   const resetPassword = async (email: string): Promise<AuthResult> => {
@@ -197,7 +165,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = () => {
     clearTokens()
-    disableTeacherMode()
     const progressStore = useProgressStore()
     progressStore.$reset()
   }
@@ -251,9 +218,6 @@ export const useAuthStore = defineStore('auth', () => {
     isTeacher,
     isTeacherEmail,
     canAccessTeacher,
-    teacherModeEnabled,
-    enableTeacherMode,
-    disableTeacherMode,
     isAdmin,
     isStudent,
     userRole,

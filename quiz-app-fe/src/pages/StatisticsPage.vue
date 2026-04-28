@@ -311,14 +311,17 @@ const insights = [
   },
 ]
 
-// Generate streak calendar — all days start as not completed for new user
 const generateStreakDays = () => {
+  const activeDates = new Set(
+    progressStore.weeklyActivity.filter(d => d.xp_earned > 0).map(d => d.date)
+  )
   const days = []
   const today = new Date()
   for (let i = 27; i >= 0; i--) {
     const date = new Date(today)
     date.setDate(today.getDate() - i)
-    days.push({ date, completed: false })
+    const dateStr = date.toISOString().split('T')[0]
+    days.push({ date, completed: activeDates.has(dateStr) })
   }
   return days
 }
