@@ -29,22 +29,17 @@
       <button
         type="button"
         class="flex items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all"
-        :class="[
-          isTeacherEmailTyped
-            ? selectedRole === UserRole.TEACHER
-              ? 'border-primary bg-primary/5 text-primary'
-              : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
-            : 'border-border bg-background text-muted-foreground opacity-40 cursor-not-allowed'
-        ]"
-        :disabled="!isTeacherEmailTyped"
-        @click="isTeacherEmailTyped && (selectedRole = UserRole.TEACHER)"
+        :class="
+          selectedRole === UserRole.TEACHER
+            ? 'border-primary bg-primary/5 text-primary'
+            : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-accent'
+        "
+        @click="selectedRole = UserRole.TEACHER"
       >
         <Users class="h-5 w-5 shrink-0" />
         <div class="text-left">
           <p class="text-sm font-semibold">Teacher</p>
-          <p class="text-xs opacity-70">
-            {{ isTeacherEmailTyped ? 'Manage classes' : '@teacher_spr.com only' }}
-          </p>
+          <p class="text-xs opacity-70">Manage classes</p>
         </div>
       </button>
     </div>
@@ -185,7 +180,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, watch } from 'vue'
+import { ref, inject, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -233,19 +228,9 @@ const { handleSubmit, values } = useForm({
   initialValues: { email: '', password: '' },
 })
 
-// Teacher role only unlocks for @teacher_spr.com emails
-const isTeacherEmailTyped = computed(() =>
-  values.email?.toLowerCase().endsWith('@teacher_spr.com') ?? false
-)
-
 watch(
   () => values.email,
-  (newEmail) => {
-    onEmailChange(newEmail || '')
-    if (!newEmail?.toLowerCase().endsWith('@teacher_spr.com')) {
-      selectedRole.value = UserRole.STUDENT
-    }
-  },
+  (newEmail) => onEmailChange(newEmail || ''),
 )
 
 const handleSignIn = handleSubmit(async (formValues) => {
@@ -259,17 +244,22 @@ const handleSignIn = handleSubmit(async (formValues) => {
 
     if (result.success) {
       onLoginSuccess()
-      if (selectedRole.value === UserRole.TEACHER) {
+      // Determine teacher access: selected Teacher AND has role_id=2 in DB
+      const isActualTeacher = result.user?.role_id === UserRole.TEACHER
+      const wantsTeacher = selectedRole.value === UserRole.TEACHER && isActualTeacher
+      if (wantsTeacher) {
         authStore.enableTeacherMode()
       } else {
         authStore.disableTeacherMode()
+        if (selectedRole.value === UserRole.TEACHER && !isActualTeacher) {
+          errorMessage.value = 'Your account does not have teacher access.'
+          onLoginFail()
+          isSubmitting.value = false
+          return
+        }
       }
       setTimeout(() => {
-        if (selectedRole.value === UserRole.TEACHER) {
-          router.push({ name: 'TeacherDashboard' })
-        } else {
-          router.push({ name: 'Dashboard' })
-        }
+        router.push({ name: wantsTeacher ? 'TeacherDashboard' : 'Dashboard' })
       }, 500)
     } else {
       errorMessage.value = result.message || 'Login failed'
@@ -285,6 +275,6 @@ const handleSignIn = handleSubmit(async (formValues) => {
 
 const goToRegister = () => router.push({ name: 'Register' })
 const goToForgotPassword = () => router.push({ name: 'ForgotPassword' })
-const handleGoogleSignIn = () => console.log('Google sign in clicked')
-const handleFacebookSignIn = () => console.log('Facebook sign in clicked')
+const handleGoogleSignIn = () => {}
+const handleFacebookSignIn = () => {}
 </script>

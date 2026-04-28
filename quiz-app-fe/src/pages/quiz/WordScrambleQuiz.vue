@@ -7,7 +7,7 @@
         @play-again="restartQuiz"
         @go-home="goToQuizzes"
       />
-      <VocabResultsTable v-if="isPracticeMode" :entries="vocabAnswers" />
+      <VocabResultsTable v-if="vocabAnswers.length > 0" :entries="vocabAnswers" />
     </template>
 
     <!-- Quiz Game -->
@@ -154,16 +154,18 @@ import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
 import QuizExitModal from '@/components/quiz/QuizExitModal.vue'
 import type { WordScrambleQuestion, QuizResult as QuizResultType, QuizState } from '@/types/quiz'
 import { useProgressStore } from '@/stores/progress.store'
+import { useQuizStore } from '@/stores/quiz.store'
 import { useToast } from '@/composables/useToast'
 import { useVocabulary, type VocabScrambleQuestion } from '@/composables/useVocabulary'
 
 const router = useRouter()
 const route = useRoute()
 const progressStore = useProgressStore()
+const quizStore = useQuizStore()
 const toast = useToast()
 const { generateScrambleQuestions } = useVocabulary()
 
-const isPracticeMode = computed(() => route.query.mode === 'practice')
+const questionCount = computed(() => Math.min(Math.max(parseInt(route.query.count as string) || 10, 3), 50))
 
 const gameState = ref<QuizState>({
   status: 'playing',
@@ -185,22 +187,7 @@ const showExitModal = ref(false)
 const startTime = ref(Date.now())
 const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrect: boolean }[]>([])
 
-const hardcodedQuestions: WordScrambleQuestion[] = [
-  { id: 1, word: 'language', hint: 'A system of communication used by a country or community', scrambled: [] },
-  { id: 2, word: 'beautiful', hint: 'Pleasing the senses or mind aesthetically', scrambled: [] },
-  { id: 3, word: 'knowledge', hint: 'Facts, information, and skills acquired through experience or education', scrambled: [] },
-  { id: 4, word: 'adventure', hint: 'An exciting experience or unusual activity', scrambled: [] },
-  { id: 5, word: 'celebrate', hint: 'To acknowledge a special day or event with enjoyable activities', scrambled: [] },
-  { id: 6, word: 'important', hint: 'Of great significance or value', scrambled: [] },
-  { id: 7, word: 'wonderful', hint: 'Inspiring delight or admiration; extremely good', scrambled: [] },
-  { id: 8, word: 'discover', hint: 'To find something unexpectedly or for the first time', scrambled: [] },
-  { id: 9, word: 'different', hint: 'Not the same as another or each other', scrambled: [] },
-  { id: 10, word: 'together', hint: 'With each other; in proximity or union', scrambled: [] },
-]
-
-const questions = ref<WordScrambleQuestion[]>(
-  isPracticeMode.value ? generateScrambleQuestions(10) : hardcodedQuestions
-)
+const questions = ref<WordScrambleQuestion[]>(generateScrambleQuestions(questionCount.value))
 
 const currentQuestion = computed(() => questions.value[gameState.value.currentQuestion])
 const isLastQuestion = computed(() => gameState.value.currentQuestion >= questions.value.length - 1)
@@ -229,7 +216,7 @@ const shuffleWord = (word: string): string[] => {
   const letters = word.split('')
   for (let i = letters.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[letters[i], letters[j]] = [letters[j], letters[i]]
+    ;[letters[i], letters[j]] = [letters[j]!, letters[i]!]
   }
   // Make sure it's actually scrambled
   if (letters.join('') === word) {
@@ -290,11 +277,9 @@ const submitAnswer = () => {
     gameState.value.streak = 0
   }
 
-  if (isPracticeMode.value) {
-    const q = currentQuestion.value as VocabScrambleQuestion
-    if (q?.vocabWord) {
-      vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect: isCorrect.value })
-    }
+  const q = currentQuestion.value as VocabScrambleQuestion
+  if (q?.vocabWord) {
+    vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect: isCorrect.value })
   }
 }
 
@@ -303,6 +288,14 @@ const nextQuestion = async () => {
     gameState.value.status = 'finished'
     const accuracy = Math.round((gameState.value.correctCount / questions.value.length) * 100)
     const result = await progressStore.logQuizCompletion(accuracy, questions.value.length)
+    quizStore.addGame({
+      modeId: 'word-scramble',
+      modeName: 'Word Scramble',
+      score: gameState.value.score,
+      accuracy,
+      questionCount: questions.value.length,
+      xpEarned: result?.xp_gained ?? 0,
+    })
     if (result?.level_up) {
       toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
     } else if (result?.xp_gained) {
@@ -334,7 +327,7 @@ const restartQuiz = () => {
   }
   startTime.value = Date.now()
   vocabAnswers.value = []
-  questions.value = isPracticeMode.value ? generateScrambleQuestions(10) : hardcodedQuestions
+  questions.value = generateScrambleQuestions(questionCount.value)
   initializeQuestion()
 }
 

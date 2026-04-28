@@ -144,7 +144,7 @@
               <Bell class="h-5 w-5" />
               <span v-if="notificationCount > 0" class="bg-destructive absolute top-1.5 right-1.5 h-2 w-2 rounded-full"></span>
             </button>
-            <NotificationPanel :show="showNotifications" ref="notificationPanelRef" />
+            <NotificationPanel :show="showNotifications" />
           </div>
 
           <!-- Divider -->
@@ -257,12 +257,14 @@ import {
 import SearchModal from '@/components/ui/SearchModal.vue'
 import NotificationPanel from '@/components/ui/NotificationPanel.vue'
 import { useProgressStore } from '@/stores/progress.store'
+import { useNotificationStore } from '@/stores/notification.store'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const progressStore = useProgressStore()
+const notificationStore = useNotificationStore()
 
 // Sidebar state
 const isCollapsed = ref(false)
@@ -274,8 +276,7 @@ const toggleSidebar = () => {
 const showSearch = ref(false)
 const showNotifications = ref(false)
 const notificationRef = ref<HTMLElement | null>(null)
-const notificationPanelRef = ref<InstanceType<typeof NotificationPanel> | null>(null)
-const notificationCount = computed(() => notificationPanelRef.value?.unreadCount ?? 3)
+const notificationCount = computed(() => notificationStore.unreadCount)
 
 // Dropdown state
 const isDropdownOpen = ref(false)

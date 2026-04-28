@@ -8,7 +8,7 @@
       <div class="border-border flex items-center justify-between border-b px-5 py-4">
         <h3 class="text-foreground font-semibold">Notifications</h3>
         <button
-          v-if="unreadCount > 0"
+          v-if="notificationStore.unreadCount > 0"
           class="text-primary text-xs font-medium hover:underline"
           @click="markAllRead"
         >
@@ -18,9 +18,9 @@
 
       <!-- Notification List -->
       <div class="max-h-[400px] overflow-y-auto">
-        <div v-if="notifications.length > 0">
+        <div v-if="notificationStore.notifications.length > 0">
           <button
-            v-for="notification in notifications"
+            v-for="notification in notificationStore.notifications"
             :key="notification.id"
             class="flex w-full items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-accent"
             :class="{ 'bg-primary/5': !notification.read }"
@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, type Component } from 'vue'
+import { computed, onMounted, onUnmounted, type Component } from 'vue'
 import {
   Bell,
   Trophy,
@@ -75,72 +75,24 @@ import {
   BookOpen,
   Zap,
 } from 'lucide-vue-next'
-
-interface Notification {
-  id: number
-  type: 'achievement' | 'streak' | 'goal' | 'quiz' | 'course' | 'xp'
-  title: string
-  message: string
-  time: string
-  read: boolean
-}
+import { useNotificationStore } from '@/stores/notification.store'
 
 defineProps<{
   show: boolean
 }>()
 
-const notifications = ref<Notification[]>([
-  {
-    id: 1,
-    type: 'achievement',
-    title: 'Badge Unlocked!',
-    message: 'You earned the "Vocabulary Master" badge',
-    time: '5 minutes ago',
-    read: false,
-  },
-  {
-    id: 2,
-    type: 'streak',
-    title: '7-Day Streak!',
-    message: 'Amazing! You\'ve studied for 7 days in a row',
-    time: '1 hour ago',
-    read: false,
-  },
-  {
-    id: 3,
-    type: 'goal',
-    title: 'Daily Goal Complete',
-    message: 'You completed all your daily learning goals',
-    time: '2 hours ago',
-    read: false,
-  },
-  {
-    id: 4,
-    type: 'quiz',
-    title: 'Quiz Score: 90%',
-    message: 'Great job on the English Grammar quiz!',
-    time: '5 hours ago',
-    read: true,
-  },
-  {
-    id: 5,
-    type: 'course',
-    title: 'New Lesson Available',
-    message: 'English Vocabulary Builder has a new lesson',
-    time: 'Yesterday',
-    read: true,
-  },
-  {
-    id: 6,
-    type: 'xp',
-    title: 'Level Up!',
-    message: 'You reached Level 15. Keep going!',
-    time: '2 days ago',
-    read: true,
-  },
-])
+const notificationStore = useNotificationStore()
 
-const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
+// Load notifications on mount and start polling
+onMounted(() => {
+  notificationStore.fetchNotifications()
+  notificationStore.startPolling()
+})
+
+// Stop polling on unmount
+onUnmounted(() => {
+  notificationStore.stopPolling()
+})
 
 const getNotificationIcon = (type: string): Component => {
   const icons: Record<string, Component> = {
@@ -150,6 +102,8 @@ const getNotificationIcon = (type: string): Component => {
     quiz: CheckCircle,
     course: BookOpen,
     xp: Zap,
+    lesson: BookOpen,
+    badge: Trophy,
   }
   return icons[type] || Star
 }
@@ -162,20 +116,19 @@ const getNotificationStyle = (type: string): string => {
     quiz: 'bg-chart-2/10 text-chart-2',
     course: 'bg-chart-3/10 text-chart-3',
     xp: 'bg-chart-4/10 text-chart-4',
+    lesson: 'bg-chart-3/10 text-chart-3',
+    badge: 'bg-chart-1/10 text-chart-1',
   }
   return styles[type] || 'bg-primary/10 text-primary'
 }
 
-const markRead = (id: number) => {
-  const notification = notifications.value.find(n => n.id === id)
-  if (notification) notification.read = true
+const markRead = (id: number | string) => {
+  notificationStore.markRead(id)
 }
 
 const markAllRead = () => {
-  notifications.value.forEach(n => { n.read = true })
+  notificationStore.markAllRead()
 }
-
-defineExpose({ unreadCount })
 </script>
 
 <style scoped>

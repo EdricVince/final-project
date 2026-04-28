@@ -4,15 +4,10 @@
     <div class="animate-fade-in-down mb-8">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">
-            Achievements
-          </h1>
-          <p class="text-muted-foreground mt-2 text-base">
-            Unlock badges and track your learning journey
-          </p>
+          <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Achievements</h1>
+          <p class="text-muted-foreground mt-1 text-base">Unlock badges and compete with other learners</p>
         </div>
         <div class="flex items-center gap-3">
-          <!-- Share Button -->
           <button
             class="bg-secondary text-foreground flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all hover:bg-secondary/80"
             @click="handleShareAchievements"
@@ -20,7 +15,6 @@
             <Share2 class="h-4 w-4" />
             Share
           </button>
-          <!-- Stats Card -->
           <div class="bg-linear-to-r from-primary/10 to-chart-1/10 rounded-xl px-4 py-2 text-center">
             <p class="text-foreground text-2xl font-bold">{{ earnedCount }}</p>
             <p class="text-muted-foreground text-xs">of {{ achievementsData.achievements.length }} earned</p>
@@ -28,7 +22,6 @@
         </div>
       </div>
 
-      <!-- Achievement Stats Cards -->
       <AchievementStatsCards
         :total-points="totalPoints"
         :rarity-count="rarityCount"
@@ -36,8 +29,16 @@
       />
     </div>
 
+    <!-- Leaderboard — competitive section, shown first -->
+    <div class="animate-fade-in-up mb-8">
+      <LeaderboardPreview
+        :users="progressStore.leaderboard"
+        :current-user-id="authStore.currentUser?.id"
+      />
+    </div>
+
     <!-- Category Tabs -->
-    <div class="animate-fade-in-up mb-6">
+    <div class="animate-fade-in-up mb-4">
       <AchievementCategoryTabs
         v-model="selectedCategory"
         :achievements="achievementsData.achievements"
@@ -51,15 +52,7 @@
 
     <!-- Achievements Grid -->
     <div class="animate-fade-in-up delay-100">
-      <AchievementsGrid
-        :achievements="filteredAchievements"
-        @select="openDetail"
-      />
-    </div>
-
-    <!-- Leaderboard Preview -->
-    <div class="animate-fade-in-up delay-200 mt-8">
-      <LeaderboardPreview :users="leaderboard" />
+      <AchievementsGrid :achievements="filteredAchievements" @select="openDetail" />
     </div>
 
     <!-- Detail Modal -->
@@ -70,7 +63,6 @@
       @share="handleShareAchievement"
     />
 
-    <!-- Share Toast -->
     <ShareToast :show="showShareToast" :message="toastMessage" />
   </div>
 </template>
@@ -88,15 +80,18 @@ import AchievementCategoryTabs from '@/components/profile/achievements/Achieveme
 import AchievementDetailModal from '@/components/profile/achievements/AchievementDetailModal.vue'
 
 import { useAchievements } from '@/composables'
+import { useProgressStore } from '@/stores/progress.store'
+import { useAuthStore } from '@/stores/auth.store'
 import type { EnhancedAchievement } from '@/types/profile'
 
-// Use composable
+const progressStore = useProgressStore()
+const authStore = useAuthStore()
+
 const {
   selectedCategory,
   selectedAchievement,
   showModal,
   achievementsData,
-  leaderboard,
   openDetail,
   closeModal,
   filteredAchievements,
@@ -106,7 +101,6 @@ const {
   recentAchievement,
 } = useAchievements()
 
-// Local state for toast
 const showShareToast = ref(false)
 const toastMessage = ref('Link copied to clipboard!')
 
@@ -114,9 +108,7 @@ const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text)
     showShareToast.value = true
-    setTimeout(() => {
-      showShareToast.value = false
-    }, 3000)
+    setTimeout(() => { showShareToast.value = false }, 3000)
   } catch {
     console.error('Failed to copy')
   }

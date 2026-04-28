@@ -4,17 +4,16 @@
       <div
         v-for="(achievement, index) in achievements"
         :key="achievement.id"
-        class="bg-card border-border group relative flex flex-col items-center overflow-hidden rounded-xl border p-4 transition-all hover:shadow-lg"
+        class="bg-card border-border group relative flex flex-col items-center overflow-hidden rounded-xl border p-4 transition-all duration-300 hover:shadow-xl hover:border-primary/50 hover:-translate-y-1"
         :class="[
           { 'opacity-60': !achievement.earned },
           `animate-fade-in-up delay-${Math.min(index * 50, 300)}`
         ]"
       >
-        <!-- Shine effect for earned -->
-        <div
-          v-if="achievement.earned"
-          class="from-primary/10 absolute inset-0 bg-linear-to-br to-transparent opacity-0 transition-opacity group-hover:opacity-100"
-        />
+      <div
+        v-if="achievement.earned"
+        class="absolute inset-0 rounded-xl bg-linear-to-r from-transparent via-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none"
+      />
 
         <div class="relative z-10 flex flex-col items-center">
           <AchievementBadge

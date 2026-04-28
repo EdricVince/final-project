@@ -1,55 +1,55 @@
 <template>
-  <div class="bg-card border-border rounded-2xl border p-6">
+  <div class="bg-card border-border rounded-xl border p-5 lg:p-6">
     <div class="mb-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+      <div class="flex items-center gap-2.5">
+        <div class="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-lg">
           <Flame class="text-primary h-4 w-4" />
         </div>
         <h3 class="text-foreground font-semibold">Daily Challenges</h3>
       </div>
-      <div class="flex items-center gap-1 text-sm">
-        <Clock class="text-muted-foreground h-4 w-4" />
-        <span class="text-muted-foreground">{{ timeRemaining }}</span>
+      <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Clock class="h-3.5 w-3.5" />
+        <span>{{ timeRemaining }}</span>
       </div>
     </div>
 
     <!-- Challenges List -->
-    <div class="space-y-3">
+    <div class="space-y-2">
       <div
         v-for="challenge in challenges"
         :key="challenge.id"
-        class="group relative cursor-pointer overflow-hidden rounded-xl border p-4 transition-all"
+        class="group relative cursor-pointer overflow-hidden rounded-lg border p-3.5 transition-all duration-200"
         :class="challenge.completed
           ? 'border-primary/20 bg-primary/5'
-          : 'border-border bg-secondary/30 hover:bg-secondary/50 hover:border-primary/30'"
+          : 'border-border bg-secondary/20 hover:bg-secondary/40 hover:border-primary/30'"
         @click="openDetail(challenge)"
       >
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
           <!-- Icon -->
-          <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all">
-            <component :is="challenge.icon" class="h-5 w-5" />
+          <div class="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+            <component :is="challenge.icon" class="h-4 w-4" />
           </div>
 
           <!-- Content -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
-              <h4 class="text-foreground font-medium">{{ challenge.title }}</h4>
+              <h4 class="text-foreground text-sm font-medium">{{ challenge.title }}</h4>
               <span
                 v-if="challenge.completed"
-                class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                class="text-primary text-xs font-medium"
               >
-                Completed
+                ✓
               </span>
             </div>
-            <p class="text-muted-foreground text-sm">{{ challenge.description }}</p>
+            <p class="text-muted-foreground text-xs">{{ challenge.description }}</p>
 
             <!-- Progress Bar (if not completed) -->
             <div v-if="!challenge.completed" class="mt-2">
-              <div class="bg-secondary h-2 overflow-hidden rounded-full">
+              <div class="bg-secondary/50 h-1.5 overflow-hidden rounded-full">
                 <div
                   class="bg-primary h-full rounded-full transition-all duration-500"
                   :style="{ width: `${(challenge.current / challenge.target) * 100}%` }"
-                ></div>
+                />
               </div>
               <p class="text-muted-foreground mt-1 text-xs">
                 {{ challenge.current }} / {{ challenge.target }}
@@ -57,33 +57,28 @@
             </div>
           </div>
 
-          <!-- Reward + chevron -->
-          <div class="text-right flex flex-col items-end gap-1">
-            <div class="text-primary flex items-center gap-1 font-bold">
-              <Zap class="h-4 w-4" />
-              {{ challenge.xp }} XP
-            </div>
-            <ChevronRight class="text-muted-foreground h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+          <!-- Reward -->
+          <div class="flex shrink-0 items-center gap-1 text-primary text-sm font-semibold">
+            <Zap class="h-3.5 w-3.5" />
+            {{ challenge.xp }}
           </div>
-        </div>
-
-        <!-- Completion checkmark -->
-        <div v-if="challenge.completed" class="absolute right-4 top-4">
-          <CheckCircle class="h-5 w-5 text-primary" />
         </div>
       </div>
     </div>
 
-    <!-- Bonus Challenge -->
+    <!-- Completion Message -->
     <div
       v-if="allCompleted"
-      class="mt-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 text-center"
+      class="mt-4 rounded-lg bg-primary/5 px-4 py-3 text-center"
     >
-      <div class="mb-2 flex items-center justify-center gap-2">
-        <Trophy class="text-primary h-5 w-5" />
-        <span class="text-foreground font-semibold">All Challenges Complete!</span>
-      </div>
-      <p class="text-muted-foreground text-sm">You earned a bonus of <span class="text-primary font-bold">50 XP</span></p>
+      <p class="text-foreground text-sm font-medium">
+        All challenges complete! 🎉 <span class="text-primary">+50 XP bonus</span>
+      </p>
+    </div>
+    <div v-else class="mt-4 rounded-lg bg-secondary/20 px-4 py-2.5 text-center">
+      <p class="text-muted-foreground text-xs">
+        <span class="font-medium text-foreground">{{ challenges.filter(c => !c.completed).length }}</span> challenge{{ challenges.filter(c => !c.completed).length !== 1 ? 's' : '' }} remaining
+      </p>
     </div>
   </div>
 

@@ -286,9 +286,7 @@ const handleGoogleSignUp = async () => {
   }
 }
 
-const handleFacebookSignUp = () => {
-  console.log('Facebook sign up clicked')
-}
+const handleFacebookSignUp = () => {}
 
 const openTermsOfService = () => {
   window.open('/terms-of-service', '_blank')

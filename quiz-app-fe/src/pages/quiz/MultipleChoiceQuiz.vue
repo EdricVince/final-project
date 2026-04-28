@@ -8,7 +8,7 @@
         @go-home="goToQuizzes"
       />
       <!-- Vocab Results Table (practice mode) -->
-      <VocabResultsTable v-if="isPracticeMode" :entries="vocabAnswers" />
+      <VocabResultsTable v-if="vocabAnswers.length > 0" :entries="vocabAnswers" />
     </template>
 
     <!-- Quiz Game -->
@@ -122,16 +122,18 @@ import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
 import QuizExitModal from '@/components/quiz/QuizExitModal.vue'
 import type { MultipleChoiceQuestion, QuizResult as QuizResultType, QuizState } from '@/types/quiz'
 import { useProgressStore } from '@/stores/progress.store'
+import { useQuizStore } from '@/stores/quiz.store'
 import { useToast } from '@/composables/useToast'
 import { useVocabulary, type VocabMCQuestion } from '@/composables/useVocabulary'
 
 const router = useRouter()
 const route = useRoute()
 const progressStore = useProgressStore()
+const quizStore = useQuizStore()
 const toast = useToast()
 const { generateMCQuestions } = useVocabulary()
 
-const isPracticeMode = computed(() => route.query.mode === 'practice')
+const questionCount = computed(() => Math.min(Math.max(parseInt(route.query.count as string) || 10, 3), 50))
 
 // Game state
 const gameState = ref<QuizState>({
@@ -150,98 +152,7 @@ const showExitModal = ref(false)
 const startTime = ref(Date.now())
 const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrect: boolean }[]>([])
 
-// Sample questions
-const hardcodedQuestions: MultipleChoiceQuestion[] = [
-  {
-    id: 1,
-    question: 'What is the past tense of "go"?',
-    options: ['goed', 'went', 'gone', 'going'],
-    correctAnswer: 'went',
-    explanation: '"Went" is the irregular past tense of "go".',
-  },
-  {
-    id: 2,
-    question: 'Which word is a synonym for "happy"?',
-    options: ['sad', 'joyful', 'angry', 'tired'],
-    correctAnswer: 'joyful',
-    explanation: '"Joyful" means feeling or expressing great happiness.',
-  },
-  {
-    id: 3,
-    question: 'Choose the correct sentence:',
-    options: [
-      'She don\'t like coffee.',
-      'She doesn\'t likes coffee.',
-      'She doesn\'t like coffee.',
-      'She not like coffee.',
-    ],
-    correctAnswer: 'She doesn\'t like coffee.',
-    explanation: 'Use "doesn\'t" + base verb for third person singular negative.',
-  },
-  {
-    id: 4,
-    question: 'What does "ubiquitous" mean?',
-    options: ['rare', 'everywhere', 'beautiful', 'dangerous'],
-    correctAnswer: 'everywhere',
-    explanation: '"Ubiquitous" means present, appearing, or found everywhere.',
-  },
-  {
-    id: 5,
-    question: 'Which is the correct plural form of "child"?',
-    options: ['childs', 'childes', 'children', 'childrens'],
-    correctAnswer: 'children',
-    explanation: '"Children" is the irregular plural of "child".',
-  },
-  {
-    id: 6,
-    question: 'What is the opposite of "ancient"?',
-    options: ['old', 'modern', 'historic', 'antique'],
-    correctAnswer: 'modern',
-    explanation: '"Modern" is the antonym of "ancient" (very old).',
-  },
-  {
-    id: 7,
-    question: 'Choose the correct preposition: "I\'m interested ___ learning English."',
-    options: ['at', 'in', 'on', 'for'],
-    correctAnswer: 'in',
-    explanation: 'The correct collocation is "interested in".',
-  },
-  {
-    id: 8,
-    question: 'What type of word is "quickly"?',
-    options: ['noun', 'verb', 'adjective', 'adverb'],
-    correctAnswer: 'adverb',
-    explanation: '"Quickly" is an adverb that describes how an action is done.',
-  },
-  {
-    id: 9,
-    question: 'Which sentence uses the present perfect correctly?',
-    options: [
-      'I have saw that movie.',
-      'I have seen that movie.',
-      'I have seeing that movie.',
-      'I has seen that movie.',
-    ],
-    correctAnswer: 'I have seen that movie.',
-    explanation: 'Present perfect: have/has + past participle (seen).',
-  },
-  {
-    id: 10,
-    question: 'What does the idiom "break the ice" mean?',
-    options: [
-      'To destroy something',
-      'To start a conversation',
-      'To cool down',
-      'To break rules',
-    ],
-    correctAnswer: 'To start a conversation',
-    explanation: '"Break the ice" means to initiate social interaction.',
-  },
-]
-
-const questions = ref<MultipleChoiceQuestion[]>(
-  isPracticeMode.value ? generateMCQuestions(10) : hardcodedQuestions
-)
+const questions = ref<MultipleChoiceQuestion[]>(generateMCQuestions(questionCount.value))
 
 const currentQuestion = computed(() => questions.value[gameState.value.currentQuestion])
 const isLastQuestion = computed(() => gameState.value.currentQuestion >= questions.value.length - 1)
@@ -320,11 +231,9 @@ const selectAnswer = (option: string) => {
     gameState.value.streak = 0
   }
 
-  if (isPracticeMode.value) {
-    const q = currentQuestion.value as VocabMCQuestion
-    if (q?.vocabWord) {
-      vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect })
-    }
+  const q = currentQuestion.value as VocabMCQuestion
+  if (q?.vocabWord) {
+    vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect })
   }
 
   gameState.value.answers.push({
@@ -340,6 +249,14 @@ const nextQuestion = async () => {
     gameState.value.status = 'finished'
     const accuracy = Math.round((gameState.value.correctCount / questions.value.length) * 100)
     const result = await progressStore.logQuizCompletion(accuracy, questions.value.length)
+    quizStore.addGame({
+      modeId: 'multiple-choice',
+      modeName: 'Multiple Choice',
+      score: gameState.value.score,
+      accuracy,
+      questionCount: questions.value.length,
+      xpEarned: result?.xp_gained ?? 0,
+    })
     if (result?.level_up) {
       toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
     } else if (result?.xp_gained) {
@@ -373,7 +290,7 @@ const restartQuiz = () => {
   selectedAnswer.value = null
   startTime.value = Date.now()
   vocabAnswers.value = []
-  questions.value = isPracticeMode.value ? generateMCQuestions(10) : hardcodedQuestions
+  questions.value = generateMCQuestions(questionCount.value)
 }
 
 onMounted(() => {

@@ -280,18 +280,15 @@ const { getRandomWords, getWordInLang } = useVocabulary()
 
 const isVocabMode = computed(() => route.name === 'FlashcardVocabPractice' || route.query.mode === 'vocab')
 
-// Card container ref for HammerJS
 const cardContainer = ref<HTMLElement | null>(null)
 let hammer: HammerManager | null = null
 
-// State
 const isFlipped = ref(false)
 const currentIndex = ref(0)
 const swipeDirection = ref<'left' | 'right' | null>(null)
 const cardOffset = ref({ x: 0, y: 0, rotation: 0 })
 const showCompletionModal = ref(false)
 
-// Deck data
 const currentDeck = computed(() =>
   isVocabMode.value
     ? { id: 'vocab', title: `${currentLearningOption.value.flag} Vocabulary Practice`, description: `Learn ${currentLearningOption.value.name} words with ${uiLang.value.toUpperCase()} translations` }
@@ -310,7 +307,6 @@ interface Flashcard {
   isKnown: boolean | null
 }
 
-// Generate vocab flashcards when in vocab mode
 function buildVocabCards(): Flashcard[] {
   const words = getRandomWords(15)
   return words.map((w, i) => ({
@@ -323,7 +319,6 @@ function buildVocabCards(): Flashcard[] {
   }))
 }
 
-// Sample flashcards (would be loaded from API/store based on deckId)
 const cards = ref<Flashcard[]>(
   isVocabMode.value ? buildVocabCards() : [
   {
@@ -368,7 +363,6 @@ const cards = ref<Flashcard[]>(
   },
 ])
 
-// Computed
 const currentCard = computed(() => cards.value[currentIndex.value])
 
 const knownCount = computed(() => cards.value.filter(c => c.isKnown === true).length)
@@ -382,7 +376,6 @@ const cardStyle = computed(() => ({
   transform: `translateX(${cardOffset.value.x}px) translateY(${cardOffset.value.y}px) rotate(${cardOffset.value.rotation}deg)`,
 }))
 
-// Methods
 const flipCard = () => {
   isFlipped.value = !isFlipped.value
 }
@@ -435,9 +428,7 @@ const toggleFavorite = () => {
 const playAudio = () => {
   if (currentCard.value?.audio) {
     const audio = new Audio(currentCard.value.audio)
-    audio.play().catch(() => {
-      console.log('Audio playback failed')
-    })
+    audio.play().catch(() => {})
   }
 }
 
@@ -474,7 +465,6 @@ const exitStudy = () => {
   router.push('/flashcards')
 }
 
-// Keyboard shortcuts
 const handleKeydown = (e: KeyboardEvent) => {
   if (showCompletionModal.value) return
 
@@ -499,7 +489,6 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-// Setup HammerJS for swipe gestures
 const setupHammer = () => {
   if (!cardContainer.value) return
 
@@ -535,7 +524,6 @@ const setupHammer = () => {
   })
 }
 
-// Lifecycle
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
   setupHammer()
@@ -548,56 +536,21 @@ onUnmounted(() => {
   }
 })
 
-// Reset flip when card changes
 watch(currentIndex, () => {
   isFlipped.value = false
 })
 </script>
 
 <style scoped>
-/* 3D Perspective */
-.perspective-1000 {
-  perspective: 1000px;
-}
+.perspective-1000 { perspective: 1000px; }
+.card-inner { transform-style: preserve-3d; }
+.card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.card-back { transform: rotateY(180deg); }
+.rotate-y-180 { transform: rotateY(180deg); }
 
-/* Card flip container */
-.card-inner {
-  transform-style: preserve-3d;
-}
+.modal-enter-active, .modal-leave-active { transition: all 0.3s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-from > div, .modal-leave-to > div { transform: scale(0.95) translateY(20px); }
 
-/* Card faces */
-.card-face {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.card-back {
-  transform: rotateY(180deg);
-}
-
-/* Flip animation */
-.rotate-y-180 {
-  transform: rotateY(180deg);
-}
-
-/* Modal animation */
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.3s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-enter-from > div,
-.modal-leave-to > div {
-  transform: scale(0.95) translateY(20px);
-}
-
-/* Keyboard hint styling */
-kbd {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 0 0 var(--border);
-}
+kbd { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 0 0 var(--border); }
 </style>

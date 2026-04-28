@@ -7,7 +7,7 @@
         @play-again="restartQuiz"
         @go-home="goToQuizzes"
       />
-      <VocabResultsTable v-if="isPracticeMode" :entries="vocabAnswers" />
+      <VocabResultsTable v-if="vocabAnswers.length > 0" :entries="vocabAnswers" />
     </template>
 
     <!-- Quiz Game -->
@@ -120,6 +120,7 @@ import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
 import QuizExitModal from '@/components/quiz/QuizExitModal.vue'
 import type { MatchingPair, QuizResult as QuizResultType, QuizState } from '@/types/quiz'
 import { useProgressStore } from '@/stores/progress.store'
+import { useQuizStore } from '@/stores/quiz.store'
 import { useToast } from '@/composables/useToast'
 import { useVocabulary } from '@/composables/useVocabulary'
 
@@ -133,10 +134,11 @@ interface Card {
 const router = useRouter()
 const route = useRoute()
 const progressStore = useProgressStore()
+const quizStore = useQuizStore()
 const toast = useToast()
 const { generateMatchingPairs } = useVocabulary()
 
-const isPracticeMode = computed(() => route.query.mode === 'practice')
+const questionCount = computed(() => Math.min(Math.max(parseInt(route.query.count as string) || 8, 3), 30))
 
 const gameState = ref<QuizState>({
   status: 'playing',
@@ -149,20 +151,7 @@ const gameState = ref<QuizState>({
   answers: [],
 })
 
-const hardcodedPairs: MatchingPair[] = [
-  { id: 1, term: 'Abundant', definition: 'Existing in large quantities' },
-  { id: 2, term: 'Eloquent', definition: 'Fluent and persuasive in speaking' },
-  { id: 3, term: 'Persevere', definition: 'Continue despite difficulties' },
-  { id: 4, term: 'Ambiguous', definition: 'Open to multiple interpretations' },
-  { id: 5, term: 'Meticulous', definition: 'Very careful and precise' },
-  { id: 6, term: 'Resilient', definition: 'Able to recover quickly' },
-  { id: 7, term: 'Pragmatic', definition: 'Dealing with things sensibly' },
-  { id: 8, term: 'Inevitable', definition: 'Certain to happen' },
-]
-
-const pairs = ref<MatchingPair[]>(
-  isPracticeMode.value ? generateMatchingPairs(8) : hardcodedPairs
-)
+const pairs = ref<MatchingPair[]>(generateMatchingPairs(questionCount.value))
 
 const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrect: boolean }[]>([])
 
@@ -204,7 +193,7 @@ const shuffleArray = <T>(array: T[]): T[] => {
   const shuffled = [...array]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    ;[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!]
   }
   return shuffled
 }
@@ -290,11 +279,9 @@ const checkMatch = () => {
     gameState.value.streak++
     gameState.value.score += 100 + gameState.value.streak * 10
 
-    if (isPracticeMode.value) {
-      const matchedPair = pairs.value.find(p => p.id === selectedWord.value!.pairId)
-      if (matchedPair) {
-        vocabAnswers.value.push({ termDisplay: matchedPair.term, meaningDisplay: matchedPair.definition, isCorrect: true })
-      }
+    const matchedPair = pairs.value.find(p => p.id === selectedWord.value!.pairId)
+    if (matchedPair) {
+      vocabAnswers.value.push({ termDisplay: matchedPair.term, meaningDisplay: matchedPair.definition, isCorrect: true })
     }
 
     // Check if all matched
@@ -304,6 +291,14 @@ const checkMatch = () => {
         if (timerInterval) clearInterval(timerInterval)
         const accuracy = Math.round((matchedPairs.value / attempts.value) * 100)
         const result = await progressStore.logQuizCompletion(accuracy, pairs.value.length)
+        quizStore.addGame({
+          modeId: 'matching-pairs',
+          modeName: 'Matching Pairs',
+          score: gameState.value.score,
+          accuracy,
+          questionCount: pairs.value.length,
+          xpEarned: result?.xp_gained ?? 0,
+        })
         if (result?.level_up) {
           toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
         } else if (result?.xp_gained) {
@@ -346,7 +341,7 @@ const goToQuizzes = () => {
 const restartQuiz = () => {
   gameState.value.status = 'playing'
   vocabAnswers.value = []
-  pairs.value = isPracticeMode.value ? generateMatchingPairs(8) : hardcodedPairs
+  pairs.value = generateMatchingPairs(questionCount.value)
   initializeGame()
   startTime.value = Date.now()
   startTimer()

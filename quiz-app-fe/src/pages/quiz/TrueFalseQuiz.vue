@@ -7,7 +7,7 @@
         @play-again="restartQuiz"
         @go-home="goToQuizzes"
       />
-      <VocabResultsTable v-if="isPracticeMode" :entries="vocabAnswers" />
+      <VocabResultsTable v-if="vocabAnswers.length > 0" :entries="vocabAnswers" />
     </template>
 
     <!-- Quiz Game -->
@@ -144,16 +144,18 @@ import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
 import QuizExitModal from '@/components/quiz/QuizExitModal.vue'
 import type { TrueFalseQuestion, QuizResult as QuizResultType, QuizState } from '@/types/quiz'
 import { useProgressStore } from '@/stores/progress.store'
+import { useQuizStore } from '@/stores/quiz.store'
 import { useToast } from '@/composables/useToast'
 import { useVocabulary, type VocabTFQuestion } from '@/composables/useVocabulary'
 
 const router = useRouter()
 const route = useRoute()
 const progressStore = useProgressStore()
+const quizStore = useQuizStore()
 const toast = useToast()
 const { generateTFQuestions } = useVocabulary()
 
-const isPracticeMode = computed(() => route.query.mode === 'practice')
+const questionCount = computed(() => Math.min(Math.max(parseInt(route.query.count as string) || 10, 3), 50))
 
 const gameState = ref<QuizState>({
   status: 'playing',
@@ -172,84 +174,7 @@ const showExitModal = ref(false)
 const startTime = ref(Date.now())
 const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrect: boolean }[]>([])
 
-const hardcodedQuestions: TrueFalseQuestion[] = [
-  {
-    id: 1,
-    statement: 'The word "beautiful" has three syllables.',
-    isTrue: true,
-    explanation: 'Beau-ti-ful has three syllables.',
-  },
-  {
-    id: 2,
-    statement: '"Their" and "there" have the same meaning.',
-    isTrue: false,
-    explanation: '"Their" shows possession, while "there" refers to a place.',
-  },
-  {
-    id: 3,
-    statement: 'The past tense of "go" is "went".',
-    isTrue: true,
-    explanation: '"Went" is the irregular past tense of "go".',
-  },
-  {
-    id: 4,
-    statement: 'An adjective describes an action.',
-    isTrue: false,
-    explanation: 'An adjective describes a noun. Verbs describe actions.',
-  },
-  {
-    id: 5,
-    statement: '"I" should always be capitalized in English.',
-    isTrue: true,
-    explanation: 'The pronoun "I" is always capitalized in English.',
-  },
-  {
-    id: 6,
-    statement: '"Quickly" is an adverb.',
-    isTrue: true,
-    explanation: '"Quickly" describes how an action is done (adverb).',
-  },
-  {
-    id: 7,
-    statement: 'The plural of "child" is "childs".',
-    isTrue: false,
-    explanation: 'The correct plural is "children" (irregular).',
-  },
-  {
-    id: 8,
-    statement: '"A" and "an" are both articles.',
-    isTrue: true,
-    explanation: 'Both "a" and "an" are indefinite articles.',
-  },
-  {
-    id: 9,
-    statement: 'A sentence must have a subject and a verb.',
-    isTrue: true,
-    explanation: 'A complete sentence requires at least a subject and a verb.',
-  },
-  {
-    id: 10,
-    statement: '"Effect" and "affect" mean the same thing.',
-    isTrue: false,
-    explanation: '"Affect" is usually a verb, "effect" is usually a noun.',
-  },
-  {
-    id: 11,
-    statement: 'The word "photograph" comes from Greek.',
-    isTrue: true,
-    explanation: '"Photo" (light) + "graph" (writing) are Greek roots.',
-  },
-  {
-    id: 12,
-    statement: 'A comma splice is grammatically correct.',
-    isTrue: false,
-    explanation: 'A comma splice (two independent clauses joined only by a comma) is incorrect.',
-  },
-]
-
-const questions = ref<TrueFalseQuestion[]>(
-  isPracticeMode.value ? generateTFQuestions(12) : hardcodedQuestions
-)
+const questions = ref<TrueFalseQuestion[]>(generateTFQuestions(questionCount.value))
 
 const currentQuestion = computed(() => questions.value[gameState.value.currentQuestion])
 const isLastQuestion = computed(() => gameState.value.currentQuestion >= questions.value.length - 1)
@@ -316,11 +241,9 @@ const selectAnswer = (answer: boolean) => {
     gameState.value.streak = 0
   }
 
-  if (isPracticeMode.value) {
-    const q = currentQuestion.value as VocabTFQuestion
-    if (q?.vocabWord) {
-      vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect: isCorrect.value })
-    }
+  const q = currentQuestion.value as VocabTFQuestion
+  if (q?.vocabWord) {
+    vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect: isCorrect.value })
   }
 }
 
@@ -329,6 +252,14 @@ const nextQuestion = async () => {
     gameState.value.status = 'finished'
     const accuracy = Math.round((gameState.value.correctCount / questions.value.length) * 100)
     const result = await progressStore.logQuizCompletion(accuracy, questions.value.length)
+    quizStore.addGame({
+      modeId: 'true-false',
+      modeName: 'True or False',
+      score: gameState.value.score,
+      accuracy,
+      questionCount: questions.value.length,
+      xpEarned: result?.xp_gained ?? 0,
+    })
     if (result?.level_up) {
       toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
     } else if (result?.xp_gained) {
@@ -364,7 +295,7 @@ const restartQuiz = () => {
   isCorrect.value = false
   startTime.value = Date.now()
   vocabAnswers.value = []
-  questions.value = isPracticeMode.value ? generateTFQuestions(12) : hardcodedQuestions
+  questions.value = generateTFQuestions(questionCount.value)
 }
 </script>
 

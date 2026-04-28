@@ -7,7 +7,7 @@
         @play-again="restartQuiz"
         @go-home="goToQuizzes"
       />
-      <VocabResultsTable v-if="isPracticeMode" :entries="vocabAnswers" />
+      <VocabResultsTable v-if="vocabAnswers.length > 0" :entries="vocabAnswers" />
     </template>
 
     <!-- Countdown Start -->
@@ -140,16 +140,18 @@ import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
 import QuizExitModal from '@/components/quiz/QuizExitModal.vue'
 import type { MultipleChoiceQuestion, QuizResult as QuizResultType, QuizState } from '@/types/quiz'
 import { useProgressStore } from '@/stores/progress.store'
+import { useQuizStore } from '@/stores/quiz.store'
 import { useToast } from '@/composables/useToast'
 import { useVocabulary, type VocabMCQuestion } from '@/composables/useVocabulary'
 
 const router = useRouter()
 const route = useRoute()
 const progressStore = useProgressStore()
+const quizStore = useQuizStore()
 const toast = useToast()
 const { generateSpeedQuestions } = useVocabulary()
 
-const isPracticeMode = computed(() => route.query.mode === 'practice')
+const questionCount = computed(() => Math.min(Math.max(parseInt(route.query.count as string) || 15, 3), 50))
 
 const QUESTION_TIME = 10 // seconds per question
 const circumference = 2 * Math.PI * 24
@@ -177,27 +179,7 @@ const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrec
 let countdownInterval: ReturnType<typeof setInterval> | null = null
 let questionTimer: ReturnType<typeof setInterval> | null = null
 
-const hardcodedQuestions: MultipleChoiceQuestion[] = [
-  { id: 1, question: 'Past tense of "eat"?', options: ['ate', 'eated', 'eaten', 'eating'], correctAnswer: 'ate' },
-  { id: 2, question: 'Synonym of "big"?', options: ['small', 'large', 'tiny', 'little'], correctAnswer: 'large' },
-  { id: 3, question: 'Opposite of "hot"?', options: ['warm', 'cool', 'cold', 'heat'], correctAnswer: 'cold' },
-  { id: 4, question: '"She ___ to school"', options: ['go', 'goes', 'going', 'gone'], correctAnswer: 'goes' },
-  { id: 5, question: 'Plural of "mouse"?', options: ['mouses', 'mice', 'mouse', 'mices'], correctAnswer: 'mice' },
-  { id: 6, question: '"I ___ been there"', options: ['has', 'have', 'had', 'having'], correctAnswer: 'have' },
-  { id: 7, question: 'Synonym of "happy"?', options: ['sad', 'glad', 'mad', 'bad'], correctAnswer: 'glad' },
-  { id: 8, question: 'Past of "run"?', options: ['runned', 'ran', 'running', 'runs'], correctAnswer: 'ran' },
-  { id: 9, question: '"___ you help me?"', options: ['Do', 'Can', 'Is', 'Are'], correctAnswer: 'Can' },
-  { id: 10, question: 'Opposite of "fast"?', options: ['quick', 'rapid', 'slow', 'speed'], correctAnswer: 'slow' },
-  { id: 11, question: '"They ___ playing"', options: ['is', 'are', 'be', 'been'], correctAnswer: 'are' },
-  { id: 12, question: 'Past of "buy"?', options: ['buyed', 'bought', 'buying', 'buys'], correctAnswer: 'bought' },
-  { id: 13, question: 'Synonym of "small"?', options: ['big', 'tiny', 'huge', 'large'], correctAnswer: 'tiny' },
-  { id: 14, question: '"I ___ English"', options: ['speaks', 'speak', 'speaking', 'spoke'], correctAnswer: 'speak' },
-  { id: 15, question: 'Opposite of "dark"?', options: ['dim', 'light', 'black', 'shade'], correctAnswer: 'light' },
-]
-
-const questions = ref<MultipleChoiceQuestion[]>(
-  isPracticeMode.value ? generateSpeedQuestions(15) : hardcodedQuestions
-)
+const questions = ref<MultipleChoiceQuestion[]>(generateSpeedQuestions(questionCount.value))
 
 const currentQuestion = computed(() => questions.value[gameState.value.currentQuestion])
 const isLastQuestion = computed(() => gameState.value.currentQuestion >= questions.value.length - 1)
@@ -318,11 +300,9 @@ const selectAnswer = (option: string) => {
     questionResults.value.push(false)
   }
 
-  if (isPracticeMode.value) {
-    const q = currentQuestion.value as VocabMCQuestion
-    if (q?.vocabWord) {
-      vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect })
-    }
+  const q = currentQuestion.value as VocabMCQuestion
+  if (q?.vocabWord) {
+    vocabAnswers.value.push({ termDisplay: q.termDisplay, meaningDisplay: q.meaningDisplay, isCorrect })
   }
 
   setTimeout(() => {
@@ -335,6 +315,14 @@ const nextQuestion = async () => {
     gameState.value.status = 'finished'
     const accuracy = Math.round((gameState.value.correctCount / questions.value.length) * 100)
     const result = await progressStore.logQuizCompletion(accuracy, questions.value.length)
+    quizStore.addGame({
+      modeId: 'speed-round',
+      modeName: 'Speed Round',
+      score: gameState.value.score,
+      accuracy,
+      questionCount: questions.value.length,
+      xpEarned: result?.xp_gained ?? 0,
+    })
     if (result?.level_up) {
       toast.success(`Level up! You're now Level ${result.new_level}! 🎉`)
     } else if (result?.xp_gained) {
@@ -372,7 +360,7 @@ const restartQuiz = () => {
   selectedAnswer.value = null
   questionResults.value = []
   vocabAnswers.value = []
-  questions.value = isPracticeMode.value ? generateSpeedQuestions(15) : hardcodedQuestions
+  questions.value = generateSpeedQuestions(questionCount.value)
   showCountdown.value = true
   countdownValue.value = 3
   startCountdown()

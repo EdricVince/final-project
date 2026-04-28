@@ -34,12 +34,8 @@
       </div>
     </div>
 
-    <!-- Tooltip -->
-    <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-      <span class="bg-foreground text-background rounded px-2 py-1 text-xs">
-        {{ achievement.name }}
-      </span>
-    </div>
+    <!-- Tooltip - removed -->
+
 
     <!-- Rarity indicator -->
     <div

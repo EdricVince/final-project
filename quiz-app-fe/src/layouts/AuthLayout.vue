@@ -1,21 +1,16 @@
 <template>
   <div class="bg-background flex min-h-screen flex-col overflow-hidden">
     <div class="grid flex-1 grid-cols-1 gap-0 lg:grid-cols-2">
-      <!-- Left Panel - Branding & Animation -->
+      <!-- Left Panel - Branding -->
       <div
         class="bg-primary relative hidden flex-col items-center justify-center overflow-hidden p-12 lg:flex"
       >
-        <!-- Decorative Elements -->
-        <div class="bg-primary-foreground/5 absolute -top-24 -left-24 h-96 w-96 rounded-full"></div>
-        <div
-          class="bg-primary-foreground/5 absolute -bottom-32 -right-32 h-125 w-125 rounded-full"
-        ></div>
-        <div
-          class="bg-primary-foreground/10 absolute top-1/4 right-1/4 h-32 w-32 rounded-full"
-        ></div>
+        <!-- Decorative background circles -->
+        <div class="bg-primary-foreground/5 absolute -top-24 -left-24 h-96 w-96 rounded-full" />
+        <div class="bg-primary-foreground/5 absolute -bottom-32 -right-32 h-125 w-125 rounded-full" />
+        <div class="bg-primary-foreground/10 absolute top-1/4 right-1/4 h-32 w-32 rounded-full" />
 
-        <!-- Logo & Brand -->
-        <div class="relative z-10 flex flex-col items-center gap-8">
+        <div class="relative z-10 flex flex-col items-center gap-6">
           <!-- Logo -->
           <div class="flex items-center gap-3">
             <div
@@ -28,17 +23,90 @@
             </span>
           </div>
 
-          <!-- Rive Animation - Interactive Teddy -->
-          <div class="my-8">
-            <RiveAnimation
-              ref="riveAnimationRef"
-              src="/animations/login-teddy.riv"
-              state-machine="Login Machine"
-              :width="320"
-              :height="320"
-              fit="contain"
-              @load="onRiveLoad"
+          <!-- Language learning illustration — no bounding box -->
+          <div class="relative h-72 w-80 select-none">
+            <!-- Ambient glow -->
+            <div
+              class="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/8 blur-3xl"
             />
+
+            <!-- Main vocabulary card -->
+            <div
+              class="animate-float-a absolute left-1/2 top-1/2 w-52 -translate-x-1/2 -translate-y-1/2"
+            >
+              <div
+                class="rounded-2xl border border-white/25 bg-white/15 p-5 shadow-2xl backdrop-blur-md"
+              >
+                <div class="mb-2 flex items-center gap-1.5">
+                  <BookOpen class="h-3 w-3 text-white/60" />
+                  <span class="text-[10px] font-semibold uppercase tracking-widest text-white/60">
+                    Vocabulary
+                  </span>
+                </div>
+                <p class="text-2xl font-bold text-white">Hello</p>
+                <p class="mt-1 text-sm text-white/65">こんにちは &nbsp;·&nbsp; 你好</p>
+                <div class="mt-3 flex items-center gap-2">
+                  <div class="h-1 flex-1 rounded-full bg-white/20">
+                    <div class="h-1 w-3/5 rounded-full bg-white/60" />
+                  </div>
+                  <span class="text-[10px] text-white/50">3 / 5</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Floating card: English -->
+            <div class="animate-float-b absolute left-1 top-8">
+              <div
+                class="rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 shadow-lg backdrop-blur-sm"
+              >
+                <p class="text-xl font-bold leading-none text-white">Aa</p>
+                <p class="mt-0.5 text-[10px] text-white/50">English</p>
+              </div>
+            </div>
+
+            <!-- Floating card: Chinese -->
+            <div class="animate-float-c absolute right-3 top-4">
+              <div
+                class="rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 shadow-lg backdrop-blur-sm"
+              >
+                <p class="text-xl font-bold leading-none text-white">文</p>
+                <p class="mt-0.5 text-[10px] text-white/50">中文</p>
+              </div>
+            </div>
+
+            <!-- Floating card: Japanese -->
+            <div class="animate-float-d absolute bottom-10 left-4">
+              <div
+                class="rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 shadow-lg backdrop-blur-sm"
+              >
+                <p class="text-xl font-bold leading-none text-white">あ</p>
+                <p class="mt-0.5 text-[10px] text-white/50">日本語</p>
+              </div>
+            </div>
+
+            <!-- Floating card: French -->
+            <div class="animate-float-b absolute bottom-6 right-1">
+              <div
+                class="rounded-xl border border-white/20 bg-white/10 px-3 py-2 shadow-lg backdrop-blur-sm"
+              >
+                <p class="text-base font-bold leading-none text-white">Bonjour</p>
+                <p class="mt-0.5 text-[10px] text-white/50">Français</p>
+              </div>
+            </div>
+
+            <!-- XP badge -->
+            <div class="animate-float-c absolute right-5 top-[44%]">
+              <div
+                class="flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 shadow backdrop-blur-sm"
+              >
+                <Zap class="h-3 w-3 text-yellow-200/90" />
+                <span class="text-xs font-bold text-white">+25 XP</span>
+              </div>
+            </div>
+
+            <!-- Sparkle accents -->
+            <Sparkles class="animate-float-a absolute right-14 top-14 h-4 w-4 text-white/25" />
+            <Sparkles class="animate-float-d absolute bottom-16 left-16 h-3 w-3 text-white/20" />
           </div>
 
           <!-- Tagline -->
@@ -53,7 +121,7 @@
           </div>
 
           <!-- Features -->
-          <div class="mt-8 grid grid-cols-3 gap-6">
+          <div class="mt-2 grid grid-cols-3 gap-6">
             <div class="flex flex-col items-center gap-2">
               <div class="bg-primary-foreground/10 rounded-xl p-3">
                 <BookOpen class="text-primary-foreground h-5 w-5" />
@@ -100,17 +168,10 @@
 
 <script setup lang="ts">
 import { ref, provide } from 'vue'
-import { Sparkles, BookOpen, Target, Trophy } from 'lucide-vue-next'
-import { RiveAnimation } from '@/components/animations'
-import type { Rive } from '@rive-app/canvas'
+import { Sparkles, BookOpen, Target, Trophy, Zap } from 'lucide-vue-next'
 
-// Animation ref to expose to child components
-const riveAnimationRef = ref<InstanceType<typeof RiveAnimation> | null>(null)
-
-// Provide the animation ref to child components (LoginPage, RegisterPage, etc.)
+// Kept for child components (LoginPage) that inject this ref.
+// useLoginAnimation guards all calls with `if (!animationRef.value) return`.
+const riveAnimationRef = ref(null)
 provide('loginAnimationRef', riveAnimationRef)
-
-const onRiveLoad = (_rive: Rive) => {
-  console.log('Teddy animation loaded with inputs:', riveAnimationRef.value?.getInputs?.())
-}
 </script>
