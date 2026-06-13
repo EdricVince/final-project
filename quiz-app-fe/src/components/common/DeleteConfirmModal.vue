@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { Trash2 } from 'lucide-vue-next'
+import { Trash2 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 
 interface Props {

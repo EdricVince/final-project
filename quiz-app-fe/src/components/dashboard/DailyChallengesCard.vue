@@ -165,7 +165,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Flame, Clock, Zap, CheckCircle, Trophy, BookOpen, Brain, Layers, Target, ChevronRight, X, ArrowRight } from 'lucide-vue-next'
+import { Flame, Clock, Zap, BookOpen, Brain, Layers, Target, X, ArrowRight } from '@/components/icons'
 
 defineEmits<{ claimReward: [challengeId: number] }>()
 

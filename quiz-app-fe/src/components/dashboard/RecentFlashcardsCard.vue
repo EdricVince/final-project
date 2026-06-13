@@ -27,9 +27,7 @@
         >
           <div class="mb-3 flex items-start justify-between gap-3">
             <span class="text-foreground line-clamp-2 text-sm font-medium">{{ flashcard.question }}</span>
-            <Badge variant="secondary" class="shrink-0 text-xs">
-              {{ flashcard.difficulty }}
-            </Badge>
+            <Badge variant="secondary" class="shrink-0 text-xs">{{ flashcard.difficulty }}</Badge>
           </div>
           <div class="text-muted-foreground flex items-center gap-2 text-xs">
             <Clock class="h-3.5 w-3.5" />
@@ -42,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { Layers, ChevronRight, Clock } from 'lucide-vue-next'
+import { Layers, ChevronRight, Clock } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import Badge from '@/components/ui/badge/Badge.vue'
 import type { DashboardFlashcard } from '@/types/dashboard'
@@ -52,9 +50,7 @@ interface Props {
   isLoading?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
-  isLoading: false,
-})
+withDefaults(defineProps<Props>(), { isLoading: false })
 
 defineEmits<{
   viewAll: []
@@ -64,38 +60,20 @@ defineEmits<{
 
 <style scoped>
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--muted) 25%,
-    var(--secondary) 50%,
-    var(--muted) 75%
-  );
+  background: linear-gradient(90deg, var(--muted) 25%, var(--secondary) 50%, var(--muted) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
-
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
-
 .flashcard-item {
   animation: fadeInUp 0.4s ease-out forwards;
   opacity: 0;
 }
-
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 </style>

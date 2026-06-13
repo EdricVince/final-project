@@ -37,7 +37,7 @@
           :model-value="editForm.fullName"
           placeholder="Enter your full name"
           class="h-11 rounded-xl"
-          @update:model-value="$emit('update:editForm', { ...editForm, fullName: $event })"
+          @update:model-value="$emit('update:editForm', { ...editForm, fullName: String($event) })"
         />
       </div>
 
@@ -53,7 +53,7 @@
             :model-value="editForm.username"
             placeholder="username"
             class="h-11 rounded-xl pl-8"
-            @update:model-value="$emit('update:editForm', { ...editForm, username: $event })"
+            @update:model-value="$emit('update:editForm', { ...editForm, username: String($event) })"
           />
         </div>
       </div>
@@ -71,7 +71,7 @@
           type="email"
           placeholder="your@email.com"
           class="h-11 rounded-xl"
-          @update:model-value="$emit('update:editForm', { ...editForm, email: $event })"
+          @update:model-value="$emit('update:editForm', { ...editForm, email: String($event) })"
         />
       </div>
 
@@ -88,7 +88,7 @@
           type="tel"
           placeholder="+84 123 456 789"
           class="h-11 rounded-xl"
-          @update:model-value="$emit('update:editForm', { ...editForm, phone: $event })"
+          @update:model-value="$emit('update:editForm', { ...editForm, phone: String($event) })"
         />
       </div>
 
@@ -103,7 +103,7 @@
           :model-value="editForm.title"
           placeholder="e.g. Student, Developer"
           class="h-11 rounded-xl"
-          @update:model-value="$emit('update:editForm', { ...editForm, title: $event })"
+          @update:model-value="$emit('update:editForm', { ...editForm, title: String($event) })"
         />
       </div>
 
@@ -119,7 +119,7 @@
           :model-value="editForm.location"
           placeholder="City, Country"
           class="h-11 rounded-xl"
-          @update:model-value="$emit('update:editForm', { ...editForm, location: $event })"
+          @update:model-value="$emit('update:editForm', { ...editForm, location: String($event) })"
         />
       </div>
     </div>
@@ -127,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { User, Pencil, Check, Mail, Phone, MapPin } from 'lucide-vue-next'
+import { User, Pencil, Check, Mail, Phone, MapPin } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
 import Label from '@/components/ui/label/Label.vue'

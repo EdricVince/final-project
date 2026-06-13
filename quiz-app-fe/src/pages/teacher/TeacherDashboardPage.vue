@@ -1,11 +1,19 @@
 <template>
   <div class="p-6 lg:p-8">
-    <!-- Welcome -->
-    <div class="mb-8">
-      <h1 class="text-foreground text-2xl font-bold lg:text-3xl">
-        Welcome back, {{ userName }} 👋
-      </h1>
-      <p class="text-muted-foreground mt-1">Here's what's happening in your classes today.</p>
+
+    <!-- Header -->
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="text-muted-foreground mb-1 text-sm font-medium">{{ greeting }}</p>
+        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ userName }}</h1>
+      </div>
+      <button
+        class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 self-start rounded-xl px-5 py-2.5 text-sm font-medium transition-colors sm:self-auto"
+        @click="router.push('/teacher/classes')"
+      >
+        <Plus class="h-4 w-4" />
+        New Class
+      </button>
     </div>
 
     <!-- Stats -->
@@ -13,89 +21,176 @@
       <div
         v-for="stat in stats"
         :key="stat.label"
-        class="bg-card border-border rounded-2xl border p-5 transition-all hover:shadow-md"
+        class="bg-card border-border group rounded-2xl border p-5 transition-all hover:shadow-md"
       >
-        <div class="mb-3 flex items-center justify-between">
+        <div class="mb-4 flex items-center justify-between">
           <span class="text-muted-foreground text-sm">{{ stat.label }}</span>
-          <div class="rounded-xl p-2.5" :class="stat.bg">
-            <component :is="stat.icon" class="h-5 w-5" :class="stat.color" />
+          <div class="rounded-xl p-2.5 transition-transform group-hover:scale-110" :class="stat.bg">
+            <component :is="stat.icon" class="h-4 w-4" :class="stat.color" />
           </div>
         </div>
-        <p class="text-foreground text-3xl font-bold">{{ stat.value }}</p>
-        <p class="text-muted-foreground mt-1 text-xs">{{ stat.sub }}</p>
+        <p class="text-foreground text-3xl font-bold tabular-nums">{{ stat.value }}</p>
       </div>
     </div>
 
-    <!-- Grid: Quick Actions + Recent Activity -->
-    <div class="mb-8 grid gap-6 lg:grid-cols-3">
-      <!-- Quick Actions -->
+    <!-- Main Grid -->
+    <div class="grid gap-6 lg:grid-cols-3">
+
+      <!-- Quick Actions — 2-column grid -->
       <div class="bg-card border-border rounded-2xl border p-6">
-        <h2 class="text-foreground mb-4 font-semibold">Quick Actions</h2>
-        <div class="space-y-2">
+        <h2 class="text-foreground mb-4 text-sm font-semibold uppercase tracking-wider">Quick Actions</h2>
+        <div class="grid grid-cols-2 gap-2">
           <button
             v-for="action in quickActions"
             :key="action.label"
-            class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors"
-            :class="action.style"
+            class="hover:bg-secondary/70 flex flex-col items-start gap-2.5 rounded-xl p-3 text-left transition-colors"
             @click="router.push(action.path)"
           >
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" :class="action.iconBg">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl" :class="action.iconBg">
               <component :is="action.icon" class="h-4 w-4" :class="action.iconColor" />
             </div>
             <div>
-              <p class="text-foreground text-sm font-medium">{{ action.label }}</p>
-              <p class="text-muted-foreground text-xs">{{ action.desc }}</p>
+              <p class="text-foreground text-sm font-medium leading-tight">{{ action.label }}</p>
+              <p class="text-muted-foreground mt-0.5 text-xs">{{ action.desc }}</p>
             </div>
           </button>
         </div>
       </div>
 
-      <!-- Recent Classes -->
+      <!-- Active Classes -->
       <div class="bg-card border-border rounded-2xl border p-6 lg:col-span-2">
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-foreground font-semibold">Active Classes</h2>
+          <h2 class="text-foreground text-sm font-semibold uppercase tracking-wider">Active Classes</h2>
           <button
-            class="text-primary hover:text-primary/80 text-sm font-medium transition-colors"
+            class="text-primary hover:text-primary/70 text-sm font-medium transition-colors"
             @click="router.push('/teacher/classes')"
           >
             View all →
           </button>
         </div>
-        <div class="space-y-3">
+
+        <!-- Empty -->
+        <div v-if="recentClasses.length === 0" class="flex flex-col items-center justify-center py-10 text-center">
+          <div class="bg-secondary mb-3 flex h-14 w-14 items-center justify-center rounded-2xl">
+            <BookOpen class="text-muted-foreground h-7 w-7" />
+          </div>
+          <p class="text-foreground mb-1 font-medium">No classes yet</p>
+          <p class="text-muted-foreground text-sm">Create your first class to get started.</p>
+          <button
+            class="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+            @click="router.push('/teacher/classes')"
+          >
+            Create Class
+          </button>
+        </div>
+
+        <!-- List -->
+        <div v-else class="space-y-2">
           <div
             v-for="cls in recentClasses"
             :key="cls.id"
-            class="hover:bg-secondary/50 flex items-center gap-4 rounded-xl p-3 transition-colors cursor-pointer"
+            class="hover:bg-secondary/50 flex cursor-pointer items-center gap-4 rounded-xl px-3 py-3 transition-colors"
             @click="router.push(`/teacher/classes/${cls.id}`)"
           >
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl" :class="cls.bgColor">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg" :class="cls.bgColor">
               {{ cls.emoji }}
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-foreground font-medium">{{ cls.name }}</p>
               <p class="text-muted-foreground text-xs">{{ cls.studentCount }} students · {{ cls.lessonCount }} lessons</p>
             </div>
-            <div class="text-right">
-              <div class="bg-primary/5 border-primary/20 rounded-lg border px-3 py-1.5">
-                <p class="text-primary font-mono text-sm font-bold tracking-wider">{{ cls.joinCode }}</p>
-              </div>
+            <div class="bg-primary/5 border-primary/20 rounded-lg border px-3 py-1.5">
+              <p class="text-primary font-mono text-sm font-bold tracking-wider">{{ cls.joinCode }}</p>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Grid: Recent Activity + Upcoming -->
-    <div class="grid gap-6 lg:grid-cols-2">
+    <!-- Assignments Section -->
+    <div class="mt-6 bg-card border-border rounded-2xl border p-6">
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <h2 class="text-foreground text-sm font-semibold uppercase tracking-wider">Active Assignments</h2>
+          <p class="text-muted-foreground mt-0.5 text-xs">Homework & goals assigned to your classes</p>
+        </div>
+        <button
+          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+          @click="showAssignModal = true"
+        >
+          <Plus class="h-4 w-4" />
+          New Assignment
+        </button>
+      </div>
+
+      <div v-if="assignments.length === 0" class="flex flex-col items-center justify-center py-10 text-center">
+        <div class="bg-secondary mb-3 flex h-14 w-14 items-center justify-center rounded-2xl">
+          <List class="text-muted-foreground h-7 w-7" />
+        </div>
+        <p class="text-foreground mb-1 font-medium">No assignments yet</p>
+        <p class="text-muted-foreground text-sm">Create assignments to track student homework & goals.</p>
+      </div>
+
+      <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          v-for="a in assignments"
+          :key="a.id"
+          class="bg-secondary/40 rounded-2xl p-4"
+        >
+          <div class="mb-3 flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" :class="a.iconBg">
+                <component :is="a.icon" class="h-4 w-4" :class="a.iconColor" />
+              </div>
+              <div>
+                <p class="text-foreground text-sm font-semibold">{{ a.title }}</p>
+                <p class="text-muted-foreground text-xs">{{ a.className }}</p>
+              </div>
+            </div>
+            <button class="text-muted-foreground hover:text-destructive rounded-lg p-1 transition-colors" @click="deleteAssignment(a.id)">
+              <X class="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <!-- Completion Bar -->
+          <div class="mb-2">
+            <div class="mb-1 flex items-center justify-between">
+              <span class="text-muted-foreground text-xs">Completion</span>
+              <span class="text-foreground text-xs font-semibold">{{ a.completed }}/{{ a.total }} students</span>
+            </div>
+            <div class="bg-background h-1.5 overflow-hidden rounded-full">
+              <div
+                class="h-1.5 rounded-full transition-all duration-700"
+                :class="a.total && (a.completed/a.total) >= 0.8 ? 'bg-chart-2' : 'bg-primary'"
+                :style="{ width: `${a.total ? (a.completed/a.total)*100 : 0}%` }"
+              ></div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="bg-secondary text-muted-foreground rounded-md px-2 py-0.5 text-xs">{{ a.type }}</span>
+            <span class="text-muted-foreground text-xs">Due {{ a.due }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Grid: Activity + Upcoming Tests -->
+    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+
       <!-- Recent Activity -->
       <div class="bg-card border-border rounded-2xl border p-6">
-        <h2 class="text-foreground mb-4 font-semibold">Recent Activity</h2>
-        <div class="space-y-4">
+        <h2 class="text-foreground mb-4 text-sm font-semibold uppercase tracking-wider">Recent Activity</h2>
+
+        <div v-if="recentActivity.length === 0" class="flex flex-col items-center justify-center py-8 text-center">
+          <Activity class="text-muted-foreground/40 mb-3 h-10 w-10" />
+          <p class="text-muted-foreground text-sm">Activity will appear here once students start studying.</p>
+        </div>
+
+        <div v-else class="space-y-4">
           <div v-for="activity in recentActivity" :key="activity.id" class="flex items-start gap-3">
-            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm" :class="activity.bg">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full" :class="activity.bg">
               <component :is="activity.icon" class="h-4 w-4" :class="activity.color" />
             </div>
-            <div class="flex-1 min-w-0">
+            <div class="min-w-0 flex-1">
               <p class="text-foreground text-sm">{{ activity.text }}</p>
               <p class="text-muted-foreground text-xs">{{ activity.time }}</p>
             </div>
@@ -106,55 +201,112 @@
       <!-- Upcoming Tests -->
       <div class="bg-card border-border rounded-2xl border p-6">
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-foreground font-semibold">Upcoming Tests</h2>
-          <button
-            class="text-primary hover:text-primary/80 text-sm font-medium"
-            @click="router.push('/teacher/tests')"
-          >
+          <h2 class="text-foreground text-sm font-semibold uppercase tracking-wider">Upcoming Tests</h2>
+          <button class="text-primary hover:text-primary/70 text-sm font-medium transition-colors" @click="router.push('/teacher/tests')">
             View all →
           </button>
         </div>
-        <div class="space-y-3">
-          <div v-for="test in upcomingTests" :key="test.id" class="bg-secondary/30 rounded-xl p-4">
+
+        <div v-if="upcomingTests.length === 0" class="flex flex-col items-center justify-center py-8 text-center">
+          <FileText class="text-muted-foreground/40 mb-3 h-10 w-10" />
+          <p class="text-muted-foreground text-sm">No upcoming tests scheduled.</p>
+          <button
+            class="text-primary hover:text-primary/70 mt-3 text-sm font-medium underline-offset-4 hover:underline transition-colors"
+            @click="router.push('/teacher/tests')"
+          >
+            Create a test
+          </button>
+        </div>
+
+        <div v-else class="space-y-3">
+          <div v-for="test in upcomingTests" :key="test.id" class="bg-secondary/40 rounded-xl p-4">
             <div class="mb-2 flex items-start justify-between gap-2">
               <p class="text-foreground text-sm font-medium">{{ test.title }}</p>
               <span class="bg-primary/10 text-primary shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium">
                 {{ test.status }}
               </span>
             </div>
-            <div class="flex items-center gap-3 text-xs text-muted-foreground">
+            <div class="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span class="flex items-center gap-1">
-                <BookOpen class="h-3.5 w-3.5" />
-                {{ test.class }}
+                <BookOpen class="h-3 w-3" /> {{ test.class }}
               </span>
               <span class="flex items-center gap-1">
-                <FileText class="h-3.5 w-3.5" />
-                {{ test.questions }} questions
+                <FileText class="h-3 w-3" /> {{ test.questions }} questions
               </span>
               <span class="flex items-center gap-1">
-                <Clock class="h-3.5 w-3.5" />
-                {{ test.duration }} min
+                <Clock class="h-3 w-3" /> {{ test.duration }} min
               </span>
             </div>
           </div>
         </div>
-        <div v-if="upcomingTests.length === 0" class="flex flex-col items-center py-8 text-center">
-          <FileText class="text-muted-foreground mb-2 h-8 w-8" />
-          <p class="text-muted-foreground text-sm">No upcoming tests</p>
-        </div>
       </div>
     </div>
+    <!-- Create Assignment Modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showAssignModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showAssignModal = false" />
+          <div class="bg-card border-border relative z-10 w-full max-w-md rounded-2xl border shadow-xl">
+            <div class="border-border flex items-center justify-between border-b p-6">
+              <h3 class="text-foreground text-lg font-semibold">New Assignment</h3>
+              <button class="text-muted-foreground hover:text-foreground" @click="showAssignModal = false">
+                <X class="h-5 w-5" />
+              </button>
+            </div>
+            <div class="space-y-4 p-6">
+              <div>
+                <label class="text-foreground mb-1.5 block text-sm font-medium">Title *</label>
+                <input v-model="newAssign.title" type="text" placeholder="e.g. Complete 30 flashcards"
+                  class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-foreground mb-1.5 block text-sm font-medium">Type</label>
+                  <select v-model="newAssign.type" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <option>Flashcard</option>
+                    <option>Quiz</option>
+                    <option>Reading</option>
+                    <option>Listening</option>
+                    <option>Speaking</option>
+                    <option>Writing</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-foreground mb-1.5 block text-sm font-medium">Deadline</label>
+                  <input v-model="newAssign.due" type="date"
+                    class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                </div>
+              </div>
+              <div>
+                <label class="text-foreground mb-1.5 block text-sm font-medium">Assign to Class</label>
+                <select v-model="newAssign.classId" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                  <option value="">All Classes</option>
+                  <option v-for="cls in recentClasses" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="border-border flex gap-3 border-t p-6">
+              <button class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium transition-colors" @click="showAssignModal = false">Cancel</button>
+              <button class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50" :disabled="!newAssign.title.trim()" @click="createAssignment">Create</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   BookOpen, Users, FileText, GraduationCap, Plus,
-  Languages, Video, Clock, UserCheck,
-} from 'lucide-vue-next'
+  Languages, Video, Clock, UserCheck, Activity,
+  List, X, Headphones, PenTool, Mic,
+} from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
+import { api } from '@/utils/api'
+import type { Class } from '@/types/class'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -165,25 +317,103 @@ const userName = computed(() => {
   return 'Teacher'
 })
 
-const stats = [
-  { label: 'Total Classes', value: 0, sub: '', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
-  { label: 'Total Students', value: 0, sub: '', icon: Users, color: 'text-chart-2', bg: 'bg-chart-2/10' },
-  { label: 'Vocab Sets', value: 0, sub: '', icon: Languages, color: 'text-chart-3', bg: 'bg-chart-3/10' },
-  { label: 'Tests Created', value: 0, sub: '', icon: FileText, color: 'text-chart-1', bg: 'bg-chart-1/10' },
-]
+const greeting = computed(() => {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning 👋'
+  if (h < 18) return 'Good afternoon 👋'
+  return 'Good evening 👋'
+})
+
+const CLASS_EMOJIS = ['📚', '🎓', '🌟', '💡', '🔬', '🎨', '📖', '🏆']
+const CLASS_COLORS = ['bg-primary/10', 'bg-chart-2/10', 'bg-chart-3/10', 'bg-chart-4/10', 'bg-chart-5/10', 'bg-chart-1/10']
+
+const stats = ref([
+  { label: 'Classes', value: 0, icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
+  { label: 'Students', value: 0, icon: Users, color: 'text-chart-2', bg: 'bg-chart-2/10' },
+  { label: 'Videos', value: 0, icon: Video, color: 'text-chart-3', bg: 'bg-chart-3/10' },
+  { label: 'Tests', value: 0, icon: FileText, color: 'text-chart-1', bg: 'bg-chart-1/10' },
+])
 
 const quickActions = [
-  { label: 'Create New Class', desc: 'Set up a class with join code', path: '/teacher/classes', icon: Plus, iconBg: 'bg-primary/10', iconColor: 'text-primary', style: 'hover:bg-secondary/50' },
-  { label: 'Add Lesson', desc: 'Create and assign a new lesson', path: '/teacher/lessons', icon: GraduationCap, iconBg: 'bg-chart-2/10', iconColor: 'text-chart-2', style: 'hover:bg-secondary/50' },
-  { label: 'Build a Test', desc: 'Create quiz or test for students', path: '/teacher/tests', icon: FileText, iconBg: 'bg-chart-1/10', iconColor: 'text-chart-1', style: 'hover:bg-secondary/50' },
-  { label: 'Manage Vocabulary', desc: 'Add words to vocabulary sets', path: '/teacher/vocabulary', icon: Languages, iconBg: 'bg-chart-3/10', iconColor: 'text-chart-3', style: 'hover:bg-secondary/50' },
-  { label: 'Upload Video', desc: 'Add video content to a class', path: '/teacher/videos', icon: Video, iconBg: 'bg-chart-4/10', iconColor: 'text-chart-4', style: 'hover:bg-secondary/50' },
-  { label: 'View Students', desc: 'Monitor student progress', path: '/teacher/students', icon: UserCheck, iconBg: 'bg-chart-5/10', iconColor: 'text-chart-5', style: 'hover:bg-secondary/50' },
+  { label: 'New Class', desc: 'Create & share join code', path: '/teacher/classes', icon: BookOpen, iconBg: 'bg-primary/10', iconColor: 'text-primary' },
+  { label: 'Add Lesson', desc: 'Create lesson content', path: '/teacher/lessons', icon: GraduationCap, iconBg: 'bg-chart-2/10', iconColor: 'text-chart-2' },
+  { label: 'Build Test', desc: 'Create a quiz or test', path: '/teacher/tests', icon: FileText, iconBg: 'bg-chart-1/10', iconColor: 'text-chart-1' },
+  { label: 'Vocabulary', desc: 'Manage word sets', path: '/teacher/vocabulary', icon: Languages, iconBg: 'bg-chart-3/10', iconColor: 'text-chart-3' },
+  { label: 'Upload Video', desc: 'Add video content', path: '/teacher/videos', icon: Video, iconBg: 'bg-chart-4/10', iconColor: 'text-chart-4' },
+  { label: 'Students', desc: 'Monitor progress', path: '/teacher/students', icon: UserCheck, iconBg: 'bg-chart-5/10', iconColor: 'text-chart-5' },
 ]
 
-const recentClasses: { id: number; name: string; studentCount: number; lessonCount: number; joinCode: string; emoji: string; bgColor: string }[] = []
-
+interface DashClass {
+  id: number; name: string; studentCount: number; lessonCount: number; joinCode: string; emoji: string; bgColor: string
+}
+const recentClasses = ref<DashClass[]>([])
 const recentActivity: { id: number; text: string; time: string; icon: typeof Users; color: string; bg: string }[] = []
-
 const upcomingTests: { id: number; title: string; class: string; questions: number; duration: number; status: string }[] = []
+
+// Assignments
+const ASSIGN_TYPE_META: Record<string, { icon: typeof BookOpen; iconBg: string; iconColor: string }> = {
+  Flashcard:  { icon: BookOpen,     iconBg: 'bg-primary/10',    iconColor: 'text-primary' },
+  Quiz:       { icon: FileText,     iconBg: 'bg-chart-1/10',   iconColor: 'text-chart-1' },
+  Reading:    { icon: BookOpen,     iconBg: 'bg-chart-2/10',   iconColor: 'text-chart-2' },
+  Listening:  { icon: Headphones,  iconBg: 'bg-chart-3/10',   iconColor: 'text-chart-3' },
+  Speaking:   { icon: Mic,         iconBg: 'bg-chart-4/10',   iconColor: 'text-chart-4' },
+  Writing:    { icon: PenTool,     iconBg: 'bg-chart-5/10',   iconColor: 'text-chart-5' },
+}
+interface Assignment {
+  id: number; title: string; type: string; className: string; classId: number | ''
+  due: string; completed: number; total: number
+  icon: typeof BookOpen; iconBg: string; iconColor: string
+}
+const assignments = ref<Assignment[]>([])
+const showAssignModal = ref(false)
+const newAssign = ref({ title: '', type: 'Flashcard', due: '', classId: '' as number | '' })
+
+const createAssignment = () => {
+  if (!newAssign.value.title.trim()) return
+  const meta = ASSIGN_TYPE_META[newAssign.value.type] ?? ASSIGN_TYPE_META['Flashcard']!
+  const cls = recentClasses.value.find(c => c.id === newAssign.value.classId)
+  assignments.value.unshift({
+    id: Date.now(),
+    title: newAssign.value.title,
+    type: newAssign.value.type,
+    className: cls?.name ?? 'All Classes',
+    classId: newAssign.value.classId,
+    due: newAssign.value.due ? new Date(newAssign.value.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No deadline',
+    completed: 0,
+    total: cls?.studentCount ?? 0,
+    ...meta,
+  })
+  showAssignModal.value = false
+  newAssign.value = { title: '', type: 'Flashcard', due: '', classId: '' }
+}
+
+const deleteAssignment = (id: number) => { assignments.value = assignments.value.filter(a => a.id !== id) }
+
+onMounted(async () => {
+  try {
+    const [classes, videos] = await Promise.all([
+      api.getClasses() as Promise<(Class & { student_count: number })[]>,
+      api.getVideos() as Promise<{ id: number }[]>,
+    ])
+    if (stats.value[0]) stats.value[0].value = classes.length
+    if (stats.value[1]) stats.value[1].value = classes.reduce((sum, c) => sum + (c.student_count ?? 0), 0)
+    if (stats.value[2]) stats.value[2].value = videos.length
+    recentClasses.value = classes.slice(0, 5).map((c, i) => ({
+      id: c.id,
+      name: c.name,
+      studentCount: c.student_count ?? 0,
+      lessonCount: 0,
+      joinCode: c.class_code,
+      emoji: CLASS_EMOJIS[i % CLASS_EMOJIS.length] ?? '📚',
+      bgColor: CLASS_COLORS[i % CLASS_COLORS.length] ?? 'bg-chart-1/10',
+    }))
+  } catch {
+    // keep defaults
+  }
+})
 </script>
+
+<style scoped>
+.modal-enter-active, .modal-leave-active { transition: all 0.2s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(0.95); }
+</style>

@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { Gift } from 'lucide-vue-next'
+import { Gift } from '@/components/icons'
 
 defineProps<{
   rewardXP: number

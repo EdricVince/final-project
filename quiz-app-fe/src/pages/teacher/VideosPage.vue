@@ -23,8 +23,13 @@
       </select>
     </div>
 
+    <!-- Loading -->
+    <div v-if="loading" class="flex items-center justify-center py-20">
+      <div class="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
+    </div>
+
     <!-- Videos Grid -->
-    <div class="animate-fade-in-up delay-150 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div v-else class="animate-fade-in-up delay-150 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <div
         v-for="video in filteredVideos"
         :key="video.id"
@@ -52,10 +57,10 @@
 
         <!-- Actions -->
         <div class="border-border flex border-t">
-          <button class="text-muted-foreground hover:text-foreground hover:bg-accent flex-1 py-3 transition-colors">
-            <Pencil class="mx-auto h-4 w-4" />
-          </button>
-          <button class="text-muted-foreground hover:text-destructive hover:bg-accent flex-1 py-3 transition-colors" @click="deleteVideo(video.id)">
+          <button
+            class="text-muted-foreground hover:text-destructive hover:bg-accent flex-1 py-3 transition-colors"
+            @click="handleDelete(video.id)"
+          >
             <Trash2 class="mx-auto h-4 w-4" />
           </button>
         </div>
@@ -112,13 +117,12 @@
               </div>
 
               <div>
-                <label class="text-foreground mb-2 block text-sm font-medium">Class *</label>
+                <label class="text-foreground mb-2 block text-sm font-medium">Class</label>
                 <select
                   v-model="uploadForm.class_id"
-                  required
                   class="bg-secondary text-foreground h-12 w-full rounded-xl border-0 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
-                  <option value="">Select a class</option>
+                  <option value="">No specific class</option>
                   <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
                 </select>
               </div>
@@ -149,7 +153,9 @@
                 <Button type="button" variant="outline" class="flex-1" @click="showUploadModal = false">
                   Cancel
                 </Button>
-                <Button type="submit" class="flex-1">Upload</Button>
+                <Button type="submit" class="flex-1" :disabled="uploading">
+                  {{ uploading ? 'Uploading...' : 'Upload' }}
+                </Button>
               </div>
             </form>
           </div>
@@ -160,56 +166,96 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Upload, Play, Video, Pencil, Trash2 } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
+import { Upload, Play, Video, Trash2 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 import { formatDuration } from '@/types/video'
+import { api } from '@/utils/api'
 
 const toast = useToast()
 
 const selectedClass = ref('')
 const showUploadModal = ref(false)
+const loading = ref(true)
+const uploading = ref(false)
 
 const uploadForm = ref({
   title: '',
   description: '',
-  class_id: '',
+  class_id: '' as number | '',
   video_url: '',
   lesson_name: '',
 })
 
-const classes = ref<{ id: number; name: string }[]>([])
-const videos = ref<{ id: number; title: string; description: string; class_id: number; duration: number; lesson_name: string }[]>([])
+interface ClassItem { id: number; name: string }
+interface VideoItem {
+  id: number
+  title: string
+  description?: string
+  class_id?: number
+  duration?: number
+  lesson_name?: string
+  video_url: string
+}
+
+const classes = ref<ClassItem[]>([])
+const videos = ref<VideoItem[]>([])
 
 const filteredVideos = computed(() => {
   if (!selectedClass.value) return videos.value
   return videos.value.filter(v => v.class_id === Number(selectedClass.value))
 })
 
-const getClassName = (classId: number) => {
+const getClassName = (classId?: number) => {
+  if (!classId) return ''
   return classes.value.find(c => c.id === classId)?.name || ''
 }
 
-const uploadVideo = () => {
-  const newVideo = {
-    id: Date.now(),
-    title: uploadForm.value.title,
-    description: uploadForm.value.description,
-    class_id: Number(uploadForm.value.class_id),
-    video_url: uploadForm.value.video_url,
-    duration: 0,
-    lesson_name: uploadForm.value.lesson_name,
+onMounted(async () => {
+  try {
+    const [cls, vids] = await Promise.all([
+      api.getClasses() as Promise<ClassItem[]>,
+      api.getVideos() as Promise<VideoItem[]>,
+    ])
+    classes.value = cls
+    videos.value = vids
+  } catch {
+    toast.error('Failed to load data')
+  } finally {
+    loading.value = false
   }
-  videos.value.unshift(newVideo)
-  toast.success('Video uploaded successfully!')
-  showUploadModal.value = false
-  uploadForm.value = { title: '', description: '', class_id: '', video_url: '', lesson_name: '' }
+})
+
+const uploadVideo = async () => {
+  uploading.value = true
+  try {
+    const created = await api.createVideo({
+      title: uploadForm.value.title,
+      description: uploadForm.value.description || undefined,
+      class_id: uploadForm.value.class_id || undefined,
+      video_url: uploadForm.value.video_url,
+      lesson_name: uploadForm.value.lesson_name || undefined,
+    }) as VideoItem
+    videos.value.unshift(created)
+    toast.success('Video uploaded successfully!')
+    showUploadModal.value = false
+    uploadForm.value = { title: '', description: '', class_id: '', video_url: '', lesson_name: '' }
+  } catch {
+    toast.error('Failed to upload video')
+  } finally {
+    uploading.value = false
+  }
 }
 
-const deleteVideo = (id: number) => {
-  videos.value = videos.value.filter(v => v.id !== id)
-  toast.success('Video deleted')
+const handleDelete = async (id: number) => {
+  try {
+    await api.deleteVideo(id)
+    videos.value = videos.value.filter(v => v.id !== id)
+    toast.success('Video deleted')
+  } catch {
+    toast.error('Failed to delete video')
+  }
 }
 </script>
 

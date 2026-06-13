@@ -28,18 +28,18 @@
         :key="kpi.label"
         class="bg-card border-border rounded-2xl border p-5 transition-all hover:shadow-md"
       >
-        <div class="mb-3 flex items-center justify-between">
+        <div class="mb-4 flex items-center justify-between">
           <span class="text-muted-foreground text-sm">{{ kpi.label }}</span>
           <div class="rounded-xl p-2.5" :class="kpi.bg">
             <component :is="kpi.icon" class="h-4 w-4" :class="kpi.color" />
           </div>
         </div>
-        <p class="text-foreground text-3xl font-bold">{{ kpi.value }}</p>
-        <div class="mt-1 flex items-center gap-1.5">
-          <TrendingUp v-if="kpi.trend >= 0" class="h-3.5 w-3.5 text-chart-2" />
-          <TrendingDown v-else class="h-3.5 w-3.5 text-destructive" />
-          <p class="text-xs" :class="kpi.trend >= 0 ? 'text-chart-2' : 'text-destructive'">
-            {{ Math.abs(kpi.trend) }}% vs last {{ selectedPeriod }}
+        <p class="text-foreground text-3xl font-bold tabular-nums">{{ kpi.value }}</p>
+        <div class="mt-1.5 flex items-center gap-1">
+          <TrendingUp v-if="(kpi.trend ?? 0) >= 0" class="h-3 w-3 text-chart-2" />
+          <TrendingDown v-else class="h-3 w-3 text-destructive" />
+          <p class="text-xs" :class="(kpi.trend ?? 0) >= 0 ? 'text-chart-2' : 'text-destructive'">
+            {{ Math.abs(kpi.trend ?? 0) }}% vs last {{ selectedPeriod }}
           </p>
         </div>
       </div>
@@ -51,33 +51,39 @@
       <div class="bg-card border-border rounded-2xl border p-6 lg:col-span-3">
         <div class="mb-5 flex items-center justify-between">
           <h3 class="text-foreground font-semibold">Student Activity</h3>
-          <span class="text-muted-foreground text-xs">Quizzes completed per day</span>
+          <span class="text-muted-foreground text-xs">Quizzes completed</span>
         </div>
-        <div class="flex h-40 items-end gap-1.5">
-          <div
-            v-for="(bar, i) in activityData"
-            :key="i"
-            class="group relative flex flex-1 flex-col items-center"
-          >
+
+        <!-- Empty -->
+        <div v-if="maxActivity === 0" class="flex h-40 flex-col items-center justify-center gap-2 rounded-xl bg-secondary/30 text-center">
+          <BarChart2 class="text-muted-foreground/40 h-8 w-8" />
+          <p class="text-muted-foreground text-sm">No activity data yet</p>
+        </div>
+
+        <!-- Chart -->
+        <template v-else>
+          <div class="flex h-40 items-end gap-1.5">
             <div
-              class="bg-primary/20 hover:bg-primary w-full rounded-t-lg transition-all duration-300 hover:scale-y-105"
-              :style="{ height: `${(bar.value / maxActivity) * 100}%` }"
+              v-for="(bar, i) in activityData"
+              :key="i"
+              class="group relative flex flex-1 flex-col items-center"
             >
-              <div class="bg-foreground text-background pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-2 py-1 text-xs opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                {{ bar.value }} quizzes
+              <div
+                class="bg-primary/20 hover:bg-primary w-full rounded-t-lg transition-all duration-300"
+                :style="{ height: `${(bar.value / maxActivity) * 100}%` }"
+              >
+                <div class="bg-foreground text-background pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-2 py-1 text-xs opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                  {{ bar.value }} quizzes
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="mt-2 flex gap-1.5">
-          <div
-            v-for="(bar, i) in activityData"
-            :key="i"
-            class="text-muted-foreground flex-1 text-center text-xs"
-          >
-            {{ bar.label }}
+          <div class="mt-2 flex gap-1.5">
+            <div v-for="(bar, i) in activityData" :key="i" class="text-muted-foreground flex-1 text-center text-xs">
+              {{ bar.label }}
+            </div>
           </div>
-        </div>
+        </template>
       </div>
 
       <!-- Class Performance Bars -->
@@ -192,6 +198,49 @@
       </div>
     </div>
 
+    <!-- Skills Monitor Section -->
+    <div class="mb-6 bg-card border-border rounded-2xl border p-6">
+      <div class="mb-5 flex items-center justify-between">
+        <div>
+          <h3 class="text-foreground font-semibold">Skills Monitor</h3>
+          <p class="text-muted-foreground mt-0.5 text-xs">Average class performance across 4 language skills</p>
+        </div>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div v-for="skill in skillsData" :key="skill.name" class="rounded-2xl border p-4" :class="skill.borderColor">
+          <div class="mb-3 flex items-center gap-2.5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl text-xl" :class="skill.bgColor">{{ skill.icon }}</div>
+            <div>
+              <p class="text-foreground font-semibold">{{ skill.name }}</p>
+              <p class="text-muted-foreground text-xs">{{ skill.desc }}</p>
+            </div>
+          </div>
+          <!-- Big Score -->
+          <div class="mb-3 flex items-end gap-1.5">
+            <p class="text-foreground text-3xl font-black tabular-nums">{{ skill.avgScore }}</p>
+            <p class="text-muted-foreground mb-1 text-sm">%</p>
+            <div class="ml-auto flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold" :class="skill.avgScore >= 70 ? 'bg-chart-2/15 text-chart-2' : 'bg-chart-1/15 text-chart-1'">
+              <TrendingUp v-if="skill.avgScore >= 70" class="h-3 w-3" />
+              <TrendingDown v-else class="h-3 w-3" />
+              {{ skill.change > 0 ? '+' : '' }}{{ skill.change }}%
+            </div>
+          </div>
+          <!-- Bar per class -->
+          <div class="space-y-2">
+            <div v-for="cls in skill.classes" :key="cls.name">
+              <div class="mb-1 flex items-center justify-between">
+                <span class="text-muted-foreground truncate text-xs">{{ cls.name }}</span>
+                <span class="text-foreground text-xs font-semibold">{{ cls.score }}%</span>
+              </div>
+              <div class="bg-secondary h-1.5 overflow-hidden rounded-full">
+                <div class="h-1.5 rounded-full transition-all duration-700" :class="skill.barColor" :style="{ width: `${cls.score}%` }"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Struggling Students -->
     <div class="bg-card border-border rounded-2xl border p-6">
       <div class="mb-4 flex items-center gap-2">
@@ -241,8 +290,8 @@
 import { ref, computed } from 'vue'
 import {
   Users, FileText, Trophy, TrendingUp, TrendingDown,
-  AlertCircle, CircleHelp, Shuffle, Timer, CircleCheck,
-} from 'lucide-vue-next'
+  AlertCircle, CircleHelp, Shuffle, Timer, CircleCheck, BarChart2,
+} from '@/components/icons'
 
 const selectedPeriod = ref<'week' | 'month' | 'year'>('week')
 const periods = [
@@ -294,10 +343,10 @@ const classScores: { name: string; score: number; students: number; barColor: st
 const topStudents: { id: number; name: string; class: string; score: number; quizzes: number }[] = []
 
 const quizTypes = [
-  { type: 'Multiple Choice', avg: 0, count: 0, icon: CircleHelp, bg: 'bg-primary/10', color: 'text-primary', barColor: 'bg-primary' },
-  { type: 'True or False', avg: 0, count: 0, icon: CircleCheck, bg: 'bg-chart-2/10', color: 'text-chart-2', barColor: 'bg-chart-2' },
-  { type: 'Speed Round', avg: 0, count: 0, icon: Timer, bg: 'bg-chart-1/10', color: 'text-chart-1', barColor: 'bg-chart-1' },
-  { type: 'Word Scramble', avg: 0, count: 0, icon: Shuffle, bg: 'bg-chart-3/10', color: 'text-chart-3', barColor: 'bg-chart-3' },
+  { type: 'Multiple Choice', avg: 0, count: 0, icon: CircleHelp,  bg: 'bg-primary/10',  color: 'text-primary',  barColor: 'bg-primary'  },
+  { type: 'True or False',   avg: 0, count: 0, icon: CircleCheck, bg: 'bg-chart-2/10', color: 'text-chart-2', barColor: 'bg-chart-2' },
+  { type: 'Speed Round',     avg: 0, count: 0, icon: Timer,       bg: 'bg-chart-1/10', color: 'text-chart-1', barColor: 'bg-chart-1' },
+  { type: 'Word Scramble',   avg: 0, count: 0, icon: Shuffle,     bg: 'bg-chart-3/10', color: 'text-chart-3', barColor: 'bg-chart-3' },
 ]
 
 const totalQuizzes = computed(() => quizTypes.reduce((s, q) => s + q.count, 0))
@@ -308,4 +357,11 @@ const avgAccuracy = computed(() => {
 const totalLiveQuizzes = computed(() => kpiData[selectedPeriod.value].liveQuizzes)
 
 const strugglingStudents: { id: number; name: string; class: string; score: number; quizzes: number; lastActive: string }[] = []
+
+const skillsData = [
+  { name: 'Reading',   desc: 'Comprehension exercises',   icon: '📖', bgColor: 'bg-chart-2/10', borderColor: 'border-chart-2/20', barColor: 'bg-chart-2', avgScore: 0, change: 0, classes: [] as { name: string; score: number }[] },
+  { name: 'Listening', desc: 'Audio exercises',            icon: '🎧', bgColor: 'bg-chart-3/10', borderColor: 'border-chart-3/20', barColor: 'bg-chart-3', avgScore: 0, change: 0, classes: [] as { name: string; score: number }[] },
+  { name: 'Writing',   desc: 'Text production',            icon: '✍️', bgColor: 'bg-chart-1/10', borderColor: 'border-chart-1/20', barColor: 'bg-chart-1', avgScore: 0, change: 0, classes: [] as { name: string; score: number }[] },
+  { name: 'Speaking',  desc: 'Pronunciation & fluency',    icon: '🎙️', bgColor: 'bg-primary/10',  borderColor: 'border-primary/20',  barColor: 'bg-primary',  avgScore: 0, change: 0, classes: [] as { name: string; score: number }[] },
+]
 </script>

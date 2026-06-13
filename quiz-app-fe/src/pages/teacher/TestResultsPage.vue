@@ -3,11 +3,11 @@
     <!-- Header -->
     <div class="animate-fade-in-down mb-8">
       <button
-        class="text-muted-foreground hover:text-foreground mb-4 flex items-center gap-2 text-sm transition-colors"
+        class="group mb-4 flex items-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/8 px-3.5 py-1.5 text-sm font-semibold text-indigo-400 transition-all duration-200 hover:border-indigo-500/40 hover:bg-indigo-500/15 active:scale-95"
         @click="$router.push('/teacher/tests')"
       >
-        <ArrowLeft class="h-4 w-4" />
-        {{ $t('teacher.testResults.backToTests') }}
+        <svg class="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Tests
       </button>
       <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -142,7 +142,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { ArrowLeft, Download, Eye, Users, BarChart2, TrendingUp, TrendingDown } from 'lucide-vue-next'
+import { Download, Eye, Users, BarChart2, TrendingUp, TrendingDown } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 
@@ -183,11 +183,11 @@ const scoreDistribution = computed(() => {
     '81-100': 0,
   }
   results.value.forEach(r => {
-    if (r.score <= 20) dist['0-20']++
-    else if (r.score <= 40) dist['21-40']++
-    else if (r.score <= 60) dist['41-60']++
-    else if (r.score <= 80) dist['61-80']++
-    else dist['81-100']++
+    if (r.score <= 20) dist['0-20'] = (dist['0-20'] ?? 0) + 1
+    else if (r.score <= 40) dist['21-40'] = (dist['21-40'] ?? 0) + 1
+    else if (r.score <= 60) dist['41-60'] = (dist['41-60'] ?? 0) + 1
+    else if (r.score <= 80) dist['61-80'] = (dist['61-80'] ?? 0) + 1
+    else dist['81-100'] = (dist['81-100'] ?? 0) + 1
   })
   return dist
 })

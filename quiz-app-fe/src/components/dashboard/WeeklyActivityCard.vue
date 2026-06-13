@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { BarChart3 } from 'lucide-vue-next'
+import { BarChart3 } from '@/components/icons'
 import type { DayActivity } from '@/types/dashboard'
 
 interface Props {

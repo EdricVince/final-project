@@ -46,89 +46,102 @@
   --radius: 0.625rem;
 
   /* ════════════════════════════════════════════════════════
-     Light mode — "Duo Green"
-     Inspired by Duolingo / Babbel / language-learning apps.
-     Fresh green primary, pure white background, gold accent.
-     Green hue 134 — same family as Duolingo's iconic #58CC02
-     but at L 0.55 C 0.19 for softer, less blinding feel.
+     Light mode — "Spectrum"
+     Vivid indigo-violet primary on a cool near-white base.
+     Five-color chart arc gives each metric its own identity.
+     Warm amber accent creates contrast without clashing.
   ════════════════════════════════════════════════════════ */
 
-  --background:           oklch(0.98  0.003 140);
-  --foreground:           oklch(0.14  0.016 145);
-  --card:                 oklch(0.998 0.001 140);
-  --card-foreground:      oklch(0.14  0.016 145);
-  --popover:              oklch(0.998 0.001 140);
-  --popover-foreground:   oklch(0.14  0.016 145);
-  --primary:              oklch(0.55  0.19  134);
-  --primary-foreground:   oklch(0.99  0.004 134);
-  --secondary:            oklch(0.93  0.024 134);
-  --secondary-foreground: oklch(0.30  0.09  134);
-  --muted:                oklch(0.95  0.014 134);
-  --muted-foreground:     oklch(0.52  0.036 134);
-  --accent:               oklch(0.93  0.072  82);
-  --accent-foreground:    oklch(0.26  0.13   78);
-  --destructive:          oklch(0.58  0.20   25);
-  --border:               oklch(0.91  0.014 134);
-  --input:                oklch(0.94  0.010 134);
-  --ring:                 oklch(0.55  0.19  134);
+  --background:           oklch(0.985 0.008 268);   /* cool near-white    */
+  --foreground:           oklch(0.12  0.024 268);   /* deep navy-indigo   */
+  --card:                 oklch(1     0     0);      /* pure white         */
+  --card-foreground:      oklch(0.12  0.024 268);
+  --popover:              oklch(1     0     0);
+  --popover-foreground:   oklch(0.12  0.024 268);
 
-  /* ── Chart arc: green → gold → sky → rose → teal ──── */
-  --chart-1: oklch(0.57 0.18 134);   /* leaf green    */
-  --chart-2: oklch(0.65 0.17  82);   /* golden        */
-  --chart-3: oklch(0.60 0.14 218);   /* sky blue      */
-  --chart-4: oklch(0.61 0.15 345);   /* dusty rose    */
-  --chart-5: oklch(0.59 0.15 185);   /* teal          */
+  --primary:              oklch(0.55  0.245 278);   /* vivid violet-indigo */
+  --primary-foreground:   oklch(0.99  0.004 280);   /* near-white          */
 
-  --sidebar:                    oklch(0.955 0.012 134);
-  --sidebar-foreground:         oklch(0.14  0.016 145);
-  --sidebar-primary:            oklch(0.55  0.19  134);
-  --sidebar-primary-foreground: oklch(0.99  0.004 134);
-  --sidebar-accent:             oklch(0.92  0.020 134);
-  --sidebar-accent-foreground:  oklch(0.30  0.09  134);
-  --sidebar-border:             oklch(0.89  0.012 134);
-  --sidebar-ring:               oklch(0.55  0.19  134);
+  --secondary:            oklch(0.94  0.022 278);   /* soft lavender wash  */
+  --secondary-foreground: oklch(0.34  0.120 278);   /* mid violet          */
+
+  --muted:                oklch(0.95  0.006 265);   /* cool neutral gray   */
+  --muted-foreground:     oklch(0.52  0.042 268);   /* slate lavender      */
+
+  --accent:               oklch(0.74  0.16   52);   /* warm amber glow     */
+  --accent-foreground:    oklch(0.24  0.13   48);   /* dark amber          */
+
+  --destructive:          oklch(0.58  0.22   25);   /* vivid red           */
+
+  --border:               oklch(0.90  0.016 265);   /* lavender-gray line  */
+  --input:                oklch(0.93  0.010 265);
+  --ring:                 oklch(0.55  0.245 278);
+
+  /* ── Five-color chart arc: violet · emerald · amber · rose · sky ── */
+  --chart-1: oklch(0.58 0.240 278);   /* vivid violet     */
+  --chart-2: oklch(0.60 0.200 152);   /* emerald green    */
+  --chart-3: oklch(0.72 0.170  52);   /* warm amber       */
+  --chart-4: oklch(0.60 0.220 348);   /* vivid rose       */
+  --chart-5: oklch(0.62 0.180 212);   /* sky blue         */
+
+  --sidebar:                    oklch(0.960 0.020 272);
+  --sidebar-foreground:         oklch(0.12  0.024 268);
+  --sidebar-primary:            oklch(0.55  0.245 278);
+  --sidebar-primary-foreground: oklch(0.99  0.004 280);
+  --sidebar-accent:             oklch(0.93  0.018 278);
+  --sidebar-accent-foreground:  oklch(0.34  0.120 278);
+  --sidebar-border:             oklch(0.88  0.016 268);
+  --sidebar-ring:               oklch(0.55  0.245 278);
 }
 
 .dark {
   /* ════════════════════════════════════════════════════════
-     Dark mode — "Deep Canopy"
-     Dark forest green base. Primary lifts to L 0.70 so the
-     green stays vivid and readable on the dark surface.
+     Dark mode — "Deep Space"
+     Rich deep purple-navy base — not flat black, has depth.
+     Primary lifts to L 0.72 so violet stays vivid and crisp.
+     Chart colors are brightened versions of the light set.
   ════════════════════════════════════════════════════════ */
 
-  --background:           oklch(0.20 0.022 145);
-  --foreground:           oklch(0.93 0.010 140);
-  --card:                 oklch(0.24 0.020 145);
-  --card-foreground:      oklch(0.93 0.010 140);
-  --popover:              oklch(0.24 0.020 145);
-  --popover-foreground:   oklch(0.93 0.010 140);
-  --primary:              oklch(0.70 0.19  134);
-  --primary-foreground:   oklch(0.12 0.018 140);
-  --secondary:            oklch(0.28 0.032 145);
-  --secondary-foreground: oklch(0.88 0.020 140);
-  --muted:                oklch(0.26 0.026 145);
-  --muted-foreground:     oklch(0.62 0.044 140);
-  --accent:               oklch(0.40 0.10   82);
-  --accent-foreground:    oklch(0.93 0.07   82);
-  --destructive:          oklch(0.65 0.18   25);
-  --border:               oklch(1    0       0 / 12%);
-  --input:                oklch(1    0       0 / 14%);
-  --ring:                 oklch(0.70 0.19  134);
+  --background:           oklch(0.13  0.030 278);   /* deep purple-navy   */
+  --foreground:           oklch(0.94  0.012 272);   /* soft lavender-white */
+  --card:                 oklch(0.17  0.028 278);   /* raised surface      */
+  --card-foreground:      oklch(0.94  0.012 272);
+  --popover:              oklch(0.19  0.026 278);
+  --popover-foreground:   oklch(0.94  0.012 272);
 
-  --chart-1: oklch(0.72 0.17 134);
-  --chart-2: oklch(0.75 0.16  82);
-  --chart-3: oklch(0.71 0.13 218);
-  --chart-4: oklch(0.73 0.14 345);
-  --chart-5: oklch(0.70 0.14 185);
+  --primary:              oklch(0.72  0.220 278);   /* bright neon violet   */
+  --primary-foreground:   oklch(0.11  0.022 280);   /* very dark bg-match   */
 
-  --sidebar:                    oklch(0.17 0.020 145);
-  --sidebar-foreground:         oklch(0.93 0.010 140);
-  --sidebar-primary:            oklch(0.70 0.19  134);
-  --sidebar-primary-foreground: oklch(0.12 0.018 140);
-  --sidebar-accent:             oklch(0.26 0.030 145);
-  --sidebar-accent-foreground:  oklch(0.88 0.020 140);
-  --sidebar-border:             oklch(1    0       0 / 12%);
-  --sidebar-ring:               oklch(0.70 0.19  134);
+  --secondary:            oklch(0.22  0.036 278);   /* deep lifted surface  */
+  --secondary-foreground: oklch(0.88  0.024 272);
+
+  --muted:                oklch(0.20  0.026 278);
+  --muted-foreground:     oklch(0.60  0.060 272);   /* medium lavender      */
+
+  --accent:               oklch(0.70  0.160  52);   /* amber warm glow      */
+  --accent-foreground:    oklch(0.96  0.070  50);
+
+  --destructive:          oklch(0.65  0.200  25);
+
+  --border:               oklch(1    0       0 / 10%);
+  --input:                oklch(1    0       0 / 13%);
+  --ring:                 oklch(0.72  0.220 278);
+
+  /* ── Dark chart arc: brighter so they pop on deep surface ── */
+  --chart-1: oklch(0.74 0.200 278);   /* neon violet     */
+  --chart-2: oklch(0.72 0.190 152);   /* vivid emerald   */
+  --chart-3: oklch(0.80 0.160  52);   /* bright amber    */
+  --chart-4: oklch(0.73 0.210 348);   /* vivid rose      */
+  --chart-5: oklch(0.74 0.170 212);   /* bright sky      */
+
+  --sidebar:                    oklch(0.10  0.028 278);
+  --sidebar-foreground:         oklch(0.94  0.012 272);
+  --sidebar-primary:            oklch(0.72  0.220 278);
+  --sidebar-primary-foreground: oklch(0.11  0.022 280);
+  --sidebar-accent:             oklch(0.20  0.032 278);
+  --sidebar-accent-foreground:  oklch(0.88  0.024 272);
+  --sidebar-border:             oklch(1     0       0 / 8%);
+  --sidebar-ring:               oklch(0.72  0.220 278);
 }
 
 /* ── Floating card animations (auth panel illustration) ── */
@@ -154,14 +167,394 @@
 .animate-float-c { animation: float-c 4.2s ease-in-out 1.1s infinite; }
 .animate-float-d { animation: float-d 3.5s ease-in-out 1.8s infinite; }
 
+/* ════════════════════════════════════════════════════════
+   COMPONENT LAYER — reusable design-system classes
+   Only @apply Tailwind utilities here (no custom classes).
+   Hover/focus states use native CSS variables directly.
+   ════════════════════════════════════════════════════════ */
+@layer components {
+
+  /* ── Layout ── */
+  .page-header {
+    @apply bg-card border-border sticky top-0 z-10 border-b px-6 py-3;
+  }
+
+  /* ── Navigation ── */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    background: rgba(99, 102, 241, 0.08);
+    padding: 0.375rem 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgb(129, 140, 248);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .back-btn:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    background: rgba(99, 102, 241, 0.15);
+  }
+  .back-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* ── Cards ── */
+  .sk-card {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+  }
+  .sk-card-p {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.25rem;
+  }
+  .sk-card-p6 {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+  }
+  .glass-card {
+    background: color-mix(in oklch, var(--card) 82%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+  }
+
+  /* ── Form controls ── */
+  .sk-input {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    transition: box-shadow 0.15s;
+    outline: none;
+  }
+  .sk-input:focus {
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 30%, transparent);
+  }
+  .sk-select {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .sk-textarea {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    font-size: 1rem;
+    line-height: 1.75;
+    resize: none;
+    outline: none;
+    transition: box-shadow 0.15s;
+    width: 100%;
+  }
+  .sk-textarea:focus {
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 30%, transparent);
+  }
+  .sk-textarea::placeholder {
+    color: color-mix(in oklch, var(--muted-foreground) 40%, transparent);
+  }
+
+  /* ── Buttons — each variant is self-contained, no @apply to custom classes ── */
+  .btn-rose, .btn-blue, .btn-amber, .btn-indigo, .btn-emerald {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    transition: transform 0.15s, opacity 0.15s;
+    cursor: pointer;
+  }
+  .btn-rose:hover,    .btn-blue:hover,
+  .btn-amber:hover,   .btn-indigo:hover,
+  .btn-emerald:hover  { transform: scale(1.01); }
+  .btn-rose:active,   .btn-blue:active,
+  .btn-amber:active,  .btn-indigo:active,
+  .btn-emerald:active { transform: scale(0.98); }
+  .btn-rose:disabled,    .btn-blue:disabled,
+  .btn-amber:disabled,   .btn-indigo:disabled,
+  .btn-emerald:disabled  { opacity: 0.5; pointer-events: none; }
+
+  .btn-rose    { @apply bg-linear-to-r from-rose-600    to-pink-600    shadow-lg shadow-rose-500/20; }
+  .btn-blue    { @apply bg-linear-to-r from-blue-600    to-cyan-600    shadow-lg shadow-blue-500/20; }
+  .btn-amber   { @apply bg-linear-to-r from-amber-600   to-orange-600  shadow-lg shadow-amber-500/20; }
+  .btn-indigo  { @apply bg-linear-to-r from-indigo-600  to-violet-600  shadow-lg shadow-indigo-500/20; }
+  .btn-emerald { @apply bg-linear-to-r from-emerald-600 to-teal-600    shadow-lg shadow-emerald-500/20; }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    transition: background-color 0.15s, color 0.15s;
+    cursor: pointer;
+  }
+  .btn-outline:hover {
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+    color: var(--foreground);
+  }
+
+  /* ── Typography ── */
+  .section-label {
+    @apply text-muted-foreground text-xs font-semibold uppercase tracking-wider;
+  }
+  .page-title { @apply text-foreground text-base font-bold; }
+
+  /* ── Tags / chips ── */
+  .chip {
+    @apply rounded-full bg-muted/20 px-2.5 py-0.5 text-xs text-muted-foreground;
+  }
+  .chip-border {
+    @apply rounded-full border border-border bg-muted/10 px-2.5 py-0.5 text-xs text-muted-foreground;
+  }
+
+  /* ── CEFR level badges ── */
+  .badge-a1 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-red-500/20     text-red-400; }
+  .badge-a2 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-orange-500/20  text-orange-400; }
+  .badge-b1 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-amber-500/20   text-amber-400; }
+  .badge-b2 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-yellow-500/20  text-yellow-400; }
+  .badge-c1 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-emerald-500/20 text-emerald-400; }
+  .badge-c2 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-blue-500/20    text-blue-400; }
+
+  /* ── Spinners ── */
+  .sk-spinner-rose    { @apply h-10 w-10 animate-spin text-rose-400; }
+  .sk-spinner-blue    { @apply h-10 w-10 animate-spin text-blue-400; }
+  .sk-spinner-amber   { @apply h-10 w-10 animate-spin text-amber-400; }
+  .sk-spinner-emerald { @apply h-10 w-10 animate-spin text-emerald-400; }
+
+  /* ── Score bar ── */
+  .score-track { @apply h-1.5 overflow-hidden rounded-full bg-muted/30; }
+  .score-fill  { @apply h-full rounded-full transition-all duration-700; }
+
+  /* ── Empty state ── */
+  .empty-state { @apply flex flex-col items-center justify-center py-20 text-center px-6; }
+
+  /* ── Real-time indicators ── */
+  .live-dot   { @apply h-2 w-2 rounded-full bg-emerald-400 animate-pulse; }
+  .live-clock { @apply font-mono text-sm font-semibold tabular-nums text-foreground; }
+
+  /* ── Library sidebar (Reading/Listening) ── */
+  .lib-sidebar       { @apply border-border w-72 shrink-0 border-r; }
+  .lib-sidebar-inner { @apply sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto p-4; }
+  .lib-cat-label     { @apply text-muted-foreground mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider; }
+  .lib-item          { @apply w-full rounded-xl border px-3 py-2.5 text-left transition-all; }
+  .lib-item-inactive { @apply border-transparent hover:border-border hover:bg-muted/20; }
+
+  /* ── Result panels ── */
+  .result-strength   { @apply bg-card rounded-2xl border border-emerald-500/20 p-4; }
+  .result-improve    { @apply bg-card rounded-2xl border border-rose-500/20 p-4; }
+  .result-improve-am { @apply bg-card rounded-2xl border border-amber-500/20 p-4; }
+  .result-error      { @apply rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm; }
+
+  /* ── Speech / recording ── */
+  .speech-box { @apply w-full rounded-xl border border-border bg-muted/10 p-3 text-sm; }
+  .rec-dot    { @apply h-1.5 w-1.5 animate-pulse rounded-full bg-white; }
+
+  /* ══════════════════════════════════════════════════════════
+     SKILL HUB & ENTRANCE EXAM — light/dark mode aware classes
+     ══════════════════════════════════════════════════════════ */
+
+  /* Card gradient fills — light: soft pastel tint, dark: deep color shadow */
+  .card-tint-indigo { background: linear-gradient(135deg, oklch(0.93 0.022 278) 0%, var(--card) 55%); border-color: oklch(0.55 0.245 278 / 22%); }
+  .dark .card-tint-indigo { background: linear-gradient(135deg, oklch(0.16 0.038 278 / 65%) 0%, var(--card) 65%); border-color: oklch(0.55 0.245 278 / 30%); }
+
+  .card-tint-blue { background: linear-gradient(135deg, oklch(0.93 0.026 220) 0%, var(--card) 55%); border-color: oklch(0.58 0.175 220 / 22%); }
+  .dark .card-tint-blue { background: linear-gradient(135deg, oklch(0.15 0.038 220 / 65%) 0%, var(--card) 65%); border-color: oklch(0.58 0.175 220 / 30%); }
+
+  .card-tint-emerald { background: linear-gradient(135deg, oklch(0.94 0.028 152) 0%, var(--card) 55%); border-color: oklch(0.60 0.195 152 / 22%); }
+  .dark .card-tint-emerald { background: linear-gradient(135deg, oklch(0.15 0.036 152 / 65%) 0%, var(--card) 65%); border-color: oklch(0.60 0.195 152 / 30%); }
+
+  .card-tint-amber { background: linear-gradient(135deg, oklch(0.96 0.038 70) 0%, var(--card) 55%); border-color: oklch(0.70 0.158 70 / 22%); }
+  .dark .card-tint-amber { background: linear-gradient(135deg, oklch(0.19 0.034 68 / 50%) 0%, var(--card) 65%); border-color: oklch(0.70 0.158 68 / 30%); }
+
+  .card-tint-rose { background: linear-gradient(135deg, oklch(0.95 0.024 345) 0%, var(--card) 55%); border-color: oklch(0.60 0.215 348 / 22%); }
+  .dark .card-tint-rose { background: linear-gradient(135deg, oklch(0.17 0.034 355 / 50%) 0%, var(--card) 65%); border-color: oklch(0.60 0.215 348 / 30%); }
+
+  .card-tint-teal { background: linear-gradient(135deg, oklch(0.93 0.030 186) 0%, var(--card) 55%); border-color: oklch(0.58 0.195 186 / 22%); }
+  .dark .card-tint-teal { background: linear-gradient(135deg, oklch(0.15 0.038 186 / 65%) 0%, var(--card) 65%); border-color: oklch(0.58 0.195 186 / 30%); }
+
+  /* Mode-aware colored text (replaces hardcoded *-300 variants) */
+  .ct-indigo  { color: oklch(0.46 0.228 278); } .dark .ct-indigo  { color: oklch(0.72 0.218 278); }
+  .ct-blue    { color: oklch(0.46 0.175 220); } .dark .ct-blue    { color: oklch(0.74 0.168 212); }
+  .ct-emerald { color: oklch(0.44 0.178 152); } .dark .ct-emerald { color: oklch(0.72 0.188 152); }
+  .ct-amber   { color: oklch(0.50 0.152 60);  } .dark .ct-amber   { color: oklch(0.80 0.158 52);  }
+  .ct-rose    { color: oklch(0.48 0.210 348); } .dark .ct-rose    { color: oklch(0.73 0.208 348); }
+  .ct-violet  { color: oklch(0.46 0.228 300); } .dark .ct-violet  { color: oklch(0.74 0.198 300); }
+  .ct-green   { color: oklch(0.44 0.178 140); } .dark .ct-green   { color: oklch(0.72 0.188 140); }
+  .ct-teal    { color: oklch(0.44 0.178 186); } .dark .ct-teal    { color: oklch(0.72 0.188 186); }
+
+  /* Mode-aware colored badges */
+  .cbadge-indigo  { background: oklch(0.55 0.245 278 / 10%); color: oklch(0.42 0.228 278); border: 1px solid oklch(0.55 0.245 278 / 24%); }
+  .dark .cbadge-indigo  { background: oklch(0.55 0.245 278 / 18%); color: oklch(0.72 0.218 278); border-color: oklch(0.55 0.245 278 / 28%); }
+  .cbadge-blue    { background: oklch(0.58 0.175 220 / 10%); color: oklch(0.42 0.175 220); border: 1px solid oklch(0.58 0.175 220 / 24%); }
+  .dark .cbadge-blue    { background: oklch(0.58 0.175 212 / 18%); color: oklch(0.74 0.168 212); border-color: oklch(0.58 0.175 212 / 28%); }
+  .cbadge-emerald { background: oklch(0.60 0.195 152 / 10%); color: oklch(0.40 0.178 152); border: 1px solid oklch(0.60 0.195 152 / 24%); }
+  .dark .cbadge-emerald { background: oklch(0.60 0.195 152 / 18%); color: oklch(0.72 0.188 152); border-color: oklch(0.60 0.195 152 / 28%); }
+  .cbadge-amber   { background: oklch(0.70 0.158 70 / 10%);  color: oklch(0.48 0.152 60);  border: 1px solid oklch(0.70 0.158 70 / 24%); }
+  .dark .cbadge-amber   { background: oklch(0.70 0.158 52 / 18%);  color: oklch(0.80 0.158 52);  border-color: oklch(0.70 0.158 52 / 28%); }
+  .cbadge-rose    { background: oklch(0.60 0.215 348 / 10%); color: oklch(0.44 0.210 348); border: 1px solid oklch(0.60 0.215 348 / 24%); }
+  .dark .cbadge-rose    { background: oklch(0.60 0.215 348 / 18%); color: oklch(0.73 0.208 348); border-color: oklch(0.60 0.215 348 / 28%); }
+  .cbadge-teal    { background: oklch(0.58 0.195 186 / 10%); color: oklch(0.40 0.178 186); border: 1px solid oklch(0.58 0.195 186 / 24%); }
+  .dark .cbadge-teal    { background: oklch(0.58 0.195 186 / 18%); color: oklch(0.72 0.188 186); border-color: oklch(0.58 0.195 186 / 28%); }
+
+  /* Exam section pills */
+  .cpill-indigo { border: 1px solid oklch(0.55 0.245 278 / 26%); color: oklch(0.44 0.228 278); }
+  .dark .cpill-indigo   { color: oklch(0.72 0.218 278); }
+  .cpill-amber  { border: 1px solid oklch(0.70 0.158 70 / 26%);  color: oklch(0.48 0.152 60);  }
+  .dark .cpill-amber    { color: oklch(0.80 0.158 52); }
+  .cpill-teal   { border: 1px solid oklch(0.58 0.195 186 / 26%); color: oklch(0.42 0.178 186); }
+  .dark .cpill-teal     { color: oklch(0.72 0.188 186); }
+
+  /* Stat boxes inside exam cards */
+  .cstat-indigo { background: oklch(0.55 0.245 278 / 6%); border: 1px solid oklch(0.55 0.245 278 / 12%); }
+  .dark .cstat-indigo   { background: oklch(0.55 0.245 278 / 8%); }
+  .cstat-amber  { background: oklch(0.70 0.158 70 / 6%);  border: 1px solid oklch(0.70 0.158 70 / 12%); }
+  .dark .cstat-amber    { background: oklch(0.70 0.158 70 / 8%); }
+  .cstat-teal   { background: oklch(0.58 0.195 186 / 6%); border: 1px solid oklch(0.58 0.195 186 / 12%); }
+  .dark .cstat-teal     { background: oklch(0.58 0.195 186 / 8%); }
+
+  /* Range footer boxes */
+  .crange-indigo { background: oklch(0.55 0.245 278 / 5%); border: 1px solid oklch(0.55 0.245 278 / 16%); }
+  .dark .crange-indigo   { background: oklch(0.55 0.245 278 / 8%); }
+  .crange-amber  { background: oklch(0.70 0.158 70 / 5%);  border: 1px solid oklch(0.70 0.158 70 / 16%); }
+  .dark .crange-amber    { background: oklch(0.70 0.158 70 / 8%); }
+  .crange-teal   { background: oklch(0.58 0.195 186 / 5%); border: 1px solid oklch(0.58 0.195 186 / 16%); }
+  .dark .crange-teal     { background: oklch(0.58 0.195 186 / 8%); }
+
+  /* How-it-works step circles */
+  .cstep-indigo  { background: oklch(0.55 0.245 278 / 12%); color: oklch(0.44 0.228 278); }
+  .dark .cstep-indigo  { background: oklch(0.55 0.245 278 / 20%); color: oklch(0.72 0.218 278); }
+  .cstep-violet  { background: oklch(0.58 0.238 300 / 12%); color: oklch(0.44 0.228 300); }
+  .dark .cstep-violet  { background: oklch(0.58 0.238 300 / 20%); color: oklch(0.74 0.198 300); }
+  .cstep-emerald { background: oklch(0.60 0.195 152 / 12%); color: oklch(0.42 0.178 152); }
+  .dark .cstep-emerald { background: oklch(0.60 0.195 152 / 20%); color: oklch(0.72 0.188 152); }
+
+  /* Hero section AI-Powered pill badge */
+  .hero-pill-indigo { border: 1px solid oklch(0.55 0.245 278 / 26%); background: oklch(0.55 0.245 278 / 8%); color: oklch(0.44 0.228 278); }
+  .dark .hero-pill-indigo { color: oklch(0.72 0.218 278); }
+  .hero-pill-violet { border: 1px solid oklch(0.58 0.238 300 / 26%); background: oklch(0.58 0.238 300 / 8%); color: oklch(0.44 0.228 300); }
+  .dark .hero-pill-violet { color: oklch(0.74 0.198 300); }
+
+  /* Target Band Panel (Entrance Exam right panel) */
+  .target-panel     { border: 1px solid oklch(0.55 0.245 278 / 20%); background: oklch(0.55 0.245 278 / 5%); }
+  .target-lbl       { color: oklch(0.46 0.220 278); } .dark .target-lbl       { color: oklch(0.65 0.178 278); }
+  .target-band-tag  { border: 1px solid oklch(0.55 0.245 278 / 26%); background: oklch(0.55 0.245 278 / 10%); color: oklch(0.44 0.228 278); }
+  .dark .target-band-tag  { color: oklch(0.72 0.218 278); }
+  .target-score-num { color: oklch(0.44 0.230 278); } .dark .target-score-num { color: oklch(0.72 0.218 278); }
+  .target-sub-txt   { color: oklch(0.55 0.175 278 / 68%); } .dark .target-sub-txt   { color: oklch(0.55 0.138 278 / 70%); }
+  .target-track     { background: oklch(0.55 0.245 278 / 16%); } .dark .target-track     { background: oklch(0.20 0.04 278 / 50%); }
+  .target-marks     { color: oklch(0.58 0.180 278 / 52%); } .dark .target-marks     { color: oklch(0.50 0.118 278 / 50%); }
+  .target-cefr-box  { border: 1px solid oklch(0.55 0.245 278 / 14%); background: oklch(0.55 0.245 278 / 5%); }
+  .dark .target-cefr-box  { background: oklch(0.20 0.04 278 / 20%); border-color: oklch(0.55 0.245 278 / 14%); }
+  .target-cefr-lbl  { color: oklch(0.55 0.198 278 / 62%); } .dark .target-cefr-lbl  { color: oklch(0.55 0.178 278 / 60%); }
+  .target-cefr-val  { color: oklch(0.44 0.228 278); } .dark .target-cefr-val  { color: oklch(0.72 0.218 278); }
+
+  /* Info / note box (Entrance Exam bottom) */
+  .note-box-indigo       { border: 1px solid oklch(0.55 0.245 278 / 18%); background: oklch(0.55 0.245 278 / 4%); }
+  .note-box-indigo-icon  { background: oklch(0.55 0.245 278 / 12%); color: oklch(0.46 0.228 278); }
+  .dark .note-box-indigo-icon  { color: oklch(0.72 0.218 278); }
+  .note-box-indigo-title { color: oklch(0.42 0.238 278); } .dark .note-box-indigo-title { color: oklch(0.72 0.218 278); }
+  .note-box-indigo-text  { color: oklch(0.50 0.188 278 / 82%); } .dark .note-box-indigo-text  { color: oklch(0.72 0.218 278 / 70%); }
+
+  /* ── Target band slider ── */
+  .target-slider {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 9999px;
+    background: oklch(0.35 0.12 278 / 50%);
+    outline: none;
+    cursor: pointer;
+  }
+  .target-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: oklch(0.65 0.20 278);
+    border: 2px solid oklch(0.80 0.15 278);
+    box-shadow: 0 0 8px oklch(0.65 0.20 278 / 60%);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .target-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 14px oklch(0.65 0.20 278 / 80%);
+  }
+  .target-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: oklch(0.65 0.20 278);
+    border: 2px solid oklch(0.80 0.15 278);
+    cursor: pointer;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   svg {
     stroke-width: 1.75;
+  }
+
+  /* ── Text selection — uses primary color ── */
+  ::selection {
+    background-color: oklch(0.55 0.245 278 / 22%);
+    color: inherit;
+  }
+  .dark ::selection {
+    background-color: oklch(0.72 0.220 278 / 28%);
+  }
+
+  /* ── Custom scrollbar (Webkit) ── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.70 0.08 278 / 40%);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.55 0.245 278 / 65%);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: oklch(0.50 0.10 278 / 35%);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.72 0.220 278 / 60%);
   }
 }

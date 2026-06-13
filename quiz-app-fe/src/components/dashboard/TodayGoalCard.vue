@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Target, CheckCircle } from 'lucide-vue-next'
+import { Target, CheckCircle } from '@/components/icons'
 import Progress from '@/components/ui/progress/Progress.vue'
 
 interface Props {

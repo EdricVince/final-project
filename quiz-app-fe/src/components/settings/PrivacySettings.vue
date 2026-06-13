@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { Shield, Download, Trash2 } from 'lucide-vue-next'
+import { Shield, Download, Trash2 } from '@/components/icons'
 
 export interface PrivacyData {
   publicProfile: boolean

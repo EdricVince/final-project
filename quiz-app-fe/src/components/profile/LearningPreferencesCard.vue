@@ -57,8 +57,7 @@
         >
           <option value="en">English</option>
           <option value="vi">Tiếng Việt</option>
-          <option value="ja">日本語</option>
-          <option value="ko">한국어</option>
+          <option value="zh">中文</option>
         </select>
       </div>
 
@@ -83,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { Settings, Sun, Moon, Monitor } from 'lucide-vue-next'
+import { Settings, Sun, Moon, Monitor } from '@/components/icons'
 import Label from '@/components/ui/label/Label.vue'
 import Badge from '@/components/ui/badge/Badge.vue'
 import type { LearningPreferences, ThemeOption } from '@/types/profile'

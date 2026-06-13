@@ -134,7 +134,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { User, Lock, GraduationCap } from 'lucide-vue-next'
+import { User, Lock, GraduationCap } from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
 
 export interface AccountData {

@@ -75,7 +75,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Trophy, Star, Zap, Award, Medal, Crown } from 'lucide-vue-next'
+import { Trophy, Star, Zap, Crown } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import Confetti from '@/components/ui/Confetti.vue'
 

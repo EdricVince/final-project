@@ -16,6 +16,16 @@ import { LeaderboardItemDto } from './dto/leaderboard-item.dto';
 
 const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000];
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const STREAK_MILESTONES = [10, 50, 100, 200, 365];
+
+function getStreakTier(streak: number): { tier: string; label: string; color: string; next_milestone: number | null; days_to_next: number | null } {
+  if (streak >= 365) return { tier: 'legendary', label: 'Legendary', color: '#9333ea', next_milestone: null, days_to_next: null };
+  if (streak >= 200) return { tier: 'diamond', label: 'Diamond', color: '#3b82f6', next_milestone: 365, days_to_next: 365 - streak };
+  if (streak >= 100) return { tier: 'gold', label: 'Gold', color: '#f59e0b', next_milestone: 200, days_to_next: 200 - streak };
+  if (streak >= 50)  return { tier: 'silver', label: 'Silver', color: '#94a3b8', next_milestone: 100, days_to_next: 100 - streak };
+  if (streak >= 10)  return { tier: 'bronze', label: 'Bronze', color: '#f97316', next_milestone: 50, days_to_next: 50 - streak };
+  return { tier: 'starter', label: 'Starter', color: '#6b7280', next_milestone: 10, days_to_next: 10 - streak };
+}
 
 function getLevel(xp: number): number {
   let level = 1;
@@ -127,9 +137,11 @@ export class ProgressService {
       }
 
       const oldLevel = progress.level;
+      const oldStreak = progress.streak_count;
       progress.xp += xpGained;
       progress.level = getLevel(progress.xp);
       const levelUp = progress.level > oldLevel;
+      const milestoneReached = streakUpdated && STREAK_MILESTONES.includes(progress.streak_count) && progress.streak_count > oldStreak;
 
       if (dto.type === 'flashcard_session') {
         progress.total_cards_studied += dto.cards_count ?? 0;
@@ -152,6 +164,8 @@ export class ProgressService {
         new_xp: progress.xp,
         streak_count: progress.streak_count,
         streak_updated: streakUpdated,
+        milestone_reached: milestoneReached,
+        streak_tier: getStreakTier(progress.streak_count).tier,
       };
     });
   }
@@ -174,6 +188,7 @@ export class ProgressService {
       xp_for_current_level: bounds.current,
       xp_to_next_level: bounds.next,
       xp_progress_percent: xpProgressPercent,
+      streak_tier: getStreakTier(progress.streak_count),
       today: {
         cards_studied: todayActivity.cards_studied,
         quizzes_completed: todayActivity.quizzes_completed,

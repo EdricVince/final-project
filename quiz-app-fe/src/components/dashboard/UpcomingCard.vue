@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { Calendar, ChevronRight, CheckCircle, Brain, BookOpen, Trophy } from 'lucide-vue-next'
+import { Calendar, ChevronRight, CheckCircle, Brain, BookOpen, Trophy } from '@/components/icons'
 import type { Component } from 'vue'
 
 interface UpcomingItem {

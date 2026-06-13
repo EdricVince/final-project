@@ -99,7 +99,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { X, FileSpreadsheet, Upload } from 'lucide-vue-next'
+import { X, FileSpreadsheet, Upload } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 
 interface Props {

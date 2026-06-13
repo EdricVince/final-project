@@ -113,7 +113,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { CheckCircle, XCircle } from 'lucide-vue-next'
+import { CheckCircle, XCircle } from '@/components/icons'
 import QuizHeader from '@/components/quiz/QuizHeader.vue'
 import QuizResult from '@/components/quiz/QuizResult.vue'
 import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'

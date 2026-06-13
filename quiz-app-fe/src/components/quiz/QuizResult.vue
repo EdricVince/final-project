@@ -58,11 +58,11 @@
           Play Again
         </button>
         <button
-          class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex w-full items-center justify-center gap-2 rounded-xl py-4 font-semibold transition-colors"
+          class="group flex w-full items-center justify-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/8 py-3 text-sm font-semibold text-indigo-400 transition-all duration-200 hover:border-indigo-500/40 hover:bg-indigo-500/15 active:scale-95"
           @click="$emit('goHome')"
         >
-          <Home class="h-5 w-5" />
-          Back to Quizzes
+          <svg class="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          Quizzes
         </button>
       </div>
     </div>
@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
-import { Trophy, Star, Medal, ThumbsUp, Flame, RotateCcw, Home } from 'lucide-vue-next'
+import { Trophy, Star, Medal, ThumbsUp, Flame, RotateCcw } from '@/components/icons'
 import type { QuizResult } from '@/types/quiz'
 
 interface Props {

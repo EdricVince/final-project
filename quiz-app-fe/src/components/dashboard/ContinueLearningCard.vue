@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { PlayCircle, ChevronRight } from 'lucide-vue-next'
+import { PlayCircle, ChevronRight } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import Progress from '@/components/ui/progress/Progress.vue'
 import type { DashboardCourse } from '@/types/dashboard'
@@ -60,9 +60,7 @@ interface Props {
   isLoading?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
-  isLoading: false,
-})
+withDefaults(defineProps<Props>(), { isLoading: false })
 
 defineEmits<{
   viewAll: []
@@ -72,38 +70,20 @@ defineEmits<{
 
 <style scoped>
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--muted) 25%,
-    var(--secondary) 50%,
-    var(--muted) 75%
-  );
+  background: linear-gradient(90deg, var(--muted) 25%, var(--secondary) 50%, var(--muted) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
-
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
-
 .course-card {
   animation: fadeInUp 0.5s ease-out forwards;
   opacity: 0;
 }
-
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 </style>

@@ -3,11 +3,11 @@
     <!-- Header -->
     <div class="animate-fade-in-down mb-8">
       <button
-        class="text-muted-foreground hover:text-foreground mb-4 flex items-center gap-2 text-sm transition-colors"
+        class="group mb-4 flex items-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/8 px-3.5 py-1.5 text-sm font-semibold text-indigo-400 transition-all duration-200 hover:border-indigo-500/40 hover:bg-indigo-500/15 active:scale-95"
         @click="$router.push('/teacher/tests')"
       >
-        <ArrowLeft class="h-4 w-4" />
-        Back to Tests
+        <svg class="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Tests
       </button>
       <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">
         {{ isEditing ? 'Edit Test' : 'Create New Test' }}
@@ -181,7 +181,7 @@
             <div v-else class="bg-secondary rounded-xl p-4">
               <p class="text-muted-foreground text-sm">Students will type their answer in a text field.</p>
               <input
-                v-model="question.answers[0].answer_text"
+                v-model="question.answers[0]!.answer_text"
                 type="text"
                 placeholder="Expected answer (for grading reference)"
                 class="bg-card text-foreground placeholder:text-muted-foreground mt-2 h-10 w-full rounded-lg border-0 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -213,7 +213,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeft, Plus, Save, Trash2, Check, X, HelpCircle } from 'lucide-vue-next'
+import { Plus, Save, Trash2, Check, X, HelpCircle } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 import type { Question, Answer, QuestionType } from '@/types/test'
@@ -269,23 +269,22 @@ const removeQuestion = (index: number) => {
 }
 
 const addAnswer = (qIndex: number) => {
-  questions.value[qIndex].answers.push({ answer_text: '', is_correct: false })
+  questions.value[qIndex]?.answers.push({ answer_text: '', is_correct: false })
 }
 
 const removeAnswer = (qIndex: number, aIndex: number) => {
-  questions.value[qIndex].answers.splice(aIndex, 1)
+  questions.value[qIndex]?.answers.splice(aIndex, 1)
 }
 
 const setCorrectAnswer = (qIndex: number, aIndex: number) => {
   const question = questions.value[qIndex]
+  if (!question) return
   if (question.question_type === 'multiple_choice') {
-    // Single correct answer
     question.answers.forEach((a, i) => {
       a.is_correct = i === aIndex
     })
   } else {
-    // Toggle for true/false
-    question.answers[aIndex].is_correct = !question.answers[aIndex].is_correct
+    if (question.answers[aIndex]) question.answers[aIndex]!.is_correct = !question.answers[aIndex]!.is_correct
   }
 }
 

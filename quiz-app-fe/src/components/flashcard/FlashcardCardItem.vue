@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { CreditCard, Heart, MoreVertical } from 'lucide-vue-next'
+import { CreditCard, Heart, MoreVertical } from '@/components/icons'
 import type { FlashcardItem } from '@/types/flashcard'
 
 interface Props {

@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Check } from 'lucide-vue-next'
+import { Check } from '@/components/icons'
 import type { WeeklyChallenge } from '@/types/profile'
 
 const props = defineProps<{

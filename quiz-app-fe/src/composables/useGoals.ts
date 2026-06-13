@@ -1,5 +1,5 @@
 import { ref, computed, onMounted } from 'vue'
-import { BookOpen, Award, GraduationCap, Trophy } from 'lucide-vue-next'
+import { BookOpen, Award, GraduationCap, Trophy } from '@/components/icons'
 import type { Component } from 'vue'
 import { api } from '@/utils/api'
 import type { DailyGoal, WeeklyChallenge, Milestone } from '@/types/profile'
@@ -12,12 +12,6 @@ export interface CustomGoal {
   completed: boolean
 }
 
-interface ApiGoalsResponse {
-  daily_goals: { type: string; label: string; current: number; target: number; unit: string }[]
-  weekly_challenges: { id: string; title: string; description: string; current: number; target: number; completed: boolean }[]
-  milestones: { id: string; title: string; description: string; current: number; target: number; completed: boolean }[]
-  custom_goals: { id: number; title: string; description: string | null; completed: boolean }[]
-}
 
 const MILESTONE_ICONS: Record<string, Component> = {
   cards_100: BookOpen,

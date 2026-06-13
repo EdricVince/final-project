@@ -290,7 +290,7 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Swords, Star, RefreshCw, Zap } from 'lucide-vue-next'
+import { Swords, Star, RefreshCw, Zap } from '@/components/icons'
 
 const router = useRouter()
 
@@ -327,7 +327,7 @@ const opponents = [
 ]
 
 const opponentIndex = ref(0)
-const currentOpponent = computed(() => opponents[opponentIndex.value])
+const currentOpponent = computed(() => opponents[opponentIndex.value]!)
 
 const randomizeOpponent = () => {
   opponentIndex.value = Math.floor(Math.random() * opponents.length)
@@ -393,7 +393,7 @@ const startQuestionTimer = () => {
 
   // Opponent answers after random delay based on difficulty
   const opp = currentOpponent.value
-  const [minT, maxT] = opp.speed
+  const [minT = 2, maxT = 8] = opp.speed
   const oppDelay = (minT + Math.random() * (maxT - minT)) * 1000
   opponentTimer = setTimeout(() => {
     if (answered.value !== null) return

@@ -69,7 +69,7 @@ const colors = [
 const generateConfetti = () => {
   confettiPieces.value = Array.from({ length: props.particleCount }, () => ({
     x: Math.random() * 100,
-    color: colors[Math.floor(Math.random() * colors.length)],
+    color: colors[Math.floor(Math.random() * colors.length)] ?? '#F1C40F',
     size: Math.random() * 10 + 5,
     rotation: Math.random() * 360,
     delay: Math.random() * 0.5,

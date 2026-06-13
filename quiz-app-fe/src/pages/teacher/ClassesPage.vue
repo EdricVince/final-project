@@ -24,7 +24,7 @@
             <component :is="stat.icon" class="h-4 w-4" :class="stat.color" />
           </div>
         </div>
-        <p class="text-foreground text-2xl font-bold">{{ stat.value }}</p>
+        <p class="text-foreground tabular-nums text-2xl font-bold">{{ stat.value }}</p>
       </div>
     </div>
 
@@ -46,14 +46,17 @@
           class="rounded-xl px-4 py-2.5 text-sm font-medium transition-colors"
           :class="activeFilter === f.value ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'"
           @click="activeFilter = f.value"
-        >
-          {{ f.label }}
-        </button>
+        >{{ f.label }}</button>
       </div>
     </div>
 
+    <!-- Loading -->
+    <div v-if="loading" class="flex items-center justify-center py-20">
+      <div class="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
+    </div>
+
     <!-- Classes Grid -->
-    <div v-if="filteredClasses.length > 0" class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+    <div v-else-if="filteredClasses.length > 0" class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
       <div
         v-for="cls in filteredClasses"
         :key="cls.id"
@@ -62,51 +65,47 @@
         <!-- Card Header -->
         <div class="mb-4 flex items-start justify-between">
           <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl text-xl" :class="cls.bgColor">
-              {{ cls.emoji }}
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl text-xl" :class="getClassBg(cls.id)">
+              {{ getClassEmoji(cls.id) }}
             </div>
             <div>
               <h3 class="text-foreground font-semibold">{{ cls.name }}</h3>
-              <p class="text-muted-foreground text-xs">{{ cls.subject }}</p>
+              <p class="text-muted-foreground text-xs">{{ cls.subject || 'No subject' }}</p>
             </div>
           </div>
           <span
             class="rounded-full px-2.5 py-1 text-xs font-medium"
-            :class="cls.isActive ? 'bg-chart-2/10 text-chart-2' : 'bg-secondary text-muted-foreground'"
+            :class="cls.is_active ? 'bg-chart-2/10 text-chart-2' : 'bg-secondary text-muted-foreground'"
           >
-            {{ cls.isActive ? 'Active' : 'Inactive' }}
+            {{ cls.is_active ? 'Active' : 'Inactive' }}
           </span>
         </div>
 
-        <!-- Join Code — main feature -->
+        <!-- Join Code -->
         <div class="bg-primary/5 border-primary/20 mb-4 flex items-center justify-between rounded-xl border px-4 py-3">
           <div>
             <p class="text-muted-foreground mb-0.5 text-xs font-medium uppercase tracking-wide">Join Code</p>
-            <p class="text-primary font-mono text-2xl font-bold tracking-widest">{{ cls.joinCode }}</p>
+            <p class="text-primary font-mono text-2xl font-bold tracking-widest">{{ cls.class_code }}</p>
           </div>
           <button
             class="hover:bg-primary/10 rounded-lg p-2 transition-colors"
-            @click="copyCode(cls.joinCode)"
+            @click="copyCode(cls.class_code)"
             title="Copy join code"
           >
-            <Check v-if="copiedCode === cls.joinCode" class="text-primary h-5 w-5" />
+            <Check v-if="copiedCode === cls.class_code" class="text-primary h-5 w-5" />
             <Copy v-else class="text-muted-foreground h-5 w-5" />
           </button>
         </div>
 
         <!-- Mini Stats -->
-        <div class="mb-4 grid grid-cols-3 gap-2 text-center">
+        <div class="mb-4 grid grid-cols-2 gap-2 text-center">
           <div class="bg-secondary/50 rounded-lg p-2">
-            <p class="text-foreground text-sm font-bold">{{ cls.studentCount }}</p>
+            <p class="text-foreground tabular-nums text-sm font-bold">{{ cls.student_count ?? 0 }}/{{ cls.student_limit }}</p>
             <p class="text-muted-foreground text-xs">Students</p>
           </div>
           <div class="bg-secondary/50 rounded-lg p-2">
-            <p class="text-foreground text-sm font-bold">{{ cls.lessonCount }}</p>
-            <p class="text-muted-foreground text-xs">Lessons</p>
-          </div>
-          <div class="bg-secondary/50 rounded-lg p-2">
-            <p class="text-foreground text-sm font-bold">{{ cls.testCount }}</p>
-            <p class="text-muted-foreground text-xs">Tests</p>
+            <p class="text-foreground text-sm font-bold">{{ cls.is_active ? 'Active' : 'Inactive' }}</p>
+            <p class="text-muted-foreground text-xs">Status</p>
           </div>
         </div>
 
@@ -141,7 +140,7 @@
       </div>
       <h3 class="text-foreground mb-2 text-lg font-semibold">No classes yet</h3>
       <p class="text-muted-foreground mb-6 max-w-sm text-sm">
-        Create your first class and share the join code with students so they can enroll.
+        Create your first class and share the join code with students.
       </p>
       <button
         class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-colors"
@@ -198,24 +197,17 @@
               <div>
                 <label class="text-foreground mb-1.5 block text-sm font-medium">Max Students</label>
                 <input
-                  v-model.number="form.maxStudents"
-                  type="number" min="1" max="100"
+                  v-model.number="form.student_limit"
+                  type="number" min="1" max="200"
                   class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
               </div>
 
-              <!-- Join Code Preview -->
+              <!-- Join Code Preview (create only) -->
               <div v-if="!editingClass" class="bg-primary/5 border-primary/20 rounded-xl border p-4">
                 <p class="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">Join Code (auto-generated)</p>
-                <div class="flex items-center justify-between">
-                  <p class="text-primary font-mono text-2xl font-bold tracking-widest">{{ previewCode }}</p>
-                  <button
-                    class="text-muted-foreground hover:text-primary rounded-lg px-2 py-1 text-xs underline transition-colors"
-                    @click="previewCode = generateCode()"
-                  >
-                    Regenerate
-                  </button>
-                </div>
+                <p class="text-primary font-mono text-2xl font-bold tracking-widest">Auto</p>
+                <p class="text-muted-foreground mt-1 text-xs">A unique code will be generated when you create the class.</p>
               </div>
             </div>
 
@@ -223,15 +215,13 @@
               <button
                 class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium transition-colors"
                 @click="showModal = false"
-              >
-                Cancel
-              </button>
+              >Cancel</button>
               <button
                 class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
-                :disabled="!form.name.trim()"
+                :disabled="!form.name.trim() || saving"
                 @click="saveClass"
               >
-                {{ editingClass ? 'Save Changes' : 'Create Class' }}
+                {{ saving ? 'Saving...' : (editingClass ? 'Save Changes' : 'Create Class') }}
               </button>
             </div>
           </div>
@@ -250,21 +240,18 @@
             </div>
             <h3 class="text-foreground mb-2 font-semibold">Delete Class?</h3>
             <p class="text-muted-foreground mb-6 text-sm">
-              "{{ deletingClass?.name }}" will be permanently deleted along with all student data.
+              "{{ deletingClass?.name }}" and all its enrollments will be permanently deleted.
             </p>
             <div class="flex gap-3">
               <button
                 class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-2.5 font-medium transition-colors"
                 @click="showDeleteModal = false"
-              >
-                Cancel
-              </button>
+              >Cancel</button>
               <button
                 class="bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1 rounded-xl py-2.5 font-medium transition-colors"
+                :disabled="deleting"
                 @click="deleteClass"
-              >
-                Delete
-              </button>
+              >{{ deleting ? 'Deleting...' : 'Delete' }}</button>
             </div>
           </div>
         </div>
@@ -274,112 +261,140 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  Plus, Search, BookOpen, Users, FileText, GraduationCap,
+  Plus, Search, BookOpen, Users, GraduationCap, FileText,
   Copy, Check, Pencil, Trash2, X,
-} from 'lucide-vue-next'
+} from '@/components/icons'
+import { useToast } from '@/composables/useToast'
+import { api } from '@/utils/api'
+import type { Class } from '@/types/class'
 
 const router = useRouter()
+const toast = useToast()
 
-interface ClassItem {
-  id: number
-  name: string
-  subject: string
-  description: string
-  joinCode: string
-  studentCount: number
-  lessonCount: number
-  testCount: number
-  maxStudents: number
-  isActive: boolean
-  emoji: string
-  bgColor: string
-}
-
-// Classes — empty until created by teacher
-const classes = ref<ClassItem[]>([])
-
+const classes = ref<Class[]>([])
+const loading = ref(true)
+const saving = ref(false)
+const deleting = ref(false)
 const searchQuery = ref('')
 const activeFilter = ref('all')
 const showModal = ref(false)
 const showDeleteModal = ref(false)
-const editingClass = ref<ClassItem | null>(null)
-const deletingClass = ref<ClassItem | null>(null)
+const editingClass = ref<Class | null>(null)
+const deletingClass = ref<Class | null>(null)
 const copiedCode = ref('')
-const previewCode = ref('')
 
-const subjects = ['English', 'IELTS', 'TOEIC', 'Japanese', 'Chinese', 'Korean', 'French', 'Other']
+const subjects = ['English', 'IELTS', 'TOEIC', 'Chinese', 'Vietnamese', 'Other']
 const filters = [
   { value: 'all', label: 'All' },
   { value: 'active', label: 'Active' },
   { value: 'inactive', label: 'Inactive' },
 ]
 
+const emojis = ['📚', '💼', '🎯', '🌸', '⭐', '🔥', '💡', '🎓', '🧠', '🌍']
+const bgs = ['bg-chart-2/10', 'bg-chart-4/10', 'bg-chart-3/10', 'bg-chart-5/10', 'bg-chart-1/10']
+const getClassEmoji = (id: number) => emojis[id % emojis.length]
+const getClassBg = (id: number) => bgs[id % bgs.length]
+
 const stats = computed(() => [
   { label: 'Total Classes', value: classes.value.length, icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
-  { label: 'Active', value: classes.value.filter(c => c.isActive).length, icon: GraduationCap, color: 'text-chart-2', bg: 'bg-chart-2/10' },
-  { label: 'Total Students', value: classes.value.reduce((s, c) => s + c.studentCount, 0), icon: Users, color: 'text-chart-3', bg: 'bg-chart-3/10' },
-  { label: 'Total Tests', value: classes.value.reduce((s, c) => s + c.testCount, 0), icon: FileText, color: 'text-chart-1', bg: 'bg-chart-1/10' },
+  { label: 'Active', value: classes.value.filter(c => c.is_active).length, icon: GraduationCap, color: 'text-chart-2', bg: 'bg-chart-2/10' },
+  { label: 'Total Students', value: classes.value.reduce((s, c) => s + (c.student_count ?? 0), 0), icon: Users, color: 'text-chart-3', bg: 'bg-chart-3/10' },
+  { label: 'Classes Full', value: classes.value.filter(c => (c.student_count ?? 0) >= c.student_limit).length, icon: FileText, color: 'text-chart-1', bg: 'bg-chart-1/10' },
 ])
 
 const filteredClasses = computed(() => {
   let list = classes.value
-  if (activeFilter.value === 'active') list = list.filter(c => c.isActive)
-  if (activeFilter.value === 'inactive') list = list.filter(c => !c.isActive)
+  if (activeFilter.value === 'active') list = list.filter(c => c.is_active)
+  if (activeFilter.value === 'inactive') list = list.filter(c => !c.is_active)
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    list = list.filter(c => c.name.toLowerCase().includes(q) || c.subject.toLowerCase().includes(q))
+    list = list.filter(c => c.name.toLowerCase().includes(q) || (c.subject ?? '').toLowerCase().includes(q))
   }
   return list
 })
 
-const form = ref({ name: '', subject: 'English', description: '', maxStudents: 30 })
+const form = ref({ name: '', subject: 'English', description: '', student_limit: 30 })
 
-const generateCode = () => {
-  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
-  const prefix = Array.from({ length: 3 }, () => letters[Math.floor(Math.random() * letters.length)]).join('')
-  const num = Math.floor(1000 + Math.random() * 9000)
-  return `${prefix}-${num}`
-}
+onMounted(async () => {
+  try {
+    classes.value = (await api.getClasses()) as Class[]
+  } catch {
+    toast.error('Failed to load classes')
+  } finally {
+    loading.value = false
+  }
+})
 
 const openCreateModal = () => {
   editingClass.value = null
-  form.value = { name: '', subject: 'English', description: '', maxStudents: 30 }
-  previewCode.value = generateCode()
+  form.value = { name: '', subject: 'English', description: '', student_limit: 30 }
   showModal.value = true
 }
 
-const openEditModal = (cls: ClassItem) => {
+const openEditModal = (cls: Class) => {
   editingClass.value = cls
-  form.value = { name: cls.name, subject: cls.subject, description: cls.description, maxStudents: cls.maxStudents }
+  form.value = {
+    name: cls.name,
+    subject: cls.subject ?? 'English',
+    description: cls.description ?? '',
+    student_limit: cls.student_limit,
+  }
   showModal.value = true
 }
 
-const saveClass = () => {
-  if (!form.value.name.trim()) return
-  if (editingClass.value) {
-    const idx = classes.value.findIndex(c => c.id === editingClass.value!.id)
-    if (idx !== -1) Object.assign(classes.value[idx], form.value)
-  } else {
-    const emojis = ['📚', '💼', '🎯', '🌸', '⭐', '🔥', '💡', '🎓']
-    const colors = ['bg-chart-2/10', 'bg-chart-4/10', 'bg-chart-3/10', 'bg-chart-5/10', 'bg-chart-1/10']
-    classes.value.push({
-      id: Date.now(), ...form.value,
-      joinCode: previewCode.value,
-      studentCount: 0, lessonCount: 0, testCount: 0, isActive: true,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
-      bgColor: colors[Math.floor(Math.random() * colors.length)],
-    })
+const saveClass = async () => {
+  if (!form.value.name.trim() || saving.value) return
+  saving.value = true
+  try {
+    if (editingClass.value) {
+      const updated = (await api.updateClass(editingClass.value.id, {
+        name: form.value.name,
+        subject: form.value.subject,
+        description: form.value.description,
+        student_limit: form.value.student_limit,
+      })) as Class
+      const idx = classes.value.findIndex(c => c.id === editingClass.value!.id)
+      if (idx !== -1) classes.value[idx] = updated
+      toast.success('Class updated')
+    } else {
+      const created = (await api.createClass({
+        name: form.value.name,
+        subject: form.value.subject,
+        description: form.value.description,
+        student_limit: form.value.student_limit,
+      })) as Class
+      classes.value.unshift(created)
+      toast.success('Class created!')
+    }
+    showModal.value = false
+  } catch {
+    toast.error('Failed to save class')
+  } finally {
+    saving.value = false
   }
-  showModal.value = false
 }
 
-const confirmDelete = (cls: ClassItem) => { deletingClass.value = cls; showDeleteModal.value = true }
-const deleteClass = () => {
-  if (deletingClass.value) classes.value = classes.value.filter(c => c.id !== deletingClass.value!.id)
-  showDeleteModal.value = false
+const confirmDelete = (cls: Class) => {
+  deletingClass.value = cls
+  showDeleteModal.value = true
+}
+
+const deleteClass = async () => {
+  if (!deletingClass.value || deleting.value) return
+  deleting.value = true
+  try {
+    await api.deleteClass(deletingClass.value.id)
+    classes.value = classes.value.filter(c => c.id !== deletingClass.value!.id)
+    toast.success('Class deleted')
+    showDeleteModal.value = false
+  } catch {
+    toast.error('Failed to delete class')
+  } finally {
+    deleting.value = false
+  }
 }
 
 const copyCode = (code: string) => {

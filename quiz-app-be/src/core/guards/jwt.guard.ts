@@ -46,7 +46,8 @@ export class JwtGuard implements CanActivate {
     }
 
     const [header, payloadPart, signature] = parts;
-    const secret = this.configService.get<string>('JWT_SECRET') || 'secret';
+    const secret = this.configService.get<string>('JWT_SECRET');
+    if (!secret) throw new UnauthorizedException('Server misconfiguration');
 
     const expectedSignature = crypto
       .createHmac('sha256', secret)

@@ -26,4 +26,6 @@ export class LogActivityResponseDto {
   new_xp: number;
   streak_count: number;
   streak_updated: boolean;
+  milestone_reached: boolean;
+  streak_tier: string;
 }

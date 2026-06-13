@@ -102,7 +102,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { Trophy, ChevronRight } from 'lucide-vue-next'
+import { Trophy, ChevronRight } from '@/components/icons'
 import type { Component } from 'vue'
 
 export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary'

@@ -13,7 +13,7 @@ export class Role {
   @Column({ unique: true })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   description: string;
 
   @CreateDateColumn()

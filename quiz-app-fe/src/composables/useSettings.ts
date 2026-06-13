@@ -51,7 +51,7 @@ export function useSettings() {
   // Get user info from auth store
   const getUserName = () => {
     if (authStore.user?.name) return authStore.user.name
-    if (authStore.user?.email) return authStore.user.email.split('@')[0]
+    if (authStore.user?.email) return authStore.user.email.split('@')[0] ?? 'Guest User'
     return 'Guest User'
   }
 

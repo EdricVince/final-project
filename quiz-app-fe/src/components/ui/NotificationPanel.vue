@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, type Component } from 'vue'
+import { onMounted, onUnmounted, type Component } from 'vue'
 import {
   Bell,
   Trophy,
@@ -74,7 +74,7 @@ import {
   Star,
   BookOpen,
   Zap,
-} from 'lucide-vue-next'
+} from '@/components/icons'
 import { useNotificationStore } from '@/stores/notification.store'
 
 defineProps<{

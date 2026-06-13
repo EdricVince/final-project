@@ -147,7 +147,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { RotateCcw, Check, CheckCircle, XCircle, ArrowRight } from 'lucide-vue-next'
+import { RotateCcw, Check, CheckCircle, XCircle, ArrowRight } from '@/components/icons'
 import QuizHeader from '@/components/quiz/QuizHeader.vue'
 import QuizResult from '@/components/quiz/QuizResult.vue'
 import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
@@ -247,7 +247,8 @@ const removeLetter = (index: number) => {
   if (isAnswered.value) return
 
   const sourceIndex = letterSources.value[index]
-  availableLetters.value[sourceIndex] = selectedLetters.value[index]
+  if (sourceIndex === undefined) return
+  availableLetters.value[sourceIndex] = selectedLetters.value[index] ?? null
   selectedLetters.value.splice(index, 1)
   letterSources.value.splice(index, 1)
 }
@@ -255,9 +256,8 @@ const removeLetter = (index: number) => {
 const clearAnswer = () => {
   if (isAnswered.value) return
 
-  // Restore all letters
   letterSources.value.forEach((sourceIndex, i) => {
-    availableLetters.value[sourceIndex] = selectedLetters.value[i]
+    availableLetters.value[sourceIndex] = selectedLetters.value[i] ?? null
   })
   selectedLetters.value = []
   letterSources.value = []

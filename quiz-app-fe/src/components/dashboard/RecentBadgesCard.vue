@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { Award } from 'lucide-vue-next'
+import { Award } from '@/components/icons'
 import type { BadgeItem } from '@/types/dashboard'
 
 interface Props {

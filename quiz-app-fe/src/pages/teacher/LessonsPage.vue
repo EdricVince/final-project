@@ -290,7 +290,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Plus, Search, BookOpen, Clock, Users, Languages, GraduationCap, FileText, Pencil, Trash2, X } from 'lucide-vue-next'
+import { Plus, Search, BookOpen, Clock, Users, Languages, GraduationCap, FileText, Pencil, Trash2, X } from '@/components/icons'
 
 interface Lesson {
   id: number
@@ -367,20 +367,20 @@ const saveLesson = () => {
   if (!form.value.title.trim() || !form.value.class) return
   if (editingLesson.value) {
     const idx = lessons.value.findIndex(l => l.id === editingLesson.value!.id)
-    if (idx !== -1) Object.assign(lessons.value[idx], form.value)
+    if (idx !== -1) Object.assign(lessons.value[idx]!, form.value)
   } else {
     const emojis = ['📖', '✉️', '🎯', '💡', '📝', '🎓', '🔤', '📚']
     const colors = ['bg-chart-2/10', 'bg-chart-4/10', 'bg-chart-3/10', 'bg-chart-5/10', 'bg-chart-1/10']
     lessons.value.push({
       id: Date.now(), ...form.value, viewCount: 0,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
-      bgColor: colors[Math.floor(Math.random() * colors.length)],
+      emoji: emojis[Math.floor(Math.random() * emojis.length)] ?? '📖',
+      bgColor: colors[Math.floor(Math.random() * colors.length)] ?? 'bg-chart-1/10',
     })
   }
   showModal.value = false
 }
 
-const viewLesson = (lesson: Lesson) => { /* navigate to lesson detail */ }
+const viewLesson = (_lesson: Lesson) => { /* navigate to lesson detail */ }
 const confirmDelete = (lesson: Lesson) => { deletingLesson.value = lesson; showDeleteModal.value = true }
 const deleteLesson = () => {
   if (deletingLesson.value) lessons.value = lessons.value.filter(l => l.id !== deletingLesson.value!.id)

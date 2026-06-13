@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { Target } from 'lucide-vue-next'
+import { Target } from '@/components/icons'
 
 export interface StudyData {
   cardsPerDay: number

@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import {
   Trophy, Star, Crown, Rocket, Zap, BookOpen, GraduationCap, Flame, Users, Brain, Sparkles, Heart,
-} from 'lucide-vue-next'
+} from '@/components/icons'
 import type { AchievementCategory, AchievementRarity, EnhancedAchievement } from '@/types/profile'
 import { useProgressStore } from '@/stores/progress.store'
 
@@ -20,8 +20,8 @@ export function useAchievements() {
     const quizzes = progressStore.totalQuizzesCompleted
     const streak = progressStore.streakCount
 
-    const now = new Date().toISOString()
-    const e = (cond: boolean) => (cond ? now : undefined)
+    const now = new Date()
+    const e = (cond: boolean): Date | undefined => (cond ? now : undefined)
     return [
       { id: '1', name: 'First Steps', description: 'Study your first flashcard', icon: Star, category: 'learning', rarity: 'common', earned: cards >= 1, progress: Math.min(cards, 1), target: 1, earnedAt: e(cards >= 1) },
       { id: '2', name: 'Word Collector', description: 'Study 100 flashcards', icon: BookOpen, category: 'learning', rarity: 'common', earned: cards >= 100, progress: Math.min(cards, 100), target: 100, earnedAt: e(cards >= 100) },

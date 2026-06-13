@@ -14,7 +14,7 @@ export interface Notification {
 export const useNotificationStore = defineStore('notification', () => {
   const notifications = ref<Notification[]>([])
   const isLoading = ref(false)
-  const pollInterval = ref<NodeJS.Timeout | null>(null)
+  const pollInterval = ref<ReturnType<typeof setInterval> | null>(null)
 
   const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 

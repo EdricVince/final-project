@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { X, Clock, Flame } from 'lucide-vue-next'
+import { X, Clock, Flame } from '@/components/icons'
 
 interface Props {
   currentQuestion: number

@@ -43,9 +43,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => currentUser.value?.role_id === UserRole.ADMIN)
   const isStudent = computed(() => !currentUser.value?.role_id || currentUser.value.role_id === UserRole.STUDENT)
   const userRole = computed(() => currentUser.value?.role_id ?? UserRole.STUDENT)
-  // Teacher access is determined solely by email domain @teacher.sprk
   const isTeacherEmail = computed(() => currentUser.value?.email?.toLowerCase().endsWith(TEACHER_DOMAIN) ?? false)
-  const canAccessTeacher = computed(() => isTeacherEmail.value)
+  const canAccessTeacher = computed(() => isTeacher.value || isTeacherEmail.value)
 
   const setTokens = (accessToken: string, refreshToken?: string) => {
     _accessToken.value = accessToken
@@ -110,11 +109,8 @@ export const useAuthStore = defineStore('auth', () => {
       } catch {
         // Non-critical: continue with basic data from login response
       }
-      // Fetch progress stats after login
       const progressStore = useProgressStore()
-      progressStore.fetchProgress()
-      progressStore.fetchWeekly()
-      progressStore.fetchLeaderboard()
+      void Promise.all([progressStore.fetchProgress(), progressStore.fetchWeekly(), progressStore.fetchLeaderboard()])
 
       return { success: true, user: currentUser.value ?? undefined }
     } catch (error) {
@@ -196,11 +192,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!refreshToken) return false
     try {
       const resp = await api.refreshToken(refreshToken)
-      setCookie(ACCESS_TOKEN_KEY, resp.access_token, {
-        expires: 1,
-        secure: true,
-        sameSite: 'strict',
-      })
+      setTokens(resp.access_token)
       return true
     } catch (error) {
       console.error('Token refresh error:', error)

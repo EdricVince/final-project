@@ -27,6 +27,8 @@ export interface LogActivityResult {
   new_xp: number
   streak_count: number
   streak_updated: boolean
+  milestone_reached?: boolean
+  streak_tier?: string
 }
 
 const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000]
@@ -59,6 +61,7 @@ export const useProgressStore = defineStore('progress', () => {
   const weeklyActivity = ref<WeeklyActivityItem[]>(cached?.weeklyActivity ?? [])
   const leaderboard = ref<LeaderboardItem[]>(cached?.leaderboard ?? [])
   const isLoading = ref(false)
+  const milestoneReached = ref(false)
 
   const levelLabel = computed(() => `Level ${level.value}`)
   const nextLevelXP = computed(() => LEVEL_THRESHOLDS[Math.min(level.value, 9)])
@@ -103,8 +106,8 @@ export const useProgressStore = defineStore('progress', () => {
       const data = await api.getMyProgress() as any
       applyStats(data)
       persist()
-    } catch {
-      // silently fail — use cached data
+    } catch (e) {
+      console.error('fetchProgress failed:', e)
     } finally {
       isLoading.value = false
     }
@@ -115,8 +118,8 @@ export const useProgressStore = defineStore('progress', () => {
       const data = await api.getWeeklyActivity() as WeeklyActivityItem[]
       weeklyActivity.value = data
       persist()
-    } catch {
-      // silently fail
+    } catch (e) {
+      console.error('fetchWeekly failed:', e)
     }
   }
 
@@ -125,8 +128,8 @@ export const useProgressStore = defineStore('progress', () => {
       const data = await api.getLeaderboard() as LeaderboardItem[]
       leaderboard.value = data
       persist()
-    } catch {
-      // silently fail
+    } catch (e) {
+      console.error('fetchLeaderboard failed:', e)
     }
   }
 
@@ -139,6 +142,10 @@ export const useProgressStore = defineStore('progress', () => {
       totalCardsStudied.value += cardsCount
       todayCards.value += cardsCount
       todayXP.value += result.xp_gained
+      if (result.milestone_reached) {
+        milestoneReached.value = true
+        setTimeout(() => { milestoneReached.value = false }, 4000)
+      }
       persist()
       return result
     } catch {
@@ -155,6 +162,10 @@ export const useProgressStore = defineStore('progress', () => {
       totalQuizzesCompleted.value += 1
       todayQuizzes.value += 1
       todayXP.value += result.xp_gained
+      if (result.milestone_reached) {
+        milestoneReached.value = true
+        setTimeout(() => { milestoneReached.value = false }, 4000)
+      }
       persist()
       return result
     } catch {
@@ -186,7 +197,7 @@ export const useProgressStore = defineStore('progress', () => {
     totalCardsStudied, totalQuizzesCompleted,
     xpForCurrentLevel, xpToNextLevel, xpProgressPercent,
     todayCards, todayQuizzes, todayXP,
-    weeklyActivity, leaderboard, isLoading,
+    weeklyActivity, leaderboard, isLoading, milestoneReached,
     // Computed
     levelLabel, nextLevelXP,
     // Actions

@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Camera } from 'lucide-vue-next'
+import { Camera } from '@/components/icons'
 import type { ProfileStats } from '@/types/profile'
 
 interface Props {

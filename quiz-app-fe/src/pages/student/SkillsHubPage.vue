@@ -1,0 +1,148 @@
+<template>
+  <div class="min-h-full">
+    <!-- Hero -->
+    <div class="relative overflow-hidden">
+      <div class="absolute inset-0 bg-linear-to-br from-violet-600/20 via-purple-600/10 to-transparent" />
+      <div class="absolute -top-20 -right-20 h-80 w-80 rounded-full bg-violet-500/10 blur-3xl" />
+      <div class="absolute -bottom-10 -left-10 h-60 w-60 rounded-full bg-purple-500/10 blur-3xl" />
+      <div class="relative mx-auto max-w-5xl px-6 py-12">
+        <div class="hero-pill-violet mb-0 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold">
+          <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-current"></span>
+          AI-Powered Practice
+        </div>
+        <h1 class="text-foreground text-4xl font-extrabold leading-tight">{{ $t('skills.hub.title') }}</h1>
+        <p class="text-muted-foreground mt-3 text-lg">{{ $t('skills.hub.subtitle') }}</p>
+      </div>
+    </div>
+
+    <div class="mx-auto max-w-5xl space-y-6 px-6 pb-12">
+      <!-- 2x2 skill cards grid -->
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <router-link
+          v-for="skill in skills"
+          :key="skill.name"
+          :to="skill.path"
+          class="group relative overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+          :class="skill.cardClass"
+        >
+          <div class="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" :class="skill.hoverGrad" />
+          <div class="relative p-7">
+            <div class="mb-5 flex items-start justify-between">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl text-3xl" :class="skill.iconBg">
+                {{ skill.emoji }}
+              </div>
+              <span class="rounded-full px-3 py-1 text-xs font-bold" :class="skill.badge">{{ skill.tag }}</span>
+            </div>
+            <h2 class="text-foreground text-2xl font-extrabold">{{ skill.label }}</h2>
+            <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">{{ skill.desc }}</p>
+
+            <!-- Feature list -->
+            <ul class="mt-4 space-y-1.5">
+              <li v-for="f in skill.features" :key="f" class="flex items-center gap-2 text-sm" :class="skill.featureColor">
+                <span class="h-1.5 w-1.5 shrink-0 rounded-full" :class="skill.dot"></span>
+                {{ f }}
+              </li>
+            </ul>
+
+            <!-- CTA -->
+            <div class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-bold transition-all duration-200 group-hover:scale-[1.02]" :class="skill.btn">
+              <span>Start Practicing</span>
+              <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </div>
+          </div>
+        </router-link>
+      </div>
+
+      <!-- CEFR level guide -->
+      <div class="bg-card border-border rounded-2xl border p-6">
+        <h3 class="text-foreground mb-4 text-base font-bold">CEFR Proficiency Levels</h3>
+        <div class="grid grid-cols-3 gap-3 sm:grid-cols-6">
+          <div v-for="lvl in cefrLevels" :key="lvl.code" class="rounded-xl border p-3 text-center" :class="lvl.bg">
+            <div class="text-lg font-extrabold" :class="lvl.color">{{ lvl.code }}</div>
+            <div class="text-muted-foreground text-xs">{{ lvl.name }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const skills = [
+  {
+    name: 'reading',
+    path: '/skills/reading',
+    emoji: '📖',
+    label: 'Reading',
+    tag: 'AI Generated',
+    desc: 'Engage with passages from stories and news to IELTS & TOEIC academic texts. Build vocabulary and comprehension.',
+    features: ['5 passage types: Story, IELTS, TOEIC, Academic, News', 'AI vocabulary extraction with phonetics', 'Comprehension questions with explanations', '6 CEFR levels (A1 → C2)'],
+    cardClass: 'card-tint-blue',
+    hoverGrad: 'bg-linear-to-br from-blue-500/5 to-cyan-500/5',
+    iconBg: 'bg-blue-500/15',
+    badge: 'cbadge-blue',
+    featureColor: 'ct-blue',
+    dot: 'bg-blue-400',
+    btn: 'bg-linear-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20',
+  },
+  {
+    name: 'listening',
+    path: '/skills/listening',
+    emoji: '🎧',
+    label: 'Listening',
+    tag: 'Browser TTS',
+    desc: 'Listen to AI-generated scripts from conversations and lectures to IELTS & TOEIC. Train your ear with speed control.',
+    features: ['5 types: Conversation, Monologue, IELTS, TOEIC, Lecture', 'Browser text-to-speech playback', 'Adjustable speed (0.5× – 2×)', 'Key phrase dictionary'],
+    cardClass: 'card-tint-emerald',
+    hoverGrad: 'bg-linear-to-br from-emerald-500/5 to-teal-500/5',
+    iconBg: 'bg-emerald-500/15',
+    badge: 'cbadge-emerald',
+    featureColor: 'ct-emerald',
+    dot: 'bg-emerald-400',
+    btn: 'bg-linear-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20',
+  },
+  {
+    name: 'writing',
+    path: '/skills/writing',
+    emoji: '✍️',
+    label: 'Writing',
+    tag: 'AI Graded',
+    desc: 'Write timed essays with real exam pressure. AI evaluates band score, grammar, vocabulary, and coherence.',
+    features: ['IELTS Task 1 & 2, TOEIC, General prompts', 'Real exam time limits', 'Band score + 4-criteria breakdown', 'Grammar corrections & vocabulary tips'],
+    cardClass: 'card-tint-amber',
+    hoverGrad: 'bg-linear-to-br from-amber-500/5 to-orange-500/5',
+    iconBg: 'bg-amber-500/15',
+    badge: 'cbadge-amber',
+    featureColor: 'ct-amber',
+    dot: 'bg-amber-400',
+    btn: 'bg-linear-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/20',
+  },
+  {
+    name: 'speaking',
+    path: '/skills/speaking',
+    emoji: '🎙️',
+    label: 'Speaking',
+    tag: 'Shadowing',
+    desc: 'Advanced shadowing with real-time speech recognition. AI detects pronunciation errors and gives phonetic coaching.',
+    features: ['Teleprompter text display', 'Speech recognition (Web Speech API)', 'Audio recording & playback', 'Pronunciation error detection + tips'],
+    cardClass: 'card-tint-rose',
+    hoverGrad: 'bg-linear-to-br from-rose-500/5 to-pink-500/5',
+    iconBg: 'bg-rose-500/15',
+    badge: 'cbadge-rose',
+    featureColor: 'ct-rose',
+    dot: 'bg-rose-400',
+    btn: 'bg-linear-to-r from-rose-600 to-pink-600 text-white shadow-lg shadow-rose-500/20',
+  },
+]
+
+const cefrLevels = [
+  { code: 'A1', name: 'Beginner', bg: 'bg-red-500/10 border-red-500/20', color: 'text-red-400' },
+  { code: 'A2', name: 'Elementary', bg: 'bg-orange-500/10 border-orange-500/20', color: 'text-orange-400' },
+  { code: 'B1', name: 'Intermediate', bg: 'bg-amber-500/10 border-amber-500/20', color: 'text-amber-400' },
+  { code: 'B2', name: 'Upper-Int.', bg: 'bg-yellow-500/10 border-yellow-500/20', color: 'text-yellow-400' },
+  { code: 'C1', name: 'Advanced', bg: 'bg-emerald-500/10 border-emerald-500/20', color: 'text-emerald-400' },
+  { code: 'C2', name: 'Proficient', bg: 'bg-blue-500/10 border-blue-500/20', color: 'text-blue-400' },
+]
+</script>

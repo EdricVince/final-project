@@ -20,10 +20,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Play, Brain, Layers, BookOpen, Trophy, Zap } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
+import { Play, Brain, Layers, BookOpen, Trophy, Zap } from '@/components/icons'
 
 const router = useRouter()
+const { t } = useI18n({ useScope: 'global' })
 
 interface QuickAction {
   id: string
@@ -34,56 +37,14 @@ interface QuickAction {
   iconClass: string
 }
 
-const actions: QuickAction[] = [
-  {
-    id: 'continue',
-    label: 'Continue',
-    icon: Play,
-    path: '/courses',
-    bgClass: 'bg-chart-2/10',
-    iconClass: 'text-chart-2',
-  },
-  {
-    id: 'quiz',
-    label: 'Quick Quiz',
-    icon: Brain,
-    path: '/quizzes/speed-round',
-    bgClass: 'bg-chart-1/10',
-    iconClass: 'text-chart-1',
-  },
-  {
-    id: 'flashcards',
-    label: 'Flashcards',
-    icon: Layers,
-    path: '/flashcards',
-    bgClass: 'bg-chart-3/10',
-    iconClass: 'text-chart-3',
-  },
-  {
-    id: 'explore',
-    label: 'Explore',
-    icon: BookOpen,
-    path: '/courses/explore',
-    bgClass: 'bg-chart-4/10',
-    iconClass: 'text-chart-4',
-  },
-  {
-    id: 'achievements',
-    label: 'Achievements',
-    icon: Trophy,
-    path: '/achievements',
-    bgClass: 'bg-chart-5/10',
-    iconClass: 'text-chart-5',
-  },
-  {
-    id: 'challenges',
-    label: 'Challenges',
-    icon: Zap,
-    path: '/goals',
-    bgClass: 'bg-destructive/10',
-    iconClass: 'text-destructive',
-  },
-]
+const actions = computed<QuickAction[]>(() => [
+  { id: 'continue',     label: t('dashboard.quickActions.continue'),     icon: Play,   path: '/courses',            bgClass: 'bg-chart-2/10',    iconClass: 'text-chart-2' },
+  { id: 'quiz',         label: t('dashboard.quickActions.quiz'),         icon: Brain,  path: '/quizzes/speed-round',bgClass: 'bg-chart-1/10',    iconClass: 'text-chart-1' },
+  { id: 'flashcards',   label: t('dashboard.quickActions.flashcards'),   icon: Layers, path: '/flashcards',         bgClass: 'bg-chart-3/10',    iconClass: 'text-chart-3' },
+  { id: 'explore',      label: t('dashboard.quickActions.explore'),      icon: BookOpen,path: '/courses/explore',   bgClass: 'bg-chart-4/10',    iconClass: 'text-chart-4' },
+  { id: 'achievements', label: t('dashboard.quickActions.achievements'), icon: Trophy, path: '/achievements',       bgClass: 'bg-chart-5/10',    iconClass: 'text-chart-5' },
+  { id: 'challenges',   label: t('dashboard.quickActions.challenges'),   icon: Zap,    path: '/goals',              bgClass: 'bg-destructive/10',iconClass: 'text-destructive' },
+])
 
 const handleAction = (action: QuickAction) => {
   router.push(action.path)

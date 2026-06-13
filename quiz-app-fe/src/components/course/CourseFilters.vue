@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { Search, LayoutGrid, List } from 'lucide-vue-next'
+import { Search, LayoutGrid, List } from '@/components/icons'
 import type { FilterTab } from '@/types/course'
 
 interface Props {

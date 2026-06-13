@@ -127,7 +127,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Minus, Zap } from 'lucide-vue-next'
+import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Minus, Zap } from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
 import { useProgressStore } from '@/stores/progress.store'
 import type { LeaderboardItem } from '@/stores/progress.store'
@@ -161,7 +161,7 @@ const userInitials = computed(() => {
 
 const leaderboard = computed<LeaderboardUser[]>(() =>
   progressStore.leaderboard.map((item: LeaderboardItem) => {
-    const name = item.display_name || item.email.split('@')[0]
+    const name = item.display_name || item.email.split('@')[0] || 'User'
     return {
       id: item.user_id,
       name,
@@ -182,7 +182,7 @@ const rankChange = ref(0)
 const xpToNextRank = computed(() => {
   const userIndex = leaderboard.value.findIndex(u => u.isCurrentUser)
   if (userIndex <= 0) return 0
-  return leaderboard.value[userIndex - 1].xp - currentUserXP.value
+  return (leaderboard.value[userIndex - 1]?.xp ?? 0) - currentUserXP.value
 })
 
 const getRankClass = (index: number) => {

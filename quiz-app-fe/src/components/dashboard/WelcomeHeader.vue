@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { Star } from 'lucide-vue-next'
+import { Star } from '@/components/icons'
 
 defineProps<{
   userName: string

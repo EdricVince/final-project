@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { Copy, Trash2 } from 'lucide-vue-next'
+import { Copy, Trash2 } from '@/components/icons'
 
 interface Props {
   modelValue: boolean

@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
-import { CheckCircle, Clock, ArrowRight } from 'lucide-vue-next'
+import { CheckCircle, Clock, ArrowRight } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import type { Course } from '@/types/course'
 

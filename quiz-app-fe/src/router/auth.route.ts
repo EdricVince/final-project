@@ -1,12 +1,12 @@
 import AuthLayout from '@/layouts/AuthLayout.vue'
-import LoginPage from '@/pages/LoginPage.vue'
-import RegisterPage from '@/pages/RegisterPage.vue'
+import LoginPage from '@/pages/auth/LoginPage.vue'
+import RegisterPage from '@/pages/auth/RegisterPage.vue'
 
 export const AUTH_ROUTES = [
   {
     path: '/auth/callback',
     name: 'OAuthCallback',
-    component: () => import('@/pages/OAuthCallbackPage.vue'),
+    component: () => import('@/pages/auth/OAuthCallbackPage.vue'),
   },
   {
     path: '/',
@@ -27,7 +27,7 @@ export const AUTH_ROUTES = [
       {
         path: 'forgot-password',
         name: 'ForgotPassword',
-        component: () => import('@/pages/ForgotPasswordPage.vue'),
+        component: () => import('@/pages/auth/ForgotPasswordPage.vue'),
         meta: { requiresGuest: true },
       },
     ],

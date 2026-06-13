@@ -52,8 +52,8 @@
 </template>
 
 <script setup lang="ts">
-import { Sparkles, Trophy } from 'lucide-vue-next'
-import AchievementBadge from '@/components/profile/achievements/AchievementBadge.vue'
+import { Sparkles, Trophy } from '@/components/icons'
+import AchievementBadge from '@/components/achievements/AchievementBadge.vue'
 import type { EnhancedAchievement, AchievementRarity } from '@/types/profile'
 
 defineProps<{

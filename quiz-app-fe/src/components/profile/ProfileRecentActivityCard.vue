@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { Activity, BookOpen, CheckCircle, Trophy, Flame, Star, GraduationCap } from 'lucide-vue-next'
+import { Activity, BookOpen, CheckCircle, Trophy, Flame, Star, GraduationCap } from '@/components/icons'
 import type { Component } from 'vue'
 
 export type ActivityType = 'lesson' | 'quiz' | 'achievement' | 'streak' | 'milestone' | 'review'

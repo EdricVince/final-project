@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 
-export type LearningLanguage = 'en' | 'zh' | 'vi' | 'ja'
+export type LearningLanguage = 'en' | 'zh' | 'vi'
 
 export interface LearningLanguageOption {
   value: LearningLanguage
@@ -14,7 +14,6 @@ export const learningLanguageOptions: LearningLanguageOption[] = [
   { value: 'en', label: 'English',     flag: '🇺🇸', speechCode: 'en-US', name: 'American English' },
   { value: 'zh', label: '中文',        flag: '🇨🇳', speechCode: 'zh-CN', name: 'Chinese (Simplified)' },
   { value: 'vi', label: 'Tiếng Việt',  flag: '🇻🇳', speechCode: 'vi-VN', name: 'Vietnamese' },
-  { value: 'ja', label: '日本語',      flag: '🇯🇵', speechCode: 'ja-JP', name: 'Japanese' },
 ]
 
 const STORAGE_KEY = 'studyspark-learning-target'

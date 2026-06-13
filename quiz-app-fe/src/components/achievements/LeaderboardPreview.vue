@@ -21,13 +21,13 @@
         <div class="flex flex-col items-center gap-1.5">
           <div
             class="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
-            :class="isMe(users[1]) ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2' : 'bg-secondary text-foreground'"
+            :class="users[1] && isMe(users[1]) ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2' : 'bg-secondary text-foreground'"
           >
-            {{ getInitial(users[1]) }}
+            {{ users[1] ? getInitial(users[1]) : '?' }}
           </div>
           <div class="bg-chart-2/15 flex h-14 w-20 flex-col items-center justify-center rounded-t-lg border-t-2 border-chart-2/40">
             <p class="text-chart-2 text-xl font-bold leading-none">2</p>
-            <p class="text-muted-foreground mt-0.5 text-xs">{{ users[1].xp.toLocaleString() }} XP</p>
+            <p class="text-muted-foreground mt-0.5 text-xs">{{ users[1]?.xp.toLocaleString() }} XP</p>
           </div>
         </div>
 
@@ -36,13 +36,13 @@
           <Crown class="text-chart-1 h-5 w-5" />
           <div
             class="flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold"
-            :class="isMe(users[0]) ? 'bg-primary text-primary-foreground ring-2 ring-chart-1 ring-offset-2' : 'bg-chart-1 text-white'"
+            :class="users[0] && isMe(users[0]) ? 'bg-primary text-primary-foreground ring-2 ring-chart-1 ring-offset-2' : 'bg-chart-1 text-white'"
           >
-            {{ getInitial(users[0]) }}
+            {{ users[0] ? getInitial(users[0]) : '?' }}
           </div>
           <div class="bg-chart-1/15 flex h-20 w-20 flex-col items-center justify-center rounded-t-lg border-t-2 border-chart-1/40">
             <p class="text-chart-1 text-2xl font-bold leading-none">1</p>
-            <p class="text-muted-foreground mt-0.5 text-xs">{{ users[0].xp.toLocaleString() }} XP</p>
+            <p class="text-muted-foreground mt-0.5 text-xs">{{ users[0]?.xp.toLocaleString() }} XP</p>
           </div>
         </div>
 
@@ -50,13 +50,13 @@
         <div class="flex flex-col items-center gap-1.5">
           <div
             class="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
-            :class="isMe(users[2]) ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2' : 'bg-secondary text-foreground'"
+            :class="users[2] && isMe(users[2]) ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2' : 'bg-secondary text-foreground'"
           >
-            {{ getInitial(users[2]) }}
+            {{ users[2] ? getInitial(users[2]) : '?' }}
           </div>
           <div class="bg-chart-4/15 flex h-10 w-20 flex-col items-center justify-center rounded-t-lg border-t-2 border-chart-4/40">
             <p class="text-chart-4 text-xl font-bold leading-none">3</p>
-            <p class="text-muted-foreground mt-0.5 text-xs">{{ users[2].xp.toLocaleString() }} XP</p>
+            <p class="text-muted-foreground mt-0.5 text-xs">{{ users[2]?.xp.toLocaleString() }} XP</p>
           </div>
         </div>
       </div>
@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { Medal, Crown, Trophy } from 'lucide-vue-next'
+import { Medal, Crown, Trophy } from '@/components/icons'
 import type { LeaderboardItem } from '@/stores/progress.store'
 
 const props = defineProps<{

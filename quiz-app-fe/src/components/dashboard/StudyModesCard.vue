@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { Gamepad2, ArrowRight } from 'lucide-vue-next'
+import { Gamepad2, ArrowRight } from '@/components/icons'
 import type { StudyMode } from '@/types/dashboard'
 
 interface Props {

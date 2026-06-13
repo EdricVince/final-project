@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { AlertTriangle, LogOut, Trash2 } from 'lucide-vue-next'
+import { AlertTriangle, LogOut, Trash2 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 
 defineEmits<{

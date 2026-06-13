@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { Check, Star, Trash2 } from 'lucide-vue-next'
+import { Check, Star, Trash2 } from '@/components/icons'
 
 export interface CustomGoal {
   id: string

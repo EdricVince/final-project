@@ -106,7 +106,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { X } from 'lucide-vue-next'
+import { X } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { CLASS_SUBJECTS, type Class, type CreateClassDto } from '@/types/class'
 

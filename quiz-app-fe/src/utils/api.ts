@@ -69,7 +69,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     }
 
     if (response.status >= 200 && response.status < 300) {
-      return (responseData as ApiResponse<T>).data
+      return responseData ? (responseData as ApiResponse<T>).data : (undefined as T)
     }
 
     const errorData = responseData as ApiErrorResponse
@@ -193,7 +193,10 @@ export const api = {
     apiRequest<unknown>('/classes/join', { method: 'POST', body: JSON.stringify({ class_code: classCode }) }),
 
   // ── Videos ───────────────────────────────────────────────────
-  getClassVideos: (classId: number): Promise<unknown[]> => apiRequest<unknown[]>(`/classes/${classId}/videos`),
+  getVideos: (classId?: number): Promise<unknown[]> => {
+    const q = classId ? `?class_id=${classId}` : ''
+    return apiRequest<unknown[]>(`/videos${q}`)
+  },
 
   getVideo: (id: number): Promise<unknown> => apiRequest<unknown>(`/videos/${id}`),
 
@@ -201,10 +204,32 @@ export const api = {
     apiRequest<unknown>('/videos', { method: 'POST', body: JSON.stringify(data) }),
 
   updateVideo: (id: number, data: unknown): Promise<unknown> =>
-    apiRequest<unknown>(`/videos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    apiRequest<unknown>(`/videos/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
-  deleteVideo: (id: number): Promise<SuccessResponse> =>
-    apiRequest<SuccessResponse>(`/videos/${id}`, { method: 'DELETE' }),
+  deleteVideo: (id: number): Promise<void> =>
+    apiRequest<void>(`/videos/${id}`, { method: 'DELETE' }),
+
+  // ── Live Quiz ─────────────────────────────────────────────────
+  createLiveSession: (data: { title: string; class_id?: number; questions?: unknown[] }): Promise<unknown> =>
+    apiRequest<unknown>('/live-quiz', { method: 'POST', body: JSON.stringify(data) }),
+
+  getMyLiveSessions: (): Promise<unknown[]> => apiRequest<unknown[]>('/live-quiz/my'),
+
+  joinLiveSession: (pin: string): Promise<unknown> => apiRequest<unknown>(`/live-quiz/join/${pin}`),
+
+  getLiveSession: (id: number): Promise<unknown> => apiRequest<unknown>(`/live-quiz/${id}`),
+
+  updateLiveStatus: (id: number, status: string): Promise<unknown> =>
+    apiRequest<unknown>(`/live-quiz/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+
+  nextLiveQuestion: (id: number): Promise<unknown> =>
+    apiRequest<unknown>(`/live-quiz/${id}/next`, { method: 'PATCH' }),
+
+  updateLiveQuestions: (id: number, questions: unknown[]): Promise<unknown> =>
+    apiRequest<unknown>(`/live-quiz/${id}/questions`, { method: 'PATCH', body: JSON.stringify({ questions }) }),
+
+  deleteLiveSession: (id: number): Promise<void> =>
+    apiRequest<void>(`/live-quiz/${id}`, { method: 'DELETE' }),
 
   // ── Tests ─────────────────────────────────────────────────────
   getTests: (): Promise<unknown[]> => apiRequest<unknown[]>('/tests'),
@@ -273,4 +298,76 @@ export const api = {
 
   deleteCustomGoal: (id: number): Promise<unknown> =>
     apiRequest<unknown>(`/goals/custom/${id}`, { method: 'DELETE' }),
+
+  // ── Entrance Exam ─────────────────────────────────────────────
+  generateExam: (data: { exam_type: 'ielts' | 'toeic'; question_count?: number; variant?: number }): Promise<{ questions: any[]; time_limit: number; exam_type: string; variant: number }> =>
+    apiRequest('/entrance-exam/generate', { method: 'POST', body: JSON.stringify(data) }),
+
+  submitExam: (data: { exam_type: string; answers: { question_id: number; selected?: number; written?: string }[]; questions: any[] }): Promise<any> =>
+    apiRequest('/entrance-exam/submit', { method: 'POST', body: JSON.stringify(data) }),
+
+  // ── Schedule ──────────────────────────────────────────────────
+  generateSchedule: (data: { current_level: string; target_exam: string; target_band?: string; weekly_hours: number; focus_areas?: string[] }): Promise<any> =>
+    apiRequest('/schedule/generate', { method: 'POST', body: JSON.stringify(data) }),
+
+  // ── Skills ───────────────────────────────────────────────────
+  getReadingPassage: (params?: { level?: string; type?: string; topic?: string }): Promise<any> => {
+    const q = params ? '?' + new URLSearchParams(params as Record<string, string>).toString() : ''
+    return apiRequest<any>(`/skills/reading/passage${q}`)
+  },
+
+  submitReadingAnswers: (data: { passage_id: string; answers: number[]; questions: { correct: number }[] }): Promise<any> =>
+    apiRequest<any>('/skills/reading/submit', { method: 'POST', body: JSON.stringify(data) }),
+
+  getListeningExercise: (params?: { level?: string; type?: string; topic?: string }): Promise<any> => {
+    const q = params ? '?' + new URLSearchParams(params as Record<string, string>).toString() : ''
+    return apiRequest<any>(`/skills/listening/exercise${q}`)
+  },
+
+  getWritingPrompt: (params?: { type?: string; level?: string }): Promise<any> => {
+    const q = params ? '?' + new URLSearchParams(params as Record<string, string>).toString() : ''
+    return apiRequest<any>(`/skills/writing/prompt${q}`)
+  },
+
+  submitWriting: (data: { prompt: string; essay: string; type: string; time_taken_seconds: number }): Promise<any> =>
+    apiRequest<any>('/skills/writing/submit', { method: 'POST', body: JSON.stringify(data) }),
+
+  getSpeakingExercise: (level?: string): Promise<any> => {
+    const q = level ? `?level=${level}` : ''
+    return apiRequest<any>(`/skills/speaking/exercise${q}`)
+  },
+
+  evaluateSpeaking: (data: { target_text: string; spoken_transcript: string; level?: string }): Promise<any> =>
+    apiRequest<any>('/skills/speaking/evaluate', { method: 'POST', body: JSON.stringify(data) }),
+
+  getSpeakingPrompt: (level?: string): Promise<any> => {
+    const q = level ? `?level=${level}` : ''
+    return apiRequest<any>(`/skills/speaking/prompt${q}`)
+  },
+
+  // ── AI ────────────────────────────────────────────────────────
+  getWordOfTheDay: (): Promise<{
+    word: string
+    phonetic: string
+    partOfSpeech: string
+    definition: string
+    example: string
+    synonyms: string[]
+    difficulty: 'beginner' | 'intermediate' | 'advanced'
+    tip: string
+  }> => apiRequest('/ai/word-of-the-day'),
+
+  importScan: (body: { url?: string; text?: string; language?: string }): Promise<unknown> =>
+    apiRequest('/ai/import/scan', { method: 'POST', body: JSON.stringify(body) }),
+
+  // ── Lessons ───────────────────────────────────────────────────
+  getLessons: (): Promise<unknown> => apiRequest('/lessons'),
+  getLessonById: (id: number): Promise<unknown> => apiRequest(`/lessons/${id}`),
+  createLesson: (body: {
+    title: string; description?: string; category?: string; difficulty?: string
+    class_id?: number; content: unknown
+  }): Promise<unknown> =>
+    apiRequest('/lessons', { method: 'POST', body: JSON.stringify(body) }),
+  deleteLesson: (id: number): Promise<void> =>
+    apiRequest(`/lessons/${id}`, { method: 'DELETE' }),
 }

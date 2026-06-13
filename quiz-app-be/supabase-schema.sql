@@ -70,6 +70,57 @@ CREATE TABLE IF NOT EXISTS user_custom_goals (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- 7. CLASSES
+CREATE TABLE IF NOT EXISTS classes (
+  id            SERIAL PRIMARY KEY,
+  teacher_id    INTEGER NOT NULL,
+  name          VARCHAR(255) NOT NULL,
+  description   TEXT,
+  subject       VARCHAR(100),
+  class_code    VARCHAR(10) NOT NULL UNIQUE,
+  student_limit INTEGER NOT NULL DEFAULT 30,
+  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 8. CLASS ENROLLMENTS
+CREATE TABLE IF NOT EXISTS class_enrollments (
+  id         SERIAL PRIMARY KEY,
+  class_id   INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  joined_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(class_id, student_id)
+);
+
+-- 9. VIDEOS
+CREATE TABLE IF NOT EXISTS videos (
+  id           SERIAL PRIMARY KEY,
+  teacher_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  class_id     INTEGER REFERENCES classes(id) ON DELETE SET NULL,
+  title        VARCHAR(255) NOT NULL,
+  description  TEXT,
+  video_url    VARCHAR(500) NOT NULL,
+  lesson_name  VARCHAR(255),
+  duration     INTEGER NOT NULL DEFAULT 0,
+  is_published BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 10. LIVE SESSIONS
+CREATE TABLE IF NOT EXISTS live_sessions (
+  id               SERIAL PRIMARY KEY,
+  teacher_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  class_id         INTEGER REFERENCES classes(id) ON DELETE SET NULL,
+  title            VARCHAR(255) NOT NULL,
+  pin              VARCHAR(8) NOT NULL UNIQUE,
+  questions        TEXT,
+  status           VARCHAR(20) NOT NULL DEFAULT 'waiting',
+  current_question INTEGER NOT NULL DEFAULT 0,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ── Indexes ──────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_users_email        ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role_id      ON users(role_id);
@@ -77,6 +128,13 @@ CREATE INDEX IF NOT EXISTS idx_user_progress_uid  ON user_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_daily_act_uid_date ON daily_activities(user_id, activity_date);
 CREATE INDEX IF NOT EXISTS idx_goal_settings_uid  ON user_goal_settings(user_id);
 CREATE INDEX IF NOT EXISTS idx_custom_goals_uid   ON user_custom_goals(user_id);
+CREATE INDEX IF NOT EXISTS idx_classes_teacher     ON classes(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_classes_code        ON classes(class_code);
+CREATE INDEX IF NOT EXISTS idx_enrollments_class   ON class_enrollments(class_id);
+CREATE INDEX IF NOT EXISTS idx_enrollments_student ON class_enrollments(student_id);
+CREATE INDEX IF NOT EXISTS idx_videos_class        ON videos(class_id);
+CREATE INDEX IF NOT EXISTS idx_videos_teacher      ON videos(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_live_sessions_pin   ON live_sessions(pin);
 
 -- ── Auto-update updated_at ────────────────────────────────────
 CREATE OR REPLACE FUNCTION update_updated_at()

@@ -50,7 +50,10 @@
                 {{ set.emoji }}
               </div>
               <div class="min-w-0 flex-1">
-                <p class="text-foreground truncate text-sm font-medium">{{ set.name }}</p>
+                <div class="flex items-center gap-2">
+                  <p class="text-foreground truncate text-sm font-medium">{{ set.name }}</p>
+                  <span v-if="set.published" class="shrink-0 rounded-full bg-chart-2/15 px-1.5 py-0.5 text-xs font-semibold text-chart-2">Live</span>
+                </div>
                 <p class="text-muted-foreground text-xs">{{ set.words.length }} words · {{ set.language }}</p>
               </div>
               <div class="flex shrink-0 gap-1">
@@ -76,6 +79,23 @@
         <div v-if="selectedSet" class="bg-card border-border rounded-2xl border">
           <!-- Set Header -->
           <div class="border-border border-b px-6 py-4">
+            <!-- Publish bar -->
+            <div class="mb-3 flex items-center justify-between rounded-xl px-4 py-2.5" :class="selectedSet.published ? 'bg-chart-2/10' : 'bg-secondary/50'">
+              <div class="flex items-center gap-2">
+                <component :is="selectedSet.published ? CheckCircle : Globe" class="h-4 w-4" :class="selectedSet.published ? 'text-chart-2' : 'text-muted-foreground'" />
+                <span class="text-sm font-medium" :class="selectedSet.published ? 'text-chart-2' : 'text-muted-foreground'">
+                  {{ selectedSet.published ? 'Published — visible to students' : 'Draft — not visible to students' }}
+                </span>
+              </div>
+              <button
+                class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
+                :class="selectedSet.published ? 'bg-chart-2 text-white hover:bg-chart-2/80' : 'bg-primary text-primary-foreground hover:bg-primary/90'"
+                @click="togglePublish(selectedSet)"
+              >
+                <component :is="selectedSet.published ? EyeOff : Eye" class="h-3.5 w-3.5" />
+                {{ selectedSet.published ? 'Unpublish' : 'Publish to Students' }}
+              </button>
+            </div>
             <div class="mb-3 flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl text-xl" :class="selectedSet.bgColor">
@@ -196,10 +216,8 @@
                   class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 >
                   <option>English</option>
-                  <option>Japanese</option>
+                  <option>Vietnamese</option>
                   <option>Chinese</option>
-                  <option>French</option>
-                  <option>Korean</option>
                 </select>
               </div>
               <div>
@@ -240,7 +258,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Plus, Trash2, X, BookOpen, Languages, FileText, GraduationCap } from 'lucide-vue-next'
+import { Plus, Trash2, X, BookOpen, Languages, FileText, Globe, Eye, EyeOff, CheckCircle } from '@/components/icons'
 
 interface VocabWord {
   id: number
@@ -256,6 +274,7 @@ interface VocabSet {
   class: string
   emoji: string
   bgColor: string
+  published: boolean
   words: VocabWord[]
 }
 
@@ -269,9 +288,11 @@ const newSet = ref({ name: '', language: 'English', class: '' })
 const stats = computed(() => [
   { label: 'Total Sets', value: sets.value.length, icon: Languages, color: 'text-primary', bg: 'bg-primary/10' },
   { label: 'Total Words', value: sets.value.reduce((s, v) => s + v.words.length, 0), icon: BookOpen, color: 'text-chart-2', bg: 'bg-chart-2/10' },
-  { label: 'Languages', value: new Set(sets.value.map(s => s.language)).size, icon: GraduationCap, color: 'text-chart-3', bg: 'bg-chart-3/10' },
+  { label: 'Published', value: sets.value.filter(s => s.published).length, icon: Globe, color: 'text-chart-3', bg: 'bg-chart-3/10' },
   { label: 'Assigned', value: sets.value.filter(s => s.class).length, icon: FileText, color: 'text-chart-1', bg: 'bg-chart-1/10' },
 ])
+
+const togglePublish = (set: VocabSet) => { set.published = !set.published }
 
 const openCreateSet = () => {
   newSet.value = { name: '', language: 'English', class: '' }
@@ -287,8 +308,9 @@ const createSet = () => {
     name: newSet.value.name,
     language: newSet.value.language,
     class: newSet.value.class,
-    emoji: emojis[Math.floor(Math.random() * emojis.length)],
-    bgColor: colors[Math.floor(Math.random() * colors.length)],
+    emoji: emojis[Math.floor(Math.random() * emojis.length)] ?? '📚',
+    bgColor: colors[Math.floor(Math.random() * colors.length)] ?? 'bg-chart-1/10',
+    published: false,
     words: [],
   }
   sets.value.push(set)

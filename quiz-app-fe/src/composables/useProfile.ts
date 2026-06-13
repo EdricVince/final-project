@@ -10,7 +10,7 @@ import {
   Rocket,
   Brain,
   GraduationCap,
-} from 'lucide-vue-next'
+} from '@/components/icons'
 import { useToast } from './useToast'
 import { useAuthStore } from '@/stores/auth.store'
 import { useProgressStore } from '@/stores/progress.store'
@@ -73,7 +73,7 @@ export function useProfile() {
   // Get user info from auth store
   const getUserName = () => {
     if (authStore.user?.name) return authStore.user.name
-    if (authStore.user?.email) return authStore.user.email.split('@')[0]
+    if (authStore.user?.email) return authStore.user.email.split('@')[0] ?? 'Guest User'
     return 'Guest User'
   }
 

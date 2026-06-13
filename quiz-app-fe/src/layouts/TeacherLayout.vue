@@ -224,6 +224,7 @@ import {
   Video,
   Languages,
   GraduationCap,
+  Upload,
   Menu,
   LogOut,
   ChevronDown,
@@ -231,7 +232,7 @@ import {
   PanelLeftOpen,
   Radio,
   BarChart2,
-} from 'lucide-vue-next'
+} from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
 
 const { locale } = useI18n({ useScope: 'global' })
@@ -256,6 +257,7 @@ const contentNavItems = [
   { path: '/teacher/tests', label: 'Tests', icon: FileText },
   { path: '/teacher/live', label: 'Live Quiz', icon: Radio },
   { path: '/teacher/videos', label: 'Videos', icon: Video },
+  { path: '/teacher/import', label: 'AI Import', icon: Upload },
 ]
 
 const pageTitles: Record<string, string> = {
@@ -268,6 +270,7 @@ const pageTitles: Record<string, string> = {
   '/teacher/tests': 'Tests',
   '/teacher/live': 'Live Quiz',
   '/teacher/videos': 'Videos',
+  '/teacher/import': 'AI Import',
 }
 
 const currentPageTitle = computed(() => {
@@ -280,14 +283,14 @@ const currentPageTitle = computed(() => {
 
 const userName = computed(() => {
   if (authStore.user?.name) return authStore.user.name
-  if (authStore.user?.email) return authStore.user.email.split('@')[0]
+  if (authStore.user?.email) return authStore.user.email.split('@')[0] ?? 'Teacher'
   return 'Teacher'
 })
 
 const userInitials = computed(() => {
   const name = userName.value
   const parts = name.split(' ')
-  return parts.map((p: string) => p[0]).join('').toUpperCase().slice(0, 2)
+  return parts.map((p: string) => p[0] ?? '').join('').toUpperCase().slice(0, 2)
 })
 
 const isActive = (path: string) =>

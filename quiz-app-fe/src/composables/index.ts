@@ -1,4 +1,3 @@
-export { useLoginAnimation } from './useLoginAnimation'
 export { useLocale } from './useLocale'
 export type { SupportedLocale } from './useLocale'
 export { useToast } from './useToast'

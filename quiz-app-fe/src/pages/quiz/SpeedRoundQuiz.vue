@@ -132,9 +132,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { X, Flame } from 'lucide-vue-next'
+import { X, Flame } from '@/components/icons'
 import QuizResult from '@/components/quiz/QuizResult.vue'
 import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
 import QuizExitModal from '@/components/quiz/QuizExitModal.vue'

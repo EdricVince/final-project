@@ -31,9 +31,10 @@
               <span class="bg-primary/10 text-primary rounded-lg px-3 py-1.5 text-sm font-medium">
                 Question {{ gameState.currentQuestion + 1 }}
               </span>
-              <span class="text-muted-foreground text-sm">
-                +{{ getQuestionPoints() }} points
-              </span>
+              <div class="flex items-center gap-3">
+                <ComboMultiplier :combo="gameState.streak" />
+                <span class="text-muted-foreground text-sm">+{{ getQuestionPoints() }} pts</span>
+              </div>
             </div>
 
             <!-- Question Text -->
@@ -109,17 +110,23 @@
 
     <!-- Exit Confirmation Modal -->
     <QuizExitModal v-model="showExitModal" @confirm="goToQuizzes" />
+
+    <!-- XP Float -->
+    <XPFloat ref="xpFloat" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { CheckCircle, XCircle, ArrowRight } from 'lucide-vue-next'
+import { CheckCircle, XCircle, ArrowRight } from '@/components/icons'
 import QuizHeader from '@/components/quiz/QuizHeader.vue'
 import QuizResult from '@/components/quiz/QuizResult.vue'
 import VocabResultsTable from '@/components/quiz/VocabResultsTable.vue'
 import QuizExitModal from '@/components/quiz/QuizExitModal.vue'
+import ComboMultiplier from '@/components/quiz/ComboMultiplier.vue'
+import XPFloat from '@/components/ui/XPFloat.vue'
+import { sfx } from '@/utils/soundFx'
 import type { MultipleChoiceQuestion, QuizResult as QuizResultType, QuizState } from '@/types/quiz'
 import { useProgressStore } from '@/stores/progress.store'
 import { useQuizStore } from '@/stores/quiz.store'
@@ -149,6 +156,7 @@ const gameState = ref<QuizState>({
 
 const selectedAnswer = ref<string | null>(null)
 const showExitModal = ref(false)
+const xpFloat = ref<InstanceType<typeof XPFloat> | null>(null)
 const startTime = ref(Date.now())
 const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrect: boolean }[]>([])
 
@@ -226,9 +234,13 @@ const selectAnswer = (option: string) => {
     gameState.value.correctCount++
     gameState.value.streak++
     gameState.value.score += getQuestionPoints()
+    sfx.correct()
+    if (gameState.value.streak >= 2) sfx.combo(gameState.value.streak)
+    xpFloat.value?.trigger(getQuestionPoints())
   } else {
     gameState.value.wrongCount++
     gameState.value.streak = 0
+    sfx.wrong()
   }
 
   const q = currentQuestion.value as VocabMCQuestion

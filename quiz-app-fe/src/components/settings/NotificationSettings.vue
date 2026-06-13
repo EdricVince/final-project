@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { Bell, Clock, Mail, Flame, Trophy, Zap } from 'lucide-vue-next'
+import { Bell, Clock, Mail, Flame, Trophy, Zap } from '@/components/icons'
 
 export interface NotificationData {
   email: boolean

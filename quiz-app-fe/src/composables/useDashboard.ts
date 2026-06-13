@@ -15,7 +15,7 @@ import {
   Zap,
   CheckCircle,
   ListChecks,
-} from 'lucide-vue-next'
+} from '@/components/icons'
 
 import type {
   DashboardStats,

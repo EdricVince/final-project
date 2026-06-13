@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { FileText } from 'lucide-vue-next'
+import { FileText } from '@/components/icons'
 
 interface Props {
   bio: string

@@ -32,7 +32,7 @@
                 :model-value="form.url"
                 placeholder="https://..."
                 class="h-11 rounded-xl"
-                @update:model-value="updateForm('url', $event)"
+                @update:model-value="updateForm('url', String($event))"
               />
             </div>
           </div>

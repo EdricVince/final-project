@@ -74,16 +74,6 @@
               </div>
             </div>
 
-            <!-- Floating card: Japanese -->
-            <div class="animate-float-d absolute bottom-10 left-4">
-              <div
-                class="rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 shadow-lg backdrop-blur-sm"
-              >
-                <p class="text-xl font-bold leading-none text-white">あ</p>
-                <p class="mt-0.5 text-[10px] text-white/50">日本語</p>
-              </div>
-            </div>
-
             <!-- Floating card: French -->
             <div class="animate-float-b absolute bottom-6 right-1">
               <div
@@ -167,11 +157,5 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from 'vue'
-import { Sparkles, BookOpen, Target, Trophy, Zap } from 'lucide-vue-next'
-
-// Kept for child components (LoginPage) that inject this ref.
-// useLoginAnimation guards all calls with `if (!animationRef.value) return`.
-const riveAnimationRef = ref(null)
-provide('loginAnimationRef', riveAnimationRef)
+import { Sparkles, BookOpen, Target, Trophy, Zap } from '@/components/icons'
 </script>

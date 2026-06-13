@@ -59,8 +59,8 @@ const levelThresholds = [
 
 const level = computed(() => {
   for (let i = levelThresholds.length - 1; i >= 0; i--) {
-    if (props.totalXP >= levelThresholds[i].xp) {
-      return levelThresholds[i].level
+    if (props.totalXP >= (levelThresholds[i]?.xp ?? 0)) {
+      return levelThresholds[i]?.level ?? 1
     }
   }
   return 1

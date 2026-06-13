@@ -126,7 +126,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Plus, FileText, BarChart, Pencil, Trash2, HelpCircle, Users, BarChart2 } from 'lucide-vue-next'
+import { Plus, FileText, BarChart, Pencil, Trash2, HelpCircle, Users, BarChart2 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 

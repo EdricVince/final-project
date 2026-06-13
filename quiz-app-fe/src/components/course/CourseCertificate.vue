@@ -130,7 +130,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { GraduationCap, Award, Sparkles, Download, Share2 } from 'lucide-vue-next'
+import { GraduationCap, Award, Sparkles, Download, Share2 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import Confetti from '@/components/ui/Confetti.vue'
 import { useToast } from '@/composables/useToast'
@@ -161,11 +161,10 @@ const emit = defineEmits<{
 }>()
 
 const toast = useToast()
-const certificateRef = ref<HTMLElement | null>(null)
 const showConfetti = ref(false)
 
 const certificateId = computed(() => {
-  const hash = btoa(`${props.userName}-${props.courseName}-${Date.now()}`)
+  const hash = btoa(`${props.userName}-${props.courseName}-${props.totalLessons}`)
   return `CERT-${hash.slice(0, 8).toUpperCase()}`
 })
 

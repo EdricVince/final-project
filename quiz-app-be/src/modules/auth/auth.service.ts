@@ -5,6 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ROLE_STUDENT } from '../roles/entities/role.entity';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto, UserOutDto, LoginResponseDto, ProfileDto, UpdateProfileDto } from './dto/register.dto';
@@ -34,7 +35,8 @@ export class AuthService {
       exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
     })).toString('base64url');
 
-    const secret = this.configService.get<string>('JWT_SECRET') || 'secret';
+    const secret = this.configService.get<string>('JWT_SECRET');
+    if (!secret) throw new InternalServerErrorException('JWT_SECRET not configured');
     const signature = crypto
       .createHmac('sha256', secret)
       .update(`${header}.${payloadStr}`)
@@ -44,7 +46,7 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<UserOutDto> {
-    const { email, password, role_id } = registerDto;
+    const { email, password } = registerDto;
 
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
@@ -54,7 +56,7 @@ export class AuthService {
     const hashedPassword = await this.hashPassword(password);
 
     try {
-      const user = await this.usersService.create(email, hashedPassword, role_id);
+      const user = await this.usersService.create(email, hashedPassword, ROLE_STUDENT);
 
       return {
         id: user.id,
@@ -156,7 +158,7 @@ export class AuthService {
 
     if (!user) {
       const placeholder = await bcrypt.hash(crypto.randomUUID(), 12);
-      user = await this.usersService.create(email, placeholder, 1);
+      user = await this.usersService.create(email, placeholder, ROLE_STUDENT);
       if (name) await this.usersService.update(user.id, { name });
     }
 
@@ -187,16 +189,20 @@ export class AuthService {
       throw new UnauthorizedException('Invalid token format');
     }
     const [header, payloadPart, signature] = parts;
-    const secret = this.configService.get<string>('JWT_SECRET') || 'secret';
+    const secret = this.configService.get<string>('JWT_SECRET');
+    if (!secret) throw new InternalServerErrorException('JWT_SECRET not configured');
     const expectedSig = crypto.createHmac('sha256', secret).update(`${header}.${payloadPart}`).digest('base64url');
     if (expectedSig !== signature) {
       throw new UnauthorizedException('Invalid token signature');
     }
-    let payload: { sub: number; email: string; role_id: number };
+    let payload: { sub: number; email: string; role_id: number; exp: number };
     try {
       payload = JSON.parse(Buffer.from(payloadPart!, 'base64url').toString('utf8'));
     } catch {
       throw new UnauthorizedException('Invalid token payload');
+    }
+    if (payload.exp < Math.floor(Date.now() / 1000) - 24 * 60 * 60) {
+      throw new UnauthorizedException('Token too old to refresh');
     }
     return this.refreshToken(payload.sub, payload.email, payload.role_id);
   }

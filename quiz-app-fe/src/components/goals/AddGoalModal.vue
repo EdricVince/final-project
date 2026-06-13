@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { X } from 'lucide-vue-next'
+import { X } from '@/components/icons'
 
 const props = defineProps<{
   show: boolean

@@ -2,90 +2,112 @@
   <div class="bg-background flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <aside
-      class="bg-sidebar border-sidebar-border flex flex-col overflow-hidden border-r transition-all duration-300 ease-in-out"
-      :class="[isCollapsed ? 'w-20' : 'w-64']"
+      class="bg-sidebar border-sidebar-border relative flex flex-col overflow-hidden border-r shadow-sm"
+      :class="[isCollapsed ? 'w-17' : 'w-64']"
+      style="transition: width 300ms cubic-bezier(0.4,0,0.2,1)"
     >
+      <!-- Top accent line -->
+      <div class="bg-sidebar-primary absolute top-0 left-0 right-0 h-0.5 opacity-60" />
+
       <!-- Logo -->
-      <div class="border-sidebar-border flex h-16 items-center border-b px-4">
-        <div
-          class="flex cursor-pointer items-center gap-3 overflow-hidden"
+      <div class="border-sidebar-border flex h-16 items-center border-b px-3">
+        <button
+          class="hover:bg-sidebar-accent flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-xl p-2 transition-colors duration-200"
+          :class="isCollapsed ? 'justify-center' : ''"
           @click="router.push('/dashboard')"
         >
-          <div class="bg-sidebar-primary text-sidebar-primary-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-            <Sparkles class="h-5 w-5" />
+          <div class="bg-sidebar-primary text-sidebar-primary-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-sm">
+            <Sparkles class="h-4 w-4" />
           </div>
-          <span
-            class="text-sidebar-foreground whitespace-nowrap text-xl font-bold tracking-tight transition-opacity duration-300"
-            :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"
+          <div
+            class="overflow-hidden text-left"
+            style="transition: opacity 200ms ease, max-width 300ms cubic-bezier(0.4,0,0.2,1)"
+            :style="isCollapsed ? { opacity: '0', maxWidth: '0' } : { opacity: '1', maxWidth: '160px' }"
           >
-            StudySpark
-          </span>
-        </div>
+            <div class="text-sidebar-foreground whitespace-nowrap text-sm font-bold tracking-tight">StudySpark</div>
+            <div class="text-sidebar-foreground/40 whitespace-nowrap text-[10px] font-medium">AI Learning Platform</div>
+          </div>
+        </button>
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 space-y-1 overflow-y-auto p-3">
-        <div v-for="section in menuSections" :key="section.title" class="mb-6">
-          <p
-            v-if="!isCollapsed"
-            class="text-sidebar-foreground/50 mb-2 px-3 text-xs font-semibold uppercase tracking-wider"
+      <nav class="flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden px-2 py-3">
+        <div v-for="section in menuSections" :key="section.title" class="mb-4">
+          <!-- Section label (expanded) or divider (collapsed) -->
+          <div
+            class="overflow-hidden"
+            style="transition: max-height 300ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease"
+            :style="isCollapsed ? { maxHeight: '1px', opacity: '0', marginBottom: '8px' } : { maxHeight: '32px', opacity: '1', marginBottom: '4px' }"
           >
-            {{ section.title }}
-          </p>
-          <div v-else class="border-sidebar-border mb-2 border-t"></div>
+            <p class="text-sidebar-foreground/40 px-3 text-[10px] font-semibold uppercase tracking-widest">
+              {{ section.title }}
+            </p>
+          </div>
+          <div v-if="isCollapsed" class="border-sidebar-border mx-3 mb-2 border-t opacity-30" />
 
           <router-link
             v-for="item in section.items"
             :key="item.path"
             :to="item.path"
-            class="nav-item group relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200"
+            class="nav-item group relative mb-0.5 flex items-center rounded-xl px-3 py-2.5"
+            style="transition: background-color 150ms, color 150ms"
             :class="[
+              isCollapsed ? 'justify-center' : 'gap-3',
               isActiveRoute(item.path)
                 ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
             ]"
           >
-            <!-- Active indicator -->
+            <!-- Active pill -->
             <div
               v-if="isActiveRoute(item.path)"
-              class="bg-sidebar-primary absolute left-0 h-6 w-1 rounded-r-full"
-            ></div>
+              class="bg-sidebar-primary absolute left-0 top-1/2 h-5 w-0.75 -translate-y-1/2 rounded-r-full"
+            />
 
             <component
               :is="item.icon"
-              class="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110"
+              class="h-4.5 w-4.5 shrink-0 transition-transform duration-150 group-hover:scale-105"
+              :class="isActiveRoute(item.path) ? 'text-sidebar-primary' : ''"
             />
+
             <span
-              class="whitespace-nowrap transition-opacity duration-300"
-              :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"
+              class="overflow-hidden whitespace-nowrap text-sm font-medium"
+              style="transition: opacity 200ms ease, max-width 300ms cubic-bezier(0.4,0,0.2,1)"
+              :style="isCollapsed ? { opacity: '0', maxWidth: '0' } : { opacity: '1', maxWidth: '160px' }"
             >
               {{ item.label }}
             </span>
 
             <!-- Tooltip when collapsed -->
-            <div
-              v-if="isCollapsed"
-              class="bg-sidebar-foreground text-sidebar pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100"
-            >
-              {{ item.label }}
-            </div>
+            <Transition name="tooltip">
+              <div
+                v-if="isCollapsed"
+                class="bg-popover border-border text-popover-foreground pointer-events-none absolute left-[calc(100%+12px)] z-50 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+              >
+                {{ item.label }}
+                <div class="border-border bg-popover absolute right-full top-1/2 -translate-y-1/2 h-2 w-2 rotate-45 border-l border-b -mr-px" />
+              </div>
+            </Transition>
           </router-link>
         </div>
       </nav>
 
       <!-- Collapse Button -->
-      <div class="border-sidebar-border border-t p-3">
+      <div class="border-sidebar-border border-t p-2">
         <button
-          class="text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200"
+          class="text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-150"
+          :class="isCollapsed ? 'justify-center' : ''"
           @click="toggleSidebar"
+          :title="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         >
           <component
             :is="isCollapsed ? PanelLeftOpen : PanelLeftClose"
-            class="h-5 w-5 shrink-0"
+            class="h-4.5 w-4.5 shrink-0 transition-transform duration-200 group-hover:scale-105"
           />
           <span
-            class="whitespace-nowrap transition-opacity duration-300"
-            :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"
+            class="overflow-hidden whitespace-nowrap text-sm font-medium"
+            style="transition: opacity 200ms ease, max-width 300ms cubic-bezier(0.4,0,0.2,1)"
+            :style="isCollapsed ? { opacity: '0', maxWidth: '0' } : { opacity: '1', maxWidth: '160px' }"
           >
             {{ $t('nav.sidebar.collapse') }}
           </span>
@@ -97,17 +119,25 @@
     <div class="flex flex-1 flex-col overflow-hidden">
       <!-- Header -->
       <header class="bg-card border-border flex h-16 shrink-0 items-center justify-between border-b px-6">
-        <!-- Left: Breadcrumb / Page Title -->
-        <div class="flex items-center gap-4">
+        <!-- Left: Back button (sub-pages / page-back) or Page Title -->
+        <div class="flex items-center gap-3">
           <button
-            class="text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg p-2 transition-colors lg:hidden"
-            @click="toggleSidebar"
+            v-if="backFn"
+            class="group flex items-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/8 px-3.5 py-1.5 text-sm font-semibold text-indigo-400 transition-all duration-200 hover:border-indigo-500/40 hover:bg-indigo-500/15 active:scale-95"
+            @click="backFn()"
           >
-            <Menu class="h-5 w-5" />
+            <ArrowLeft class="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" />
+            {{ backLabel }}
           </button>
-          <div>
-            <h1 class="text-foreground text-lg font-semibold">{{ currentPageTitle }}</h1>
-          </div>
+          <button
+            v-else-if="isSubPage"
+            class="group flex items-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/8 px-3.5 py-1.5 text-sm font-semibold text-indigo-400 transition-all duration-200 hover:border-indigo-500/40 hover:bg-indigo-500/15 active:scale-95"
+            @click="router.back()"
+          >
+            <ArrowLeft class="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" />
+            {{ currentPageTitle }}
+          </button>
+          <h1 v-else class="text-foreground text-lg font-semibold">{{ currentPageTitle }}</h1>
         </div>
 
         <!-- Right: Actions -->
@@ -121,13 +151,13 @@
           </button>
 
           <!-- Streak Badge -->
-          <div
+          <StreakBadge
             v-if="progressStore.streakCount > 0"
-            class="hidden items-center gap-1.5 rounded-lg bg-chart-1/10 px-2.5 py-1.5 sm:flex"
-          >
-            <span class="text-base leading-none">🔥</span>
-            <span class="text-chart-1 text-sm font-semibold">{{ progressStore.streakCount }}</span>
-          </div>
+            :streak-count="progressStore.streakCount"
+            :milestone-reached="progressStore.milestoneReached"
+            compact
+            class="hidden sm:inline-flex"
+          />
 
           <!-- XP Pill -->
           <div class="hidden items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 sm:flex">
@@ -217,7 +247,7 @@
       <!-- Page Content -->
       <main class="bg-background flex-1 overflow-y-auto">
         <router-view v-slot="{ Component, route }">
-          <Transition :name="transitionName" mode="out-in">
+          <Transition name="page-slide" mode="out-in">
             <component :is="Component" :key="`${route.path}-${locale}`" />
           </Transition>
         </router-view>
@@ -230,7 +260,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth.store'
@@ -244,7 +274,7 @@ import {
   Settings,
   Bell,
   Search,
-  Menu,
+  ArrowLeft,
   ChevronDown,
   User,
   LogOut,
@@ -253,11 +283,17 @@ import {
   Gamepad2,
   Target,
   GraduationCap,
-} from 'lucide-vue-next'
+  Video,
+  Radio,
+  FileText,
+  Calendar,
+} from '@/components/icons'
 import SearchModal from '@/components/ui/SearchModal.vue'
 import NotificationPanel from '@/components/ui/NotificationPanel.vue'
+import StreakBadge from '@/components/streak/StreakBadge.vue'
 import { useProgressStore } from '@/stores/progress.store'
 import { useNotificationStore } from '@/stores/notification.store'
+import { usePageBack } from '@/composables/usePageBack'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
@@ -265,12 +301,19 @@ const router = useRouter()
 const authStore = useAuthStore()
 const progressStore = useProgressStore()
 const notificationStore = useNotificationStore()
+const { backLabel, backFn } = usePageBack()
 
 // Sidebar state
 const isCollapsed = ref(false)
-const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value
-}
+const toggleSidebar = () => { isCollapsed.value = !isCollapsed.value }
+
+// Back button: show on any route that's not a top-level nav page
+const topLevelPaths = new Set([
+  '/dashboard', '/courses', '/flashcards', '/quizzes', '/goals', '/achievements',
+  '/statistics', '/settings', '/profile', '/classroom', '/live-quiz',
+  '/entrance-exam', '/schedule', '/skills',
+])
+const isSubPage = computed(() => !topLevelPaths.has(route.path))
 
 // Search & Notifications
 const showSearch = ref(false)
@@ -320,7 +363,7 @@ const canAccessTeacher = computed(() => authStore.canAccessTeacher)
 // User data - get from auth store
 const userName = computed(() => {
   if (authStore.user?.name) return authStore.user.name
-  if (authStore.user?.email) return authStore.user.email.split('@')[0]
+  if (authStore.user?.email) return authStore.user.email.split('@')[0] ?? 'Guest'
   return 'Guest'
 })
 const userEmail = computed(() => authStore.user?.email || 'guest@example.com')
@@ -328,7 +371,7 @@ const userInitials = computed(() => {
   const name = userName.value
   const names = name.split(' ')
   if (names.length > 1) {
-    return names.map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    return names.map(n => n?.[0] ?? '').join('').toUpperCase().slice(0, 2)
   }
   return name.slice(0, 2).toUpperCase()
 })
@@ -345,11 +388,31 @@ const menuSections = computed(() => [
     ],
   },
   {
+    title: t('nav.sections.onlineLearning'),
+    items: [
+      { path: '/classroom', label: t('nav.items.classroom'), icon: Video },
+      { path: '/live-quiz', label: t('nav.items.liveQuiz'), icon: Radio },
+    ],
+  },
+  {
     title: t('nav.sections.progress'),
     items: [
       { path: '/goals', label: t('nav.items.goals'), icon: Target },
       { path: '/achievements', label: t('nav.items.achievements'), icon: Trophy },
       { path: '/statistics', label: t('nav.items.statistics'), icon: BarChart3 },
+    ],
+  },
+  {
+    title: t('nav.sections.examSchedule'),
+    items: [
+      { path: '/entrance-exam', label: t('nav.items.entranceExam'), icon: FileText },
+      { path: '/schedule', label: t('nav.items.schedule'), icon: Calendar },
+    ],
+  },
+  {
+    title: t('nav.sections.skills'),
+    items: [
+      { path: '/skills', label: t('nav.items.skillsHub'), icon: Sparkles },
     ],
   },
 ])
@@ -360,29 +423,18 @@ const dropdownItems = computed(() => [
   { path: '/settings', label: t('nav.userMenu.settings'), icon: Settings },
 ])
 
-// Check active route
 const isActiveRoute = (path: string) => {
   return route.path === path || route.path.startsWith(path + '/')
 }
 
-// Current page title
+// Current page title — prefer most-specific match
 const currentPageTitle = computed(() => {
   const allItems = menuSections.value.flatMap(s => s.items)
-  const current = allItems.find(item => isActiveRoute(item.path))
+  const sorted = [...allItems].sort((a, b) => b.path.length - a.path.length)
+  const current = sorted.find(item => route.path === item.path || route.path.startsWith(item.path + '/'))
   return current?.label || t('nav.items.dashboard')
 })
 
-// Page transition
-const transitionName = ref('page-slide')
-const previousPath = ref('')
-
-watch(
-  () => route.path,
-  (newPath, oldPath) => {
-    previousPath.value = oldPath || ''
-    // Could add logic to determine slide direction based on menu order
-  }
-)
 
 // Logout handler
 const handleLogout = () => {

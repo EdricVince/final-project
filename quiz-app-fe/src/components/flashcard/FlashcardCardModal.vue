@@ -134,7 +134,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { X, Image as ImageIcon } from 'lucide-vue-next'
+import { X, Image as ImageIcon } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import type { FlashcardItem, CardFormData } from '@/types/flashcard'
 

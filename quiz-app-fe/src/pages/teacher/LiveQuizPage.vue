@@ -240,13 +240,13 @@
             </div>
 
             <!-- Question text -->
-            <h2 class="text-foreground text-xl font-bold">{{ currentQuestion.question }}</h2>
+            <h2 class="text-foreground text-xl font-bold">{{ currentQuestion?.question }}</h2>
           </div>
 
           <!-- Answer options -->
           <div class="grid grid-cols-2 gap-3">
             <div
-              v-for="(opt, i) in currentQuestion.options"
+              v-for="(opt, i) in currentQuestion?.options"
               :key="i"
               class="rounded-2xl p-5 text-white font-semibold text-lg flex items-center gap-3"
               :class="optionColors[i]"
@@ -255,6 +255,35 @@
                 {{ ['A', 'B', 'C', 'D'][i] }}
               </span>
               {{ opt }}
+            </div>
+          </div>
+
+          <!-- Live Answer Distribution -->
+          <div class="bg-card border-border rounded-2xl border p-5">
+            <div class="mb-4 flex items-center justify-between">
+              <h4 class="text-foreground text-sm font-semibold">Live Answer Distribution</h4>
+              <span class="text-muted-foreground text-xs">{{ answeredCount }}/{{ joinedPlayers.length }} answered</span>
+            </div>
+            <div class="space-y-3">
+              <div v-for="(opt, i) in (['A','B','C','D'] as const)" :key="opt" class="flex items-center gap-3">
+                <span
+                  class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
+                  :class="optionColors[i]"
+                >{{ opt }}</span>
+                <div class="relative h-7 flex-1 overflow-hidden rounded-lg bg-secondary">
+                  <div
+                    class="h-full rounded-lg transition-all duration-500"
+                    :class="optionBgColors[i]"
+                    :style="{ width: joinedPlayers.length > 0 ? `${((answerDistribution[i] ?? 0) / joinedPlayers.length) * 100}%` : '0%' }"
+                  ></div>
+                  <span class="absolute inset-0 flex items-center px-3 text-xs font-medium text-white mix-blend-plus-lighter">
+                    {{ answerDistribution[i] ?? 0 }} vote{{ (answerDistribution[i] ?? 0) !== 1 ? 's' : '' }}
+                  </span>
+                </div>
+                <span class="text-foreground w-9 text-right text-xs font-bold tabular-nums">
+                  {{ joinedPlayers.length > 0 ? Math.round(((answerDistribution[i] ?? 0) / joinedPlayers.length) * 100) : 0 }}%
+                </span>
+              </div>
             </div>
           </div>
 
@@ -329,10 +358,11 @@
 
       <div class="mt-6 flex justify-center gap-3">
         <button
-          class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-3 font-medium transition-colors"
+          class="group flex items-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/8 px-4 py-2.5 text-sm font-semibold text-indigo-400 transition-all duration-200 hover:border-indigo-500/40 hover:bg-indigo-500/15 active:scale-95"
           @click="phase = 'idle'"
         >
-          Back to Sessions
+          <svg class="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          Sessions
         </button>
       </div>
     </div>
@@ -412,7 +442,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
-import { Radio, Play, Users, Trophy, X } from 'lucide-vue-next'
+import { Radio, Play, Users, Trophy, X } from '@/components/icons'
 
 type Phase = 'idle' | 'lobby' | 'question' | 'results'
 
@@ -446,6 +476,7 @@ const joinedPlayers = ref<Player[]>([])
 const currentQIndex = ref(0)
 const timeLeft = ref(20)
 const answeredCount = ref(0)
+const answerDistribution = ref([0, 0, 0, 0])
 
 let timer: ReturnType<typeof setInterval> | null = null
 let autoAnswerTimer: ReturnType<typeof setTimeout> | null = null
@@ -455,6 +486,7 @@ const sortedPlayers = computed(() => [...joinedPlayers.value].sort((a, b) => b.s
 const podium = computed(() => sortedPlayers.value.slice(0, 3))
 
 const optionColors = ['bg-chart-5', 'bg-chart-2', 'bg-chart-1', 'bg-chart-3']
+const optionBgColors = ['bg-chart-5/80', 'bg-chart-2/80', 'bg-chart-1/80', 'bg-chart-3/80']
 
 const howItWorks = [
   { step: 1, icon: Radio, title: 'Create a Session', desc: 'Set title, class, and time per question. A unique PIN is generated.', bg: 'bg-primary/10', color: 'text-primary' },
@@ -489,8 +521,8 @@ const simulateJoin = () => {
   const idx = joinedPlayers.value.length % playerNames.length
   joinedPlayers.value.push({
     id: Date.now(),
-    name: playerNames[idx],
-    color: playerColors[idx],
+    name: playerNames[idx] ?? 'Player',
+    color: playerColors[idx] ?? '#6366f1',
     score: 0,
     answered: false,
   })
@@ -511,6 +543,7 @@ const startTimer = () => {
   if (timer) clearInterval(timer)
   timeLeft.value = session.value.timePerQuestion
   answeredCount.value = 0
+  answerDistribution.value = [0, 0, 0, 0]
   joinedPlayers.value.forEach(p => { p.answered = false })
 
   // Simulate players answering at random times
@@ -519,7 +552,9 @@ const startTimer = () => {
     autoAnswerTimer = setTimeout(() => {
       if (!p.answered && phase.value === 'question') {
         p.answered = true
-        const correct = Math.random() > 0.35
+        const chosenOption = Math.floor(Math.random() * 4)
+        answerDistribution.value[chosenOption] = (answerDistribution.value[chosenOption] ?? 0) + 1
+        const correct = chosenOption === (currentQuestion.value?.correct ?? 0)
         if (correct) p.score += Math.max(500, timeLeft.value * 50)
         answeredCount.value++
       }

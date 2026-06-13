@@ -12,6 +12,14 @@ export class WeeklyActivityItemDto {
   quizzes_completed: number;
 }
 
+export class StreakTierDto {
+  tier: string;
+  label: string;
+  color: string;
+  next_milestone: number | null;
+  days_to_next: number | null;
+}
+
 export class ProgressResponseDto {
   xp: number;
   level: number;
@@ -22,5 +30,6 @@ export class ProgressResponseDto {
   xp_for_current_level: number;
   xp_to_next_level: number;
   xp_progress_percent: number;
+  streak_tier: StreakTierDto;
   today: TodayActivityDto;
 }

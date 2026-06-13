@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { Sparkles } from 'lucide-vue-next'
+import { Sparkles } from '@/components/icons'
 
 defineProps<{
   progress: number

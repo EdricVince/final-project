@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
-import { Pencil, BookOpen, Layers, Trophy, Clock } from 'lucide-vue-next'
+import { Pencil, BookOpen, Layers, Trophy, Clock } from '@/components/icons'
 import type { DailyGoal } from '@/types/profile'
 
 const props = defineProps<{

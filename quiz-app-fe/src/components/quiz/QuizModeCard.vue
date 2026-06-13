@@ -24,8 +24,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Play } from 'lucide-vue-next'
+import {} from 'vue'
+import { Play } from '@/components/icons'
 import type { QuizMode } from '@/types/quiz'
 
 interface Props {
@@ -41,18 +41,6 @@ defineEmits<{
   click: []
 }>()
 
-const difficultyClass = computed(() => {
-  switch (props.mode.difficulty) {
-    case 'easy':
-      return 'bg-primary/10 text-primary'
-    case 'medium':
-      return 'bg-accent text-accent-foreground'
-    case 'hard':
-      return 'bg-destructive/10 text-destructive'
-    default:
-      return 'bg-secondary text-secondary-foreground'
-  }
-})
 </script>
 
 <style scoped>

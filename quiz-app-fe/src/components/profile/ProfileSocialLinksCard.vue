@@ -64,7 +64,7 @@ import {
   Image,
   Users,
   Play,
-} from 'lucide-vue-next'
+} from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import type { SocialLink } from '@/types/profile'
 

@@ -159,7 +159,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { StickyNote, Plus, Pencil, Trash2 } from 'lucide-vue-next'
+import { StickyNote, Plus, Pencil, Trash2 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 

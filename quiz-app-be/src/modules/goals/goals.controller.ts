@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  ParseIntPipe,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -54,10 +55,10 @@ export class GoalsController {
   @Put('custom/:id')
   async updateCustomGoal(
     @CurrentUser() user: CurrentUserData,
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCustomGoalDto,
   ): Promise<ApiResponse<any>> {
-    const data = await this.goalsService.updateCustomGoal(user.id, +id, dto);
+    const data = await this.goalsService.updateCustomGoal(user.id, id, dto);
     return { code: HttpStatus.OK, message: 'Goal updated', data };
   }
 
@@ -65,9 +66,9 @@ export class GoalsController {
   @HttpCode(HttpStatus.OK)
   async deleteCustomGoal(
     @CurrentUser() user: CurrentUserData,
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<ApiResponse<any>> {
-    await this.goalsService.deleteCustomGoal(user.id, +id);
+    await this.goalsService.deleteCustomGoal(user.id, id);
     return { code: HttpStatus.OK, message: 'Goal deleted', data: null };
   }
 }

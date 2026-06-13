@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { TrendingUp, Flame, BookOpen, CheckCircle, Clock, Target } from 'lucide-vue-next'
+import { TrendingUp, Flame, BookOpen, CheckCircle, Clock, Target } from '@/components/icons'
 
 export interface LearningStats {
   level: number

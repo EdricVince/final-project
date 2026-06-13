@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { AlertTriangle } from 'lucide-vue-next'
+import { AlertTriangle } from '@/components/icons'
 
 const props = defineProps<{
   show: boolean

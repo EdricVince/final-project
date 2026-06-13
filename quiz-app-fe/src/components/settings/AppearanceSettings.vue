@@ -143,7 +143,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Palette, Type, Check, Sun, Moon, Monitor, Globe, BookOpen } from 'lucide-vue-next'
+import { Palette, Type, Check, Sun, Moon, Monitor, Globe, BookOpen } from '@/components/icons'
 import type { Theme } from '@/composables/useTheme'
 import { useLocale, type SupportedLocale } from '@/composables/useLocale'
 import { useLearningLanguage } from '@/composables/useLearningLanguage'
