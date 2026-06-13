@@ -1,10 +1,10 @@
 import {
-  Controller, Get, Post, Patch, Body, Param, ParseIntPipe,
+  Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe,
   UseGuards, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminGuard } from '../../core/guards/admin.guard';
-import { IsString, MinLength, Matches } from 'class-validator';
+import { IsString, IsBoolean, MinLength } from 'class-validator';
 
 class CreateTeacherDto {
   @IsString()
@@ -14,9 +14,13 @@ class CreateTeacherDto {
   @IsString()
   @MinLength(8)
   password: string;
+
+  @IsString()
+  email?: string;
 }
 
 class SetActiveDto {
+  @IsBoolean()
   is_active: boolean;
 }
 
@@ -31,6 +35,12 @@ class ResetPasswordDto {
 export class AdminController {
   constructor(private adminService: AdminService) {}
 
+  @Get('stats')
+  async getStats() {
+    const data = await this.adminService.getStats();
+    return { code: 200, message: 'Stats retrieved', data };
+  }
+
   @Get('users')
   async listUsers() {
     const users = await this.adminService.listUsers();
@@ -40,7 +50,7 @@ export class AdminController {
   @Post('create-teacher')
   @HttpCode(HttpStatus.CREATED)
   async createTeacher(@Body() dto: CreateTeacherDto) {
-    const result = await this.adminService.createTeacher(dto.name, dto.password);
+    const result = await this.adminService.createTeacher(dto.name, dto.password, dto.email);
     return {
       code: 201,
       message: `Teacher account created: ${result.email}`,
@@ -64,5 +74,12 @@ export class AdminController {
   ) {
     await this.adminService.resetUserPassword(id, dto.new_password);
     return { code: 200, message: 'Password reset successfully', data: null };
+  }
+
+  @Delete('users/:id')
+  @HttpCode(HttpStatus.OK)
+  async deleteUser(@Param('id', ParseIntPipe) id: number) {
+    await this.adminService.deleteUser(id);
+    return { code: 200, message: `User ${id} deleted`, data: null };
   }
 }
