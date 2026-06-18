@@ -91,6 +91,8 @@ export class AdminService {
   async deleteUser(userId: number): Promise<void> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
+    // Delete related records first to avoid FK constraint violations
+    await this.progressRepo.delete({ user_id: userId });
     await this.userRepo.delete(userId);
   }
 }

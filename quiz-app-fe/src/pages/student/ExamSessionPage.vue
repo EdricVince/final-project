@@ -144,6 +144,7 @@ const writingAnswers = ref<Record<number, string>>({})
 const currentIdx = ref(0)
 const timeLimitSecs = ref(1800)
 const result = ref<any>(null)
+const sessionId = ref('')
 
 const sectionStyleMap: Record<string, { icon: string; banner: string; desc: string }> = {
   'Listening Part 1':  { icon: '🎧', banner: 'border-blue-500/30 bg-blue-500/10 text-blue-300',     desc: 'Listen to the audio and answer the questions — no transcript shown' },
@@ -219,6 +220,7 @@ async function loadExam() {
     const variant = Math.floor(Math.random() * 6)
     const data = await api.generateExam({ exam_type: examType.value as any, question_count: 20, variant })
     questions.value = data.questions
+    sessionId.value = data.session_id
     timeLimitSecs.value = Math.round((data.time_limit ?? 30) * 60)
   } catch {
     questions.value = []
@@ -241,19 +243,19 @@ function handleWrite(text: string) {
 async function submitExam() {
   const answerList: { question_id: number; selected?: number; written?: string }[] = [
     ...Object.entries(answers.value).map(([qi, sel]) => ({
-      question_id: questions.value[Number(qi)].id,
+      question_id: questions.value[Number(qi)]?.id ?? -1,
       selected: sel,
     })),
     ...Object.entries(writingAnswers.value)
       .filter(([, text]) => text.trim())
       .map(([qi, text]) => ({
-        question_id: questions.value[Number(qi)].id,
+        question_id: questions.value[Number(qi)]?.id ?? -1,
         written: text,
       })),
-  ]
+  ].filter(a => a.question_id !== -1)
 
   try {
-    const res = await api.submitExam({ exam_type: examType.value as any, answers: answerList, questions: questions.value })
+    const res = await api.submitExam({ exam_type: examType.value as any, answers: answerList, session_id: sessionId.value })
     result.value = {
       ...res,
       writing_responses: Object.entries(writingAnswers.value)

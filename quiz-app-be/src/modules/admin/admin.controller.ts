@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminGuard } from '../../core/guards/admin.guard';
-import { IsString, IsBoolean, MinLength } from 'class-validator';
+import { IsString, IsBoolean, IsEmail, IsOptional, MinLength } from 'class-validator';
 
 class CreateTeacherDto {
   @IsString()
@@ -15,7 +15,8 @@ class CreateTeacherDto {
   @MinLength(8)
   password: string;
 
-  @IsString()
+  @IsOptional()
+  @IsEmail()
   email?: string;
 }
 

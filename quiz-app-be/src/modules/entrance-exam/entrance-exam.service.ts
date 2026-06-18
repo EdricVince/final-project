@@ -63,43 +63,62 @@ const TOEIC_THEMES = [
 export class EntranceExamService {
   private readonly logger = new Logger(EntranceExamService.name);
   private readonly client: Anthropic | null;
+  // Server-side session cache — prevents client from manipulating correct_answer for cheating
+  private readonly sessionCache = new Map<string, ExamQuestion[]>();
 
   constructor(private config: ConfigService) {
     const key = this.config.get<string>('ANTHROPIC_API_KEY');
     this.client = key && key !== 'your-anthropic-api-key-here' ? new Anthropic({ apiKey: key }) : null;
   }
 
-  async generateExam(dto: StartExamDto): Promise<{ questions: ExamQuestion[]; time_limit: number; exam_type: ExamType; variant: number }> {
+  private newSessionId(): string {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  async generateExam(dto: StartExamDto): Promise<{ questions: ExamQuestion[]; time_limit: number; exam_type: ExamType; variant: number; session_id: string }> {
     const variant = dto.variant ?? Math.floor(Math.random() * 6);
     const themes = dto.exam_type === 'ielts' ? IELTS_THEMES : dto.exam_type === 'toefl' ? TOEFL_THEMES : TOEIC_THEMES;
     const theme = themes[variant % themes.length];
     const timeLimit = dto.exam_type === 'toefl' ? 35 : 25;
 
+    let questions: ExamQuestion[];
+
     if (!this.client) {
-      return { questions: this.getFallbackQuestions(dto.exam_type, variant), time_limit: timeLimit, exam_type: dto.exam_type, variant };
+      questions = this.getFallbackQuestions(dto.exam_type, variant);
+    } else {
+      const prompt = dto.exam_type === 'ielts' ? this.buildIeltsPrompt(theme) : dto.exam_type === 'toefl' ? this.buildToeflPrompt(theme) : this.buildToeicPrompt(theme);
+      try {
+        const res = await this.client.messages.create({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 7000,
+          messages: [{ role: 'user', content: prompt }],
+        });
+        const text = (res.content[0] as { text: string }).text.trim();
+        const json = text.replace(/```json\n?|```/g, '').trim();
+        questions = JSON.parse(json);
+      } catch (e) {
+        this.logger.error('AI exam generation failed', e);
+        questions = this.getFallbackQuestions(dto.exam_type, variant);
+      }
     }
 
-    const prompt = dto.exam_type === 'ielts' ? this.buildIeltsPrompt(theme) : dto.exam_type === 'toefl' ? this.buildToeflPrompt(theme) : this.buildToeicPrompt(theme);
+    const session_id = this.newSessionId();
+    this.sessionCache.set(session_id, questions);
+    // Auto-evict session after 2 hours
+    setTimeout(() => this.sessionCache.delete(session_id), 2 * 60 * 60 * 1000);
 
-    try {
-      const res = await this.client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 7000,
-        messages: [{ role: 'user', content: prompt }],
-      });
-
-      const text = (res.content[0] as { text: string }).text.trim();
-      const json = text.replace(/```json\n?|```/g, '').trim();
-      const questions: ExamQuestion[] = JSON.parse(json);
-      return { questions, time_limit: timeLimit, exam_type: dto.exam_type, variant };
-    } catch (e) {
-      this.logger.error('AI exam generation failed', e);
-      return { questions: this.getFallbackQuestions(dto.exam_type, variant), time_limit: 25, exam_type: dto.exam_type, variant };
-    }
+    return { questions, time_limit: timeLimit, exam_type: dto.exam_type, variant, session_id };
   }
 
   evaluateExam(dto: SubmitExamDto): ExamResult {
-    const { questions, answers, exam_type } = dto;
+    const questions = this.sessionCache.get(dto.session_id);
+    if (!questions) {
+      // Session expired or invalid — return zero score
+      return { total: 0, correct: 0, score_percent: 0, estimated_band: 'N/A', estimated_score: 'N/A', level: 'Session expired', breakdown: [], recommendations: ['Please start a new exam session.'], weak_areas: [] };
+    }
+    this.sessionCache.delete(dto.session_id); // one-time use
+
+    const { answers, exam_type } = dto;
     const answerMap = new Map(answers.map(a => [a.question_id, a.selected]));
 
     const breakdown: Record<string, { correct: number; total: number }> = {};

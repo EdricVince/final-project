@@ -21,4 +21,5 @@ export class EntranceExamController {
     const result = this.service.evaluateExam(dto);
     return { code: 200, message: 'Exam evaluated', data: result };
   }
+
 }

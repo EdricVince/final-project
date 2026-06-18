@@ -1,4 +1,4 @@
-import { IsEnum, IsArray, IsInt, IsOptional, Min, Max } from 'class-validator';
+import { IsEnum, IsArray, IsInt, IsOptional, IsString, Min, Max } from 'class-validator';
 
 export type ExamType = 'ielts' | 'toeic' | 'toefl';
 
@@ -20,8 +20,8 @@ export class SubmitExamDto {
   @IsArray()
   answers: { question_id: number; selected?: number; written?: string }[];
 
-  @IsArray()
-  questions: ExamQuestion[];
+  @IsString()
+  session_id: string;
 }
 
 export interface ExamQuestion {

@@ -95,14 +95,21 @@ export const useAdminStore = defineStore('admin', () => {
   }
 
   async function setActive(userId: number, isActive: boolean) {
-    await fetch(`${BASE}/api/v1/admin/users/${userId}/active`, {
-      method: 'PATCH',
-      headers: headers.value,
-      body: JSON.stringify({ is_active: isActive }),
-    })
     const user = users.value.find(u => u.id === userId)
-    if (user) user.is_active = isActive
-    await fetchStats()
+    const previous = user?.is_active
+    if (user) user.is_active = isActive // optimistic
+    try {
+      const res = await fetch(`${BASE}/api/v1/admin/users/${userId}/active`, {
+        method: 'PATCH',
+        headers: headers.value,
+        body: JSON.stringify({ is_active: isActive }),
+      })
+      if (!res.ok) throw new Error('Failed to update status')
+      await fetchStats()
+    } catch (e) {
+      if (user && previous !== undefined) user.is_active = previous // revert
+      throw e
+    }
   }
 
   async function resetPassword(userId: number, newPassword: string) {

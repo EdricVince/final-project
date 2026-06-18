@@ -300,10 +300,10 @@ export const api = {
     apiRequest<unknown>(`/goals/custom/${id}`, { method: 'DELETE' }),
 
   // ── Entrance Exam ─────────────────────────────────────────────
-  generateExam: (data: { exam_type: 'ielts' | 'toeic'; question_count?: number; variant?: number }): Promise<{ questions: any[]; time_limit: number; exam_type: string; variant: number }> =>
+  generateExam: (data: { exam_type: 'ielts' | 'toeic' | 'toefl'; question_count?: number; variant?: number }): Promise<{ questions: any[]; time_limit: number; exam_type: string; variant: number; session_id: string }> =>
     apiRequest('/entrance-exam/generate', { method: 'POST', body: JSON.stringify(data) }),
 
-  submitExam: (data: { exam_type: string; answers: { question_id: number; selected?: number; written?: string }[]; questions: any[] }): Promise<any> =>
+  submitExam: (data: { exam_type: string; answers: { question_id: number; selected?: number; written?: string }[]; session_id: string }): Promise<any> =>
     apiRequest('/entrance-exam/submit', { method: 'POST', body: JSON.stringify(data) }),
 
   // ── Schedule ──────────────────────────────────────────────────

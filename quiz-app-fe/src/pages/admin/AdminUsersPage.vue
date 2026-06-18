@@ -1,5 +1,21 @@
 <template>
   <div class="p-6 space-y-5">
+    <!-- Toast notifications -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="globalError" class="fixed top-4 right-4 z-100 flex items-center gap-3 bg-red-600 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg max-w-sm">
+          <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          {{ globalError }}
+        </div>
+      </Transition>
+      <Transition name="modal">
+        <div v-if="globalSuccess" class="fixed top-4 right-4 z-100 flex items-center gap-3 bg-emerald-600 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg max-w-sm">
+          <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          {{ globalSuccess }}
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-3">
       <div>
@@ -375,6 +391,13 @@ const routeRole = computed(() => {
 const roleFilter = ref<'all' | 'student' | 'teacher'>(routeRole.value as 'all' | 'student' | 'teacher')
 const search = ref('')
 const togglingId = ref<number | null>(null)
+const globalError = ref('')
+const globalSuccess = ref('')
+
+function showToast(msg: string, type: 'error' | 'success' = 'error') {
+  if (type === 'error') { globalError.value = msg; setTimeout(() => { globalError.value = '' }, 4000) }
+  else { globalSuccess.value = msg; setTimeout(() => { globalSuccess.value = '' }, 3000) }
+}
 
 const pageTitle = computed(() => {
   if (roleFilter.value === 'student') return 'Students'
@@ -412,6 +435,9 @@ async function toggleActive(user: AdminUser) {
   togglingId.value = user.id
   try {
     await adminStore.setActive(user.id, !user.is_active)
+    showToast(`${user.name ?? user.email} ${!user.is_active ? 'deactivated' : 'activated'}`, 'success')
+  } catch {
+    showToast('Failed to update account status. Please try again.')
   } finally {
     togglingId.value = null
   }
@@ -502,8 +528,12 @@ async function submitDelete() {
 }
 
 onMounted(async () => {
-  if (!adminStore.users.length) await adminStore.fetchUsers()
-  if (!adminStore.stats) await adminStore.fetchStats()
+  try {
+    if (!adminStore.users.length) await adminStore.fetchUsers()
+    if (!adminStore.stats) await adminStore.fetchStats()
+  } catch {
+    showToast('Could not load users. Check backend connection.')
+  }
 })
 </script>
 
