@@ -8,18 +8,18 @@
       >
         <div class="bg-card border-border w-full max-w-md rounded-2xl border p-6 shadow-xl">
           <h3 class="text-foreground mb-4 text-lg font-semibold">
-            {{ isEditing ? 'Edit Social Link' : 'Add Social Link' }}
+            {{ isEditing ? $t('profile.socialModal.editTitle') : $t('profile.socialModal.addTitle') }}
           </h3>
 
           <div class="space-y-4">
             <div class="space-y-2">
-              <Label class="text-sm font-medium">Platform</Label>
+              <Label class="text-sm font-medium">{{ $t('profile.socialModal.platform') }}</Label>
               <select
                 :value="form.platform"
                 class="border-input bg-background text-foreground w-full rounded-xl border px-4 py-3"
                 @change="updateForm('platform', ($event.target as HTMLSelectElement).value)"
               >
-                <option value="">Select platform</option>
+                <option value="">{{ $t('profile.socialModal.platform') }}</option>
                 <option v-for="platform in platforms" :key="platform" :value="platform">
                   {{ platform }}
                 </option>
@@ -27,10 +27,10 @@
             </div>
 
             <div class="space-y-2">
-              <Label class="text-sm font-medium">URL</Label>
+              <Label class="text-sm font-medium">{{ $t('profile.socialModal.url') }}</Label>
               <Input
                 :model-value="form.url"
-                placeholder="https://..."
+                :placeholder="$t('profile.socialModal.urlPlaceholder')"
                 class="h-11 rounded-xl"
                 @update:model-value="updateForm('url', String($event))"
               />
@@ -39,10 +39,10 @@
 
           <div class="mt-6 flex gap-3">
             <Button variant="outline" class="flex-1" @click="$emit('close')">
-              Cancel
+              {{ $t('profile.socialModal.cancel') }}
             </Button>
             <Button class="flex-1" @click="$emit('save')">
-              {{ isEditing ? 'Update' : 'Add' }}
+              {{ $t('profile.socialModal.save') }}
             </Button>
           </div>
         </div>
@@ -52,10 +52,13 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
 import Label from '@/components/ui/label/Label.vue'
 import type { SocialLinkForm } from '@/types/profile'
+
+const { t: $t } = useI18n()
 
 interface Props {
   show: boolean

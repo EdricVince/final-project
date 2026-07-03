@@ -8,46 +8,37 @@
     </div>
 
     <!-- LISTENING: Professional Audio Player (no transcript shown) -->
-    <div v-if="isListening && activePassage" class="rounded-2xl overflow-hidden border border-blue-500/20" style="background: linear-gradient(160deg, #0d1b35 0%, #0a1628 100%)">
+    <div v-if="isListening && activePassage" class="listen-card">
       <!-- Header bar -->
-      <div class="flex items-center justify-between px-5 py-3.5 border-b border-blue-500/12">
+      <div class="listen-card-header">
         <div class="flex items-center gap-3">
-          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/15 text-lg select-none">🎧</div>
+          <div class="listen-icon-box">🎧</div>
           <div>
-            <div class="text-blue-100 text-sm font-bold leading-tight">Listening Audio</div>
-            <div class="text-blue-400/50 text-[10px] uppercase tracking-widest mt-0.5">{{ sectionLabel }}</div>
+            <div class="listen-title">Listening Audio</div>
+            <div class="listen-sub">{{ sectionLabel }}</div>
           </div>
         </div>
         <!-- Status badge -->
-        <div class="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors"
-          :class="isPlaying
-            ? 'bg-blue-500/20 text-blue-300'
-            : hasPlayed
-              ? 'bg-green-500/15 text-green-400'
-              : 'bg-white/5 text-slate-400'">
-          <span class="h-1.5 w-1.5 rounded-full transition-colors"
-            :class="isPlaying ? 'bg-blue-400 animate-pulse' : hasPlayed ? 'bg-green-400' : 'bg-slate-500'"></span>
+        <div class="listen-badge" :class="isPlaying ? 'listen-badge-playing' : hasPlayed ? 'listen-badge-done' : 'listen-badge-idle'">
+          <span class="listen-dot" :class="isPlaying ? 'listen-dot-playing' : hasPlayed ? 'listen-dot-done' : 'listen-dot-idle'"></span>
           {{ isPlaying ? 'Now Playing' : hasPlayed ? 'Completed' : 'Ready' }}
         </div>
       </div>
 
       <!-- Waveform visualizer -->
       <div class="px-5 pt-5 pb-4">
-        <div class="relative flex items-center justify-center h-16 rounded-xl overflow-hidden"
-          style="background: rgba(30, 58, 138, 0.18); border: 1px solid rgba(59, 130, 246, 0.10)">
+        <div class="listen-wave-bg">
           <!-- Animated background sweep when playing -->
-          <div v-if="isPlaying"
-            class="absolute inset-0 opacity-60"
-            style="background: linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.06) 50%, transparent 100%); animation: sweep 2s ease-in-out infinite" />
+          <div v-if="isPlaying" class="listen-sweep" />
           <!-- Waveform bars -->
           <div class="relative flex items-center gap-[2.5px]">
             <div v-for="(bar, i) in waveformBars" :key="i"
               class="rounded-full"
-              :class="isPlaying ? 'bg-blue-400' : hasPlayed ? 'bg-blue-700/60' : 'bg-slate-600/40'"
+              :class="isPlaying ? 'listen-bar-playing' : hasPlayed ? 'listen-bar-done' : 'listen-bar-idle'"
               :style="{
                 width: '3px',
                 height: (isPlaying ? bar.h : Math.max(bar.h * 0.28, 3)) + 'px',
-                animation: isPlaying ? `wave ${bar.d}s ease-in-out ${bar.o} infinite alternate` : 'none',
+                animation: isPlaying ? `listen-bar-wave ${bar.d}s ease-in-out ${bar.o} infinite alternate` : 'none',
                 transition: 'height 0.4s ease, background-color 0.3s ease',
               }"
             />
@@ -55,46 +46,38 @@
         </div>
       </div>
 
-      <!-- Controls row -->
-      <div class="px-5 pb-4 flex items-center gap-3">
+      <!-- Native-style player control bar -->
+      <div class="listen-controls mx-5 mb-4 flex items-center gap-3 rounded-xl px-3 py-2.5">
+        <!-- Play / pause -->
         <button
           @click="togglePlay"
-          class="flex items-center gap-2.5 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-200 active:scale-95 select-none"
-          :class="isPlaying
-            ? 'border border-blue-400/25 text-blue-300 hover:bg-blue-500/15'
-            : 'text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35'"
-          :style="!isPlaying ? 'background: linear-gradient(135deg, #2563eb, #4f46e5)' : 'background: rgba(59,130,246,0.1)'"
+          class="listen-play-btn flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all active:scale-90"
+          :title="isPlaying ? 'Pause' : 'Play'"
         >
-          <!-- Play icon -->
-          <svg v-if="!isPlaying" class="h-4 w-4 translate-x-0.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+          <svg v-if="!isPlaying" class="h-4 w-4 translate-x-0.5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 5v14l11-7z"/>
           </svg>
-          <!-- Pause icon -->
-          <svg v-else class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+          <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
             <rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/>
           </svg>
-          {{ isPlaying ? 'Pause' : hasPlayed ? 'Replay' : 'Play Audio' }}
         </button>
 
-        <!-- Volume / status icon + text -->
-        <div class="ml-auto flex items-center gap-1.5 text-xs text-blue-400/45">
-          <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M15.536 8.464a5 5 0 010 7.072M12 6v12M8.464 8.464a5 5 0 000 7.072"/>
-          </svg>
-          {{ isPlaying ? 'Playing...' : hasPlayed ? 'Audio played' : 'Press play to begin' }}
+        <!-- Time -->
+        <span class="listen-time shrink-0 font-mono text-xs tabular-nums">{{ fmt(currentTime) }} / {{ fmt(duration) }}</span>
+
+        <!-- Seek progress bar -->
+        <div class="listen-seek relative h-1.5 flex-1 rounded-full">
+          <div class="listen-seek-fill absolute left-0 top-0 h-full rounded-full" :style="{ width: progressPct + '%' }" />
+          <div class="listen-seek-knob absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full shadow" :style="{ left: progressPct + '%' }" />
         </div>
+
+        <!-- Volume icon -->
+        <svg class="listen-vol h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.536 8.464a5 5 0 010 7.072M12 6v12M8.464 8.464a5 5 0 000 7.072"/>
+        </svg>
       </div>
 
-      <!-- Warning strip -->
-      <div class="mx-5 mb-4 flex items-center gap-2 rounded-lg px-3 py-2"
-        style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15)">
-        <svg class="h-3.5 w-3.5 shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-        </svg>
-        <span class="text-amber-300/65 text-[11px]">No transcript provided — listen carefully and answer based on what you hear. You may replay.</span>
-      </div>
     </div>
 
     <!-- READING: show passage normally (not for listening/writing) -->
@@ -289,6 +272,27 @@ const activePassage = computed(() => props.question.passage || props.sectionPass
 // ── TTS ────────────────────────────────────────────────────────────────────────
 const isPlaying = ref(false)
 const hasPlayed = ref(false)
+const currentTime = ref(0)
+const duration = ref(0)
+let keepAliveTimer: ReturnType<typeof setInterval> | null = null
+let progressTimer: ReturnType<typeof setInterval> | null = null
+// Cancels a start that is still waiting for voices to load (Chrome).
+let cancelPendingStart: (() => void) | null = null
+
+const progressPct = computed(() =>
+  duration.value ? Math.min(100, (currentTime.value / duration.value) * 100) : 0
+)
+
+function fmt(s: number): string {
+  s = Math.max(0, Math.floor(s))
+  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
+}
+
+// Estimate spoken duration: ~127 wpm at rate 0.85 → ≈2.1 words/sec
+function estimateDuration(text: string): number {
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  return Math.max(3, Math.round(words / 2.1))
+}
 
 const waveformBars = [
   {h:8,  d:'0.80', o:'0.00s'}, {h:16, d:'0.65', o:'0.04s'}, {h:28, d:'0.90', o:'0.08s'}, {h:40, d:'0.70', o:'0.12s'},
@@ -303,24 +307,93 @@ const waveformBars = [
   {h:12, d:'0.85', o:'1.44s'}, {h:20, d:'0.60', o:'1.48s'}, {h:32, d:'0.90', o:'1.52s'}, {h:40, d:'0.75', o:'1.56s'},
 ]
 
+function clearTimers() {
+  if (keepAliveTimer) { clearInterval(keepAliveTimer); keepAliveTimer = null }
+  if (progressTimer) { clearInterval(progressTimer); progressTimer = null }
+}
+
 function stopTTS() {
+  // Abort a start that is still waiting for voices, so it can't fire later.
+  cancelPendingStart?.()
+  clearTimers()
   if (typeof window !== 'undefined' && window.speechSynthesis) {
     window.speechSynthesis.cancel()
   }
   isPlaying.value = false
 }
 
+function doSpeak(text: string) {
+  const synth = window.speechSynthesis
+  // Chrome bug: resume if stuck in paused state
+  if (synth.paused) synth.resume()
+  synth.cancel()
+  // Drop any timers from a prior start before creating new ones (no leak).
+  clearTimers()
+
+  const utt = new SpeechSynthesisUtterance(text)
+  utt.rate = 0.85
+  utt.lang = 'en-US'
+
+  // Start animation + timeline immediately on click, don't wait for onstart
+  duration.value = estimateDuration(text)
+  currentTime.value = 0
+  isPlaying.value = true
+  hasPlayed.value = true
+
+  // Smooth ticking clock + seek bar
+  progressTimer = setInterval(() => {
+    if (isPlaying.value) currentTime.value = Math.min(duration.value, currentTime.value + 0.25)
+  }, 250)
+
+  // Chrome cancels long utterances after ~15s — keep alive
+  keepAliveTimer = setInterval(() => {
+    if (synth.speaking && !synth.paused) { synth.pause(); synth.resume() }
+  }, 10000)
+
+  const textLen = text.length
+  // Correct the clock to real position at each word boundary
+  utt.onboundary = (e: SpeechSynthesisEvent) => {
+    if (e.charIndex != null && textLen) {
+      currentTime.value = (e.charIndex / textLen) * duration.value
+    }
+  }
+  utt.onend = () => { currentTime.value = duration.value; isPlaying.value = false; clearTimers() }
+  utt.onerror = () => { isPlaying.value = false; clearTimers() }
+
+  synth.speak(utt)
+}
+
 function playTTS() {
   const text = activePassage.value
   if (!text || typeof window === 'undefined' || !window.speechSynthesis) return
-  stopTTS()
-  const utt = new SpeechSynthesisUtterance(text)
-  utt.rate = 0.85
-  utt.lang = 'en-GB'
-  utt.onstart = () => { isPlaying.value = true; hasPlayed.value = true }
-  utt.onend = () => { isPlaying.value = false }
-  utt.onerror = () => { isPlaying.value = false }
-  window.speechSynthesis.speak(utt)
+
+  const synth = window.speechSynthesis
+  const voices = synth.getVoices()
+
+  if (voices.length > 0) {
+    doSpeak(text)
+    return
+  }
+
+  // Chrome: voices not loaded yet — wait for them, then speak.
+  // Both the event and the fallback route through startOnce so it fires only
+  // once, and cancelPendingStart lets stop/unmount/question-change abort it.
+  let started = false
+  const onReady = () => startOnce()
+  const timer = setTimeout(() => startOnce(), 800)
+  const cleanup = () => {
+    synth.removeEventListener('voiceschanged', onReady)
+    clearTimeout(timer)
+    cancelPendingStart = null
+  }
+  const startOnce = () => {
+    if (started) return
+    started = true
+    cleanup()
+    doSpeak(text)
+  }
+  cancelPendingStart = () => { started = true; cleanup() }
+  synth.addEventListener('voiceschanged', onReady)
 }
 
 function togglePlay() {
@@ -333,6 +406,8 @@ watch(activePassage, (newP, oldP) => {
   if (newP !== oldP) {
     stopTTS()
     hasPlayed.value = false
+    currentTime.value = 0
+    duration.value = 0
   }
 }, { immediate: false })
 
@@ -403,23 +478,23 @@ function onWriteInput(e: Event) {
 
 // ── Section style map ──────────────────────────────────────────────────────────
 const sectionMap: Record<string, { label: string; cls: string }> = {
-  'Listening Part 1':  { label: '🎧 Listening — Part 1',      cls: 'bg-blue-500/15 text-blue-300 border border-blue-500/30' },
-  'Listening Part 2':  { label: '🎧 Listening — Part 2',      cls: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30' },
-  Reading:             { label: '📖 Reading',                  cls: 'bg-green-500/15 text-green-300 border border-green-500/30' },
-  Writing:             { label: '✍️ Writing',                  cls: 'bg-violet-500/15 text-violet-300 border border-violet-500/30' },
-  'Listening Part 3':  { label: '🗣️ Part 3 — Conversations',  cls: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30' },
-  'Listening Part 4':  { label: '📢 Part 4 — Short Talks',    cls: 'bg-teal-500/15 text-teal-300 border border-teal-500/30' },
-  'Reading Part 5':    { label: '📝 Part 5 — Grammar',        cls: 'bg-amber-500/15 text-amber-300 border border-amber-500/30' },
-  'Reading Part 6':    { label: '📄 Part 6 — Text Completion', cls: 'bg-orange-500/15 text-orange-300 border border-orange-500/30' },
-  'Reading Part 7':    { label: '📰 Part 7 — Reading',        cls: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' },
-  Listening:               { label: '🎧 Listening',                   cls: 'bg-blue-500/15 text-blue-300 border border-blue-500/30' },
-  'Listening — Lecture':   { label: '🎓 Listening — Lecture',         cls: 'bg-teal-500/15 text-teal-300 border border-teal-500/30' },
-  'Listening — Discussion':{ label: '🗣️ Listening — Discussion',      cls: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30' },
-  'Reading Passage 1':     { label: '📖 Reading — Passage 1',         cls: 'bg-teal-500/15 text-teal-300 border border-teal-500/30' },
-  'Reading Passage 2':     { label: '📖 Reading — Passage 2',         cls: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30' },
-  Speaking:                { label: '🎤 Speaking',                    cls: 'bg-orange-500/15 text-orange-300 border border-orange-500/30' },
-  Grammar:             { label: '📝 Grammar',                 cls: 'bg-amber-500/15 text-amber-300 border border-amber-500/30' },
-  'Text Completion':   { label: '📄 Text Completion',         cls: 'bg-pink-500/15 text-pink-300 border border-pink-500/30' },
+  'Listening Part 1':  { label: '🎧 Listening — Part 1',      cls: 'sec-blue' },
+  'Listening Part 2':  { label: '🎧 Listening — Part 2',      cls: 'sec-cyan' },
+  Reading:             { label: '📖 Reading',                  cls: 'sec-green' },
+  Writing:             { label: '✍️ Writing',                  cls: 'sec-violet' },
+  'Listening Part 3':  { label: '🗣️ Part 3 — Conversations',  cls: 'sec-cyan' },
+  'Listening Part 4':  { label: '📢 Part 4 — Short Talks',    cls: 'sec-teal' },
+  'Reading Part 5':    { label: '📝 Part 5 — Grammar',        cls: 'sec-amber' },
+  'Reading Part 6':    { label: '📄 Part 6 — Text Completion', cls: 'sec-orange' },
+  'Reading Part 7':    { label: '📰 Part 7 — Reading',        cls: 'sec-emerald' },
+  Listening:               { label: '🎧 Listening',                   cls: 'sec-blue' },
+  'Listening — Lecture':   { label: '🎓 Listening — Lecture',         cls: 'sec-teal' },
+  'Listening — Discussion':{ label: '🗣️ Listening — Discussion',      cls: 'sec-cyan' },
+  'Reading Passage 1':     { label: '📖 Reading — Passage 1',         cls: 'sec-teal' },
+  'Reading Passage 2':     { label: '📖 Reading — Passage 2',         cls: 'sec-cyan' },
+  Speaking:                { label: '🎤 Speaking',                    cls: 'sec-orange' },
+  Grammar:             { label: '📝 Grammar',                 cls: 'sec-amber' },
+  'Text Completion':   { label: '📄 Text Completion',         cls: 'sec-pink' },
 }
 
 const sectionLabel = computed(() => sectionMap[props.question.section]?.label ?? props.question.section)
@@ -459,12 +534,14 @@ const typeLabel = computed(() => {
 })
 </script>
 
-<style scoped>
-@keyframes wave {
+<style>
+/* Global (unscoped) so the inline :style animation binding on the waveform bars
+   can reference them — scoped keyframes get renamed and wouldn't match. */
+@keyframes listen-bar-wave {
   from { transform: scaleY(0.2); }
   to   { transform: scaleY(1); }
 }
-@keyframes sweep {
+@keyframes listen-bg-sweep {
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }

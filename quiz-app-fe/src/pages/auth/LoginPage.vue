@@ -81,6 +81,7 @@
               <Input
                 v-bind="componentField"
                 type="email"
+                autocomplete="email"
                 :placeholder="selectedRole === 'teacher' ? 'yourname@teacher.sprk' : 'name@example.com'"
                 class="border-input bg-background focus:border-primary focus:ring-primary/20 h-12 rounded-xl pl-12 text-base transition-all focus:ring-2"
               />
@@ -110,7 +111,8 @@
               <Input
                 v-bind="componentField"
                 :type="showPassword ? 'text' : 'password'"
-                placeholder="Enter your password"
+                autocomplete="current-password"
+                :placeholder="$t('auth.login.passwordPlaceholder')"
                 class="border-input bg-background focus:border-primary focus:ring-primary/20 h-12 rounded-xl pl-12 pr-12 text-base transition-all focus:ring-2"
               />
               <button

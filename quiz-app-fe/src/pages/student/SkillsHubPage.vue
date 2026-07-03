@@ -59,8 +59,8 @@
       <div class="bg-card border-border rounded-2xl border p-6">
         <h3 class="text-foreground mb-4 text-base font-bold">CEFR Proficiency Levels</h3>
         <div class="grid grid-cols-3 gap-3 sm:grid-cols-6">
-          <div v-for="lvl in cefrLevels" :key="lvl.code" class="rounded-xl border p-3 text-center" :class="lvl.bg">
-            <div class="text-lg font-extrabold" :class="lvl.color">{{ lvl.code }}</div>
+          <div v-for="lvl in cefrLevels" :key="lvl.code" class="rounded-xl p-3 text-center" :class="lvl.sec">
+            <div class="text-lg font-extrabold">{{ lvl.code }}</div>
             <div class="text-muted-foreground text-xs">{{ lvl.name }}</div>
           </div>
         </div>
@@ -138,11 +138,11 @@ const skills = [
 ]
 
 const cefrLevels = [
-  { code: 'A1', name: 'Beginner', bg: 'bg-red-500/10 border-red-500/20', color: 'text-red-400' },
-  { code: 'A2', name: 'Elementary', bg: 'bg-orange-500/10 border-orange-500/20', color: 'text-orange-400' },
-  { code: 'B1', name: 'Intermediate', bg: 'bg-amber-500/10 border-amber-500/20', color: 'text-amber-400' },
-  { code: 'B2', name: 'Upper-Int.', bg: 'bg-yellow-500/10 border-yellow-500/20', color: 'text-yellow-400' },
-  { code: 'C1', name: 'Advanced', bg: 'bg-emerald-500/10 border-emerald-500/20', color: 'text-emerald-400' },
-  { code: 'C2', name: 'Proficient', bg: 'bg-blue-500/10 border-blue-500/20', color: 'text-blue-400' },
+  { code: 'A1', name: 'Beginner',     sec: 'sec-red' },
+  { code: 'A2', name: 'Elementary',   sec: 'sec-orange' },
+  { code: 'B1', name: 'Intermediate', sec: 'sec-amber' },
+  { code: 'B2', name: 'Upper-Int.',   sec: 'sec-yellow' },
+  { code: 'C1', name: 'Advanced',     sec: 'sec-emerald' },
+  { code: 'C2', name: 'Proficient',   sec: 'sec-blue' },
 ]
 </script>

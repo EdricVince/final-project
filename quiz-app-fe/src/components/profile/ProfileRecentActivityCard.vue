@@ -3,10 +3,10 @@
     <div class="mb-4 flex items-center justify-between">
       <h3 class="text-foreground flex items-center gap-2 text-lg font-semibold">
         <Activity class="text-primary h-5 w-5" />
-        Recent Activity
+        {{ $t('profile.recentActivity.title') }}
       </h3>
       <button class="text-primary hover:text-primary/80 text-sm font-medium transition-colors">
-        View All
+        {{ $t('profile.recentActivity.viewAll') }}
       </button>
     </div>
 
@@ -39,16 +39,19 @@
 
       <div v-if="activities.length === 0" class="py-8 text-center">
         <Activity class="text-muted-foreground mx-auto mb-2 h-8 w-8" />
-        <p class="text-muted-foreground text-sm">No recent activity</p>
-        <p class="text-muted-foreground text-xs">Start learning to see your progress here!</p>
+        <p class="text-muted-foreground text-sm">{{ $t('profile.recentActivity.noActivity') }}</p>
+        <p class="text-muted-foreground text-xs">{{ $t('profile.recentActivity.noActivityDesc') }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Activity, BookOpen, CheckCircle, Trophy, Flame, Star, GraduationCap } from '@/components/icons'
 import type { Component } from 'vue'
+
+const { t: $t } = useI18n()
 
 export type ActivityType = 'lesson' | 'quiz' | 'achievement' | 'streak' | 'milestone' | 'review'
 

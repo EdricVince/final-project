@@ -5,7 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ROLE_STUDENT } from '../roles/entities/role.entity';
+import { ROLE_STUDENT, ROLE_TEACHER } from '../roles/entities/role.entity';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto, UserOutDto, LoginResponseDto, ProfileDto, UpdateProfileDto } from './dto/register.dto';
@@ -46,7 +46,7 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<UserOutDto> {
-    const { email, password } = registerDto;
+    const { email, password, role_id } = registerDto;
 
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
@@ -54,9 +54,10 @@ export class AuthService {
     }
 
     const hashedPassword = await this.hashPassword(password);
+    const assignedRole = role_id === ROLE_TEACHER ? ROLE_TEACHER : ROLE_STUDENT;
 
     try {
-      const user = await this.usersService.create(email, hashedPassword, ROLE_STUDENT);
+      const user = await this.usersService.create(email, hashedPassword, assignedRole);
 
       return {
         id: user.id,

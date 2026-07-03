@@ -3,13 +3,13 @@
     <div class="mb-4 flex items-center justify-between">
       <h3 class="text-foreground flex items-center gap-2 text-lg font-semibold">
         <Trophy class="text-primary h-5 w-5" />
-        Achievements
+        {{ $t('profile.achievements.title') }}
       </h3>
       <RouterLink
         to="/achievements"
         class="text-primary hover:text-primary/80 flex items-center gap-1 text-sm font-medium transition-colors"
       >
-        View All
+        {{ $t('profile.achievements.viewAll') }}
         <ChevronRight class="h-4 w-4" />
       </RouterLink>
     </div>
@@ -18,21 +18,21 @@
     <div class="mb-4 grid grid-cols-3 gap-2">
       <div class="bg-secondary/50 rounded-lg p-2 text-center">
         <p class="text-foreground text-lg font-bold">{{ earnedCount }}</p>
-        <p class="text-muted-foreground text-xs">Earned</p>
+        <p class="text-muted-foreground text-xs">{{ $t('profile.achievements.earned') }}</p>
       </div>
       <div class="bg-secondary/50 rounded-lg p-2 text-center">
         <p class="text-primary text-lg font-bold">{{ totalPoints }}</p>
-        <p class="text-muted-foreground text-xs">Points</p>
+        <p class="text-muted-foreground text-xs">{{ $t('profile.achievements.points') }}</p>
       </div>
       <div class="bg-secondary/50 rounded-lg p-2 text-center">
         <p class="text-foreground text-lg font-bold">{{ achievements.length - earnedCount }}</p>
-        <p class="text-muted-foreground text-xs">Remaining</p>
+        <p class="text-muted-foreground text-xs">{{ $t('profile.achievements.remaining') }}</p>
       </div>
     </div>
 
     <!-- Featured Achievements -->
     <div class="mb-4">
-      <p class="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">Recent Unlocks</p>
+      <p class="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">{{ $t('profile.achievements.recentUnlocks') }}</p>
       <div class="flex gap-3 overflow-x-auto pb-2">
         <div
           v-for="achievement in recentAchievements"
@@ -61,7 +61,7 @@
           v-if="recentAchievements.length === 0"
           class="text-muted-foreground flex w-full items-center justify-center py-4 text-sm"
         >
-          No achievements unlocked yet
+          {{ $t('profile.achievements.noneYet') }}
         </div>
       </div>
     </div>
@@ -101,9 +101,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { Trophy, ChevronRight } from '@/components/icons'
 import type { Component } from 'vue'
+
+const { t: $t } = useI18n()
 
 export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary'
 

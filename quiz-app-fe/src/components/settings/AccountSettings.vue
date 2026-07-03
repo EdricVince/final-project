@@ -3,7 +3,7 @@
     <div class="bg-card border-border rounded-2xl border p-6">
       <h2 class="text-foreground mb-6 flex items-center gap-2 text-lg font-semibold">
         <User class="text-primary h-5 w-5" />
-        Account Information
+        {{ $t('settings.account.accountInfo') }}
       </h2>
 
       <!-- Profile Picture -->
@@ -13,16 +13,16 @@
         </div>
         <div>
           <button class="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium transition-all hover:opacity-90">
-            Change Avatar
+            {{ $t('settings.account.changeAvatarBtn') }}
           </button>
-          <p class="text-muted-foreground mt-2 text-xs">JPG, PNG or GIF. Max 2MB</p>
+          <p class="text-muted-foreground mt-2 text-xs">{{ $t('settings.account.avatarHint') }}</p>
         </div>
       </div>
 
       <!-- Form Fields -->
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
-          <label class="text-foreground mb-2 block text-sm font-medium">Full Name</label>
+          <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('settings.account.fullName') }}</label>
           <input
             :value="account.fullName"
             type="text"
@@ -31,7 +31,7 @@
           />
         </div>
         <div>
-          <label class="text-foreground mb-2 block text-sm font-medium">Username</label>
+          <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('settings.account.username') }}</label>
           <input
             :value="account.username"
             type="text"
@@ -40,7 +40,7 @@
           />
         </div>
         <div class="sm:col-span-2">
-          <label class="text-foreground mb-2 block text-sm font-medium">Email</label>
+          <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('settings.account.email') }}</label>
           <input
             :value="account.email"
             type="email"
@@ -55,7 +55,7 @@
           class="bg-primary text-primary-foreground rounded-lg px-6 py-2.5 text-sm font-medium transition-all hover:opacity-90"
           @click="$emit('save')"
         >
-          Save Changes
+          {{ $t('settings.account.saveChanges') }}
         </button>
       </div>
     </div>
@@ -64,19 +64,19 @@
     <div v-if="authStore.isTeacherEmail" class="bg-card border-border rounded-2xl border p-6">
       <h2 class="text-foreground mb-4 flex items-center gap-2 text-lg font-semibold">
         <GraduationCap class="text-primary h-5 w-5" />
-        Teacher Portal
+        {{ $t('settings.account.teacherPortal.title') }}
       </h2>
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-foreground text-sm font-medium">You have teacher access</p>
-          <p class="text-muted-foreground mt-0.5 text-xs">Access class management, tests, and analytics</p>
+          <p class="text-foreground text-sm font-medium">{{ $t('settings.account.teacherPortal.hasAccess') }}</p>
+          <p class="text-muted-foreground mt-0.5 text-xs">{{ $t('settings.account.teacherPortal.accessDesc') }}</p>
         </div>
         <button
           class="bg-primary text-primary-foreground flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all hover:opacity-90"
           @click="goToTeacherDashboard"
         >
           <GraduationCap class="h-4 w-4" />
-          Go to Dashboard
+          {{ $t('settings.account.teacherPortal.goToDashboard') }}
         </button>
       </div>
     </div>
@@ -85,12 +85,12 @@
     <div class="bg-card border-border rounded-2xl border p-6">
       <h2 class="text-foreground mb-6 flex items-center gap-2 text-lg font-semibold">
         <Lock class="text-primary h-5 w-5" />
-        Change Password
+        {{ $t('settings.account.changePassword') }}
       </h2>
 
       <div class="space-y-4">
         <div>
-          <label class="text-foreground mb-2 block text-sm font-medium">Current Password</label>
+          <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('settings.account.currentPassword') }}</label>
           <input
             :value="password.current"
             type="password"
@@ -99,7 +99,7 @@
           />
         </div>
         <div>
-          <label class="text-foreground mb-2 block text-sm font-medium">New Password</label>
+          <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('settings.account.newPassword') }}</label>
           <input
             :value="password.new"
             type="password"
@@ -108,7 +108,7 @@
           />
         </div>
         <div>
-          <label class="text-foreground mb-2 block text-sm font-medium">Confirm New Password</label>
+          <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('settings.account.confirmNewPassword') }}</label>
           <input
             :value="password.confirm"
             type="password"
@@ -123,7 +123,7 @@
           class="bg-secondary text-foreground hover:bg-secondary/80 rounded-lg px-6 py-2.5 text-sm font-medium transition-all"
           @click="$emit('changePassword')"
         >
-          Update Password
+          {{ $t('settings.account.updatePassword') }}
         </button>
       </div>
     </div>
@@ -134,8 +134,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { User, Lock, GraduationCap } from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
+
+const { t } = useI18n()
 
 export interface AccountData {
   fullName: string

@@ -43,12 +43,12 @@
         <div class="flex gap-2">
           <button @click="switchSkillType('shadowing')"
             class="rounded-xl border px-5 py-2 text-sm font-semibold transition-all"
-            :class="skillType==='shadowing' ? 'border-rose-500/50 bg-rose-500/15 text-rose-300' : 'border-border text-muted-foreground hover:text-foreground'">
+            :class="skillType==='shadowing' ? 'skill-tab-rose' : 'border-border text-muted-foreground hover:text-foreground'">
             🔁 Shadowing
           </button>
           <button @click="switchSkillType('speaking_test')"
             class="rounded-xl border px-5 py-2 text-sm font-semibold transition-all"
-            :class="skillType==='speaking_test' ? 'border-rose-500/50 bg-rose-500/15 text-rose-300' : 'border-border text-muted-foreground hover:text-foreground'">
+            :class="skillType==='speaking_test' ? 'skill-tab-rose' : 'border-border text-muted-foreground hover:text-foreground'">
             🎤 Speaking Test
           </button>
         </div>
@@ -141,7 +141,7 @@
                 </button>
               </div>
 
-              <div v-if="micError" class="w-full rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-center text-xs text-amber-400">
+              <div v-if="micError" class="w-full info-box-sm info-box-amber text-center text-xs text-amber-400">
                 Microphone permission denied. Please allow microphone access in your browser settings.
               </div>
             </div>
@@ -166,7 +166,7 @@
               </div>
 
               <!-- Shadowing text -->
-              <div class="rounded-xl border border-rose-500/20 bg-rose-500/5 p-5">
+              <div class="rounded-xl border p-5 info-box-rose">
                 <p class="text-foreground text-base leading-loose font-medium tracking-wide">{{ exercise.text }}</p>
               </div>
 
@@ -200,7 +200,7 @@
           <!-- Speaking Test content -->
           <template v-if="skillType==='speaking_test' && speakingPrompt">
             <!-- Prep countdown -->
-            <div v-if="prepPhase" class="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 text-center">
+            <div v-if="prepPhase" class="info-box-lg info-box-amber-strong text-center">
               <div class="text-amber-400 text-xs font-semibold uppercase tracking-wide mb-1">Preparation Time</div>
               <div class="my-1 text-5xl font-mono font-extrabold text-amber-400">{{ fmtTime(prepLeft) }}</div>
               <div class="text-muted-foreground text-xs">Read the question and prepare your answer</div>
@@ -300,12 +300,12 @@ import { api } from '@/utils/api'
 const router = useRouter()
 
 const levelMeta = [
-  { code: 'A1', label: 'Beginner',    time: '~0:35', activeClass: 'border-red-500/50 bg-red-500/15 text-red-300' },
-  { code: 'A2', label: 'Elementary',  time: '~0:50', activeClass: 'border-orange-500/50 bg-orange-500/15 text-orange-300' },
-  { code: 'B1', label: 'Intermediate',time: '~1:06', activeClass: 'border-amber-500/50 bg-amber-500/15 text-amber-300' },
-  { code: 'B2', label: 'Upper-Int.',  time: '~1:27', activeClass: 'border-yellow-500/50 bg-yellow-500/15 text-yellow-300' },
-  { code: 'C1', label: 'Advanced',    time: '~1:45', activeClass: 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300' },
-  { code: 'C2', label: 'Mastery',     time: '~2:04', activeClass: 'border-blue-500/50 bg-blue-500/15 text-blue-300' },
+  { code: 'A1', label: 'Beginner',    time: '~0:35', activeClass: 'level-filter-a1' },
+  { code: 'A2', label: 'Elementary',  time: '~0:50', activeClass: 'level-filter-a2' },
+  { code: 'B1', label: 'Intermediate',time: '~1:06', activeClass: 'level-filter-b1' },
+  { code: 'B2', label: 'Upper-Int.',  time: '~1:27', activeClass: 'level-filter-b2' },
+  { code: 'C1', label: 'Advanced',    time: '~1:45', activeClass: 'level-filter-c1' },
+  { code: 'C2', label: 'Mastery',     time: '~2:04', activeClass: 'level-filter-c2' },
 ]
 
 const selectedLevel = ref('B1')

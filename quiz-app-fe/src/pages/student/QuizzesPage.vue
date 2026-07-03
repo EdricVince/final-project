@@ -4,13 +4,13 @@
     <div class="animate-fade-in-down mb-8">
       <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 class="text-foreground text-3xl font-bold tracking-tight lg:text-4xl">Quiz Games</h1>
-          <p class="text-muted-foreground mt-2 text-lg">Challenge yourself and learn vocabulary through fun games</p>
+          <h1 class="text-foreground text-3xl font-bold tracking-tight lg:text-4xl">{{ $t('quizzesPage.title') }}</h1>
+          <p class="text-muted-foreground mt-2 text-lg">{{ $t('quizzesPage.subtitle') }}</p>
         </div>
         <div class="flex items-center gap-3">
           <div class="bg-card border-border flex items-center gap-2 rounded-xl border px-4 py-2">
             <Flame class="text-primary h-5 w-5" />
-            <span class="text-foreground font-semibold">{{ progressStore.streakCount }} day streak</span>
+            <span class="text-foreground font-semibold">{{ $t('quizzesPage.dayStreak', { n: progressStore.streakCount }) }}</span>
           </div>
           <div class="bg-card border-border flex items-center gap-2 rounded-xl border px-4 py-2">
             <Zap class="text-primary h-5 w-5" />
@@ -27,28 +27,28 @@
           <Trophy class="text-primary h-6 w-6" />
         </div>
         <span class="text-foreground text-2xl font-bold">{{ progressStore.totalQuizzesCompleted }}</span>
-        <p class="text-muted-foreground mt-1 text-sm">Games Played</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('quizzesPage.stats.gamesPlayed') }}</p>
       </div>
       <div class="bg-card border-border rounded-2xl border p-5 transition-all hover:shadow-lg">
         <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-xl">
           <Target class="text-primary h-6 w-6" />
         </div>
         <span class="text-foreground text-2xl font-bold">{{ overallAccuracy }}%</span>
-        <p class="text-muted-foreground mt-1 text-sm">Accuracy</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('quizzesPage.stats.accuracy') }}</p>
       </div>
       <div class="bg-card border-border rounded-2xl border p-5 transition-all hover:shadow-lg">
         <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-xl">
           <BookOpen class="text-primary h-6 w-6" />
         </div>
         <span class="text-foreground text-2xl font-bold">{{ progressStore.totalCardsStudied }}</span>
-        <p class="text-muted-foreground mt-1 text-sm">Words Studied</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('quizzesPage.stats.wordsStudied') }}</p>
       </div>
       <div class="bg-card border-border rounded-2xl border p-5 transition-all hover:shadow-lg">
         <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-xl">
           <Flame class="text-primary h-6 w-6" />
         </div>
         <span class="text-foreground text-2xl font-bold">{{ progressStore.longestStreak }}</span>
-        <p class="text-muted-foreground mt-1 text-sm">Best Streak</p>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('quizzesPage.stats.bestStreak') }}</p>
       </div>
     </div>
 
@@ -56,15 +56,15 @@
     <div class="animate-fade-in-up delay-150 mb-8">
       <h2 class="text-foreground mb-5 flex items-center gap-2 text-xl font-semibold">
         <BookOpen class="text-primary h-6 w-6" />
-        Assignments from Teacher
+        {{ $t('quizzesPage.assignmentsFromTeacher') }}
       </h2>
       <div class="bg-card border-border flex flex-col items-center justify-center rounded-2xl border p-10 text-center">
         <div class="bg-secondary mb-4 flex h-16 w-16 items-center justify-center rounded-full">
           <BookOpen class="text-muted-foreground h-8 w-8" />
         </div>
-        <h3 class="text-foreground mb-2 text-lg font-semibold">No Assignments Yet</h3>
+        <h3 class="text-foreground mb-2 text-lg font-semibold">{{ $t('quizzesPage.noAssignmentsYet') }}</h3>
         <p class="text-muted-foreground max-w-md text-sm">
-          Teacher hasn't assigned any quizzes yet. Assignments will appear here when they are assigned.
+          {{ $t('quizzesPage.noAssignmentsDesc') }}
         </p>
       </div>
     </div>
@@ -82,18 +82,18 @@
               <Swords class="h-7 w-7 text-white" />
             </div>
             <div>
-              <h3 class="text-xl font-bold text-white">Battle Mode</h3>
-              <p class="text-sm text-white/80">Challenge an AI opponent — fastest answerer wins!</p>
+              <h3 class="text-xl font-bold text-white">{{ $t('quizzesPage.battleMode') }}</h3>
+              <p class="text-sm text-white/80">{{ $t('quizzesPage.battleModeDesc') }}</p>
             </div>
           </div>
           <div class="hidden items-center gap-3 sm:flex">
             <div class="flex items-center gap-1.5 rounded-xl bg-white/20 px-3 py-1.5">
               <Zap class="h-4 w-4 text-primary-foreground" />
-              <span class="text-sm font-semibold text-white">Speed Bonus</span>
+              <span class="text-sm font-semibold text-white">{{ $t('quizzesPage.speedBonus') }}</span>
             </div>
             <div class="flex items-center gap-1.5 rounded-xl bg-white/20 px-3 py-1.5">
               <Trophy class="h-4 w-4 text-primary-foreground" />
-              <span class="text-sm font-semibold text-white">Win XP</span>
+              <span class="text-sm font-semibold text-white">{{ $t('quizzesPage.winXP') }}</span>
             </div>
           </div>
         </div>
@@ -104,10 +104,10 @@
     <div class="animate-fade-in-up delay-200 mb-8">
       <h2 class="text-foreground mb-2 flex items-center gap-2 text-xl font-semibold">
         <Gamepad2 class="text-primary h-6 w-6" />
-        Practice Games
+        {{ $t('quizzesPage.practiceGames') }}
       </h2>
       <p class="text-muted-foreground mb-5 text-sm">
-        Play games with random vocabulary — results show meanings in your language
+        {{ $t('quizzesPage.practiceGamesDesc') }}
       </p>
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <QuizModeCard
@@ -127,7 +127,7 @@
         <div class="bg-card border-border rounded-2xl border p-6">
           <h3 class="text-foreground mb-4 flex items-center gap-2 font-semibold">
             <History class="text-primary h-5 w-5" />
-            Recent Games
+            {{ $t('quizzesPage.recentGames') }}
           </h3>
           <div class="space-y-3">
             <div
@@ -143,13 +143,13 @@
                 <p class="text-muted-foreground text-sm">{{ formatRelativeDate(game.date) }}</p>
               </div>
               <div class="text-right">
-                <p class="text-foreground font-semibold">{{ game.score }} pts</p>
-                <p class="text-muted-foreground text-sm">{{ game.accuracy }}% acc</p>
+                <p class="text-foreground font-semibold">{{ game.score }} {{ $t('quizzesPage.pts') }}</p>
+                <p class="text-muted-foreground text-sm">{{ game.accuracy }}% {{ $t('quizzesPage.acc') }}</p>
               </div>
             </div>
             <div v-if="quizStore.recentGames.length === 0" class="text-muted-foreground py-8 text-center">
               <History class="mx-auto mb-2 h-8 w-8 opacity-40" />
-              <p class="text-sm">No games played yet. Start your first quiz!</p>
+              <p class="text-sm">{{ $t('quizzesPage.noGamesYet') }}</p>
             </div>
           </div>
         </div>
@@ -160,7 +160,7 @@
         <div class="bg-card border-border rounded-2xl border p-6">
           <h3 class="text-foreground mb-4 flex items-center gap-2 font-semibold">
             <Medal class="text-primary h-5 w-5" />
-            Leaderboard
+            {{ $t('quizzesPage.leaderboard') }}
           </h3>
           <div class="space-y-3">
             <div
@@ -184,9 +184,9 @@
               <div class="min-w-0 flex-1">
                 <h4 class="text-foreground truncate font-medium">
                   {{ entry.display_name || entry.email }}
-                  <span v-if="isCurrentUser(entry.user_id)" class="text-primary text-xs font-normal"> (you)</span>
+                  <span v-if="isCurrentUser(entry.user_id)" class="text-primary text-xs font-normal"> {{ $t('quizzesPage.you') }}</span>
                 </h4>
-                <p class="text-muted-foreground text-xs">Lv.{{ entry.level }} · {{ entry.streak_count }}🔥</p>
+                <p class="text-muted-foreground text-xs">{{ $t('quizzesPage.lvPrefix') }}{{ entry.level }} · {{ entry.streak_count }}🔥</p>
               </div>
               <div class="text-right">
                 <p class="text-foreground font-bold">{{ entry.xp.toLocaleString() }}</p>
@@ -195,7 +195,7 @@
             </div>
             <div v-if="progressStore.leaderboard.length === 0" class="text-muted-foreground py-8 text-center">
               <Medal class="mx-auto mb-2 h-8 w-8 opacity-40" />
-              <p class="text-sm">Leaderboard will appear once others join</p>
+              <p class="text-sm">{{ $t('quizzesPage.leaderboardEmpty') }}</p>
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@
         >
           <div class="bg-card border-border w-full max-w-sm rounded-2xl border p-6 shadow-2xl">
             <div class="mb-5 flex items-center justify-between">
-              <h3 class="text-foreground text-lg font-semibold">Choose Difficulty</h3>
+              <h3 class="text-foreground text-lg font-semibold">{{ $t('quizzesPage.chooseDifficulty') }}</h3>
               <button class="text-muted-foreground hover:text-foreground" @click="showDifficultyModal = false">
                 <X class="h-5 w-5" />
               </button>
@@ -231,7 +231,7 @@
                   <p class="text-foreground font-medium">{{ diff.label }}</p>
                   <p class="text-muted-foreground text-xs">{{ diff.desc }}</p>
                 </div>
-                <span class="text-primary font-semibold">{{ diff.count }} idioms</span>
+                <span class="text-primary font-semibold">{{ $t('quizzesPage.idioms', { count: diff.count }) }}</span>
               </button>
             </div>
 
@@ -266,12 +266,12 @@
                     <p class="text-muted-foreground text-xs">{{ diff.desc }}</p>
                   </div>
                 </div>
-                <span class="text-primary font-semibold">{{ diff.count }} words</span>
+                <span class="text-primary font-semibold">{{ $t('quizzesPage.words', { count: diff.count }) }}</span>
               </button>
 
               <!-- Custom count -->
               <div class="border-border rounded-xl border p-4">
-                <p class="text-foreground mb-2 text-sm font-medium">Custom</p>
+                <p class="text-foreground mb-2 text-sm font-medium">{{ $t('quizzesPage.custom') }}</p>
                 <div class="flex gap-2">
                   <input
                     v-model.number="customCount"
@@ -286,7 +286,7 @@
                     :disabled="!customCount || customCount < 3 || customCount > 50"
                     @click="startWithDifficulty(customCount ?? 10)"
                   >
-                    Go
+                    {{ $t('quizzesPage.go') }}
                   </button>
                 </div>
               </div>
@@ -301,6 +301,7 @@
 <script setup lang="ts">
 import { ref, computed, type Component } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   Flame,
   Zap,
@@ -326,6 +327,7 @@ import { useProgressStore } from '@/stores/progress.store'
 import { useQuizStore } from '@/stores/quiz.store'
 import { useAuthStore } from '@/stores/auth.store'
 
+const { t } = useI18n()
 const router = useRouter()
 const progressStore = useProgressStore()
 const quizStore = useQuizStore()

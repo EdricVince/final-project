@@ -5,7 +5,7 @@
         <div class="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-lg">
           <Flame class="text-primary h-4 w-4" />
         </div>
-        <h3 class="text-foreground font-semibold">Daily Challenges</h3>
+        <h3 class="text-foreground font-semibold">{{ $t('dashboard.challenges.title') }}</h3>
       </div>
       <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Clock class="h-3.5 w-3.5" />
@@ -72,12 +72,12 @@
       class="mt-4 rounded-lg bg-primary/5 px-4 py-3 text-center"
     >
       <p class="text-foreground text-sm font-medium">
-        All challenges complete! 🎉 <span class="text-primary">+50 XP bonus</span>
+        {{ $t('dashboard.challenges.allComplete') }} <span class="text-primary">{{ $t('dashboard.challenges.bonusXP') }}</span>
       </p>
     </div>
     <div v-else class="mt-4 rounded-lg bg-secondary/20 px-4 py-2.5 text-center">
       <p class="text-muted-foreground text-xs">
-        <span class="font-medium text-foreground">{{ challenges.filter(c => !c.completed).length }}</span> challenge{{ challenges.filter(c => !c.completed).length !== 1 ? 's' : '' }} remaining
+        {{ $t('dashboard.challenges.remaining', { count: challenges.filter(c => !c.completed).length }, challenges.filter(c => !c.completed).length) }}
       </p>
     </div>
   </div>
@@ -104,7 +104,7 @@
                   class="rounded-full px-2 py-0.5 text-xs font-medium"
                   :class="selectedChallenge.completed ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'"
                 >
-                  {{ selectedChallenge.completed ? 'Completed' : 'In Progress' }}
+                  {{ selectedChallenge.completed ? $t('dashboard.challenges.completed') : $t('dashboard.challenges.inProgress') }}
                 </span>
               </div>
             </div>
@@ -119,7 +119,7 @@
           <!-- Progress -->
           <div class="mb-5">
             <div class="mb-2 flex items-center justify-between text-sm">
-              <span class="text-foreground font-medium">Progress</span>
+              <span class="text-foreground font-medium">{{ $t('dashboard.challenges.progress') }}</span>
               <span class="text-muted-foreground">{{ selectedChallenge.current }} / {{ selectedChallenge.target }}</span>
             </div>
             <div class="bg-secondary h-3 overflow-hidden rounded-full">
@@ -132,7 +132,7 @@
 
           <!-- Reward -->
           <div class="border-border bg-secondary/30 mb-5 flex items-center justify-between rounded-xl border px-4 py-3">
-            <span class="text-muted-foreground text-sm">XP Reward</span>
+            <span class="text-muted-foreground text-sm">{{ $t('dashboard.challenges.xpReward') }}</span>
             <div class="text-primary flex items-center gap-1 font-bold">
               <Zap class="h-4 w-4" />
               {{ selectedChallenge.xp }} XP
@@ -145,7 +145,7 @@
               class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-2.5 text-sm font-medium transition-colors"
               @click="selectedChallenge = null"
             >
-              Close
+              {{ $t('common.close') }}
             </button>
             <button
               v-if="!selectedChallenge.completed"
@@ -153,7 +153,7 @@
               @click="goToChallenge(selectedChallenge)"
             >
               <ArrowRight class="h-4 w-4" />
-              Start
+              {{ $t('dashboard.challenges.start') }}
             </button>
           </div>
         </div>
@@ -165,7 +165,10 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Flame, Clock, Zap, BookOpen, Brain, Layers, Target, X, ArrowRight } from '@/components/icons'
+
+const { t } = useI18n()
 
 defineEmits<{ claimReward: [challengeId: number] }>()
 

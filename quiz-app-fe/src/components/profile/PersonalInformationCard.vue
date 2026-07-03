@@ -3,7 +3,7 @@
     <div class="mb-6 flex items-center justify-between">
       <h3 class="text-foreground flex items-center gap-2 text-lg font-semibold">
         <User class="text-primary h-5 w-5" />
-        Personal Information
+        {{ $t('profile.personalInfo.title') }}
       </h3>
       <Button
         v-if="!isEditing"
@@ -12,15 +12,15 @@
         @click="$emit('startEditing')"
       >
         <Pencil class="mr-1 h-4 w-4" />
-        Edit
+        {{ $t('profile.personalInfo.edit') }}
       </Button>
       <div v-else class="flex gap-2">
         <Button variant="ghost" size="sm" @click="$emit('cancelEditing')">
-          Cancel
+          {{ $t('profile.personalInfo.cancel') }}
         </Button>
         <Button size="sm" @click="$emit('saveProfile')">
           <Check class="mr-1 h-4 w-4" />
-          Save
+          {{ $t('profile.personalInfo.saveChanges') }}
         </Button>
       </div>
     </div>
@@ -28,14 +28,14 @@
     <div class="grid gap-5 sm:grid-cols-2">
       <!-- Full Name -->
       <div class="space-y-2">
-        <Label class="text-foreground text-sm font-medium">Full Name</Label>
+        <Label class="text-foreground text-sm font-medium">{{ $t('profile.personalInfo.fullName') }}</Label>
         <div v-if="!isEditing" class="bg-secondary/50 text-foreground rounded-xl px-4 py-3">
-          {{ profile.fullName || 'Not set' }}
+          {{ profile.fullName || $t('profile.personalInfo.notSet') }}
         </div>
         <Input
           v-else
           :model-value="editForm.fullName"
-          placeholder="Enter your full name"
+          :placeholder="$t('profile.personalInfo.fullName')"
           class="h-11 rounded-xl"
           @update:model-value="$emit('update:editForm', { ...editForm, fullName: String($event) })"
         />
@@ -43,7 +43,7 @@
 
       <!-- Username -->
       <div class="space-y-2">
-        <Label class="text-foreground text-sm font-medium">Username</Label>
+        <Label class="text-foreground text-sm font-medium">{{ $t('profile.personalInfo.username') }}</Label>
         <div v-if="!isEditing" class="bg-secondary/50 text-foreground rounded-xl px-4 py-3">
           @{{ profile.username || 'username' }}
         </div>
@@ -60,7 +60,7 @@
 
       <!-- Email -->
       <div class="space-y-2">
-        <Label class="text-foreground text-sm font-medium">Email Address</Label>
+        <Label class="text-foreground text-sm font-medium">{{ $t('profile.personalInfo.email') }}</Label>
         <div v-if="!isEditing" class="bg-secondary/50 text-foreground flex items-center gap-2 rounded-xl px-4 py-3">
           <Mail class="text-muted-foreground h-4 w-4" />
           {{ profile.email }}
@@ -77,10 +77,10 @@
 
       <!-- Phone -->
       <div class="space-y-2">
-        <Label class="text-foreground text-sm font-medium">Phone Number</Label>
+        <Label class="text-foreground text-sm font-medium">{{ $t('profile.personalInfo.phone') }}</Label>
         <div v-if="!isEditing" class="bg-secondary/50 text-foreground flex items-center gap-2 rounded-xl px-4 py-3">
           <Phone class="text-muted-foreground h-4 w-4" />
-          {{ profile.phone || 'Not set' }}
+          {{ profile.phone || $t('profile.personalInfo.notSet') }}
         </div>
         <Input
           v-else
@@ -94,9 +94,9 @@
 
       <!-- Title/Role -->
       <div class="space-y-2">
-        <Label class="text-foreground text-sm font-medium">Title / Role</Label>
+        <Label class="text-foreground text-sm font-medium">{{ $t('profile.personalInfo.role') }}</Label>
         <div v-if="!isEditing" class="bg-secondary/50 text-foreground rounded-xl px-4 py-3">
-          {{ profile.title || 'Not set' }}
+          {{ profile.title || $t('profile.personalInfo.notSet') }}
         </div>
         <Input
           v-else
@@ -109,10 +109,10 @@
 
       <!-- Location -->
       <div class="space-y-2">
-        <Label class="text-foreground text-sm font-medium">Location</Label>
+        <Label class="text-foreground text-sm font-medium">{{ $t('profile.personalInfo.location') }}</Label>
         <div v-if="!isEditing" class="bg-secondary/50 text-foreground flex items-center gap-2 rounded-xl px-4 py-3">
           <MapPin class="text-muted-foreground h-4 w-4" />
-          {{ profile.location || 'Not set' }}
+          {{ profile.location || $t('profile.personalInfo.notSet') }}
         </div>
         <Input
           v-else
@@ -127,11 +127,14 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { User, Pencil, Check, Mail, Phone, MapPin } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import Input from '@/components/ui/input/Input.vue'
 import Label from '@/components/ui/label/Label.vue'
 import type { ProfileData, ProfileEditForm } from '@/types/profile'
+
+const { t: $t } = useI18n()
 
 interface Props {
   profile: ProfileData

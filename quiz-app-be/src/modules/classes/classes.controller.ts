@@ -1,14 +1,27 @@
 import {
   Controller, Get, Post, Put, Delete,
-  Body, Param, ParseIntPipe, UseGuards, Req, HttpCode, HttpStatus,
+  Body, Param, ParseIntPipe, UseGuards, Req, HttpCode, HttpStatus, ForbiddenException,
 } from '@nestjs/common';
 import { ClassesService, CreateClassDto, UpdateClassDto } from './classes.service';
+import { AnalyticsService } from './analytics.service';
 import { JwtGuard } from '../../core/guards/jwt.guard';
+import { ROLE_TEACHER } from '../roles/entities/role.entity';
 
 @Controller('api/v1/classes')
 @UseGuards(JwtGuard)
 export class ClassesController {
-  constructor(private classesService: ClassesService) {}
+  constructor(
+    private classesService: ClassesService,
+    private analyticsService: AnalyticsService,
+  ) {}
+
+  /** GET /classes/analytics — teacher analytics dashboard */
+  @Get('analytics')
+  async getAnalytics(@Req() req: any) {
+    if (req.user.role_id !== ROLE_TEACHER) throw new ForbiddenException('Teacher access required');
+    const data = await this.analyticsService.getTeacherAnalytics(req.user.id);
+    return { code: 200, message: 'OK', data };
+  }
 
   /** GET /classes — teacher: own classes; student: enrolled classes */
   @Get()

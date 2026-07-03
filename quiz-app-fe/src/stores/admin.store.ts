@@ -11,6 +11,8 @@ export interface AdminUser {
   is_active: boolean
   created_at: string
   xp: number
+  is_verified: boolean
+  has_teacher_card: boolean
 }
 
 export interface AdminStats {
@@ -131,20 +133,77 @@ export const useAdminStore = defineStore('admin', () => {
     await fetchStats()
   }
 
-  async function createTeacher(name: string, password: string, email?: string): Promise<string> {
+  async function createTeacher(name: string, password: string, email?: string, teacherCardImage?: string): Promise<string> {
     const res = await fetch(`${BASE}/api/v1/admin/create-teacher`, {
       method: 'POST',
       headers: headers.value,
-      body: JSON.stringify({ name, password, ...(email ? { email } : {}) }),
+      body: JSON.stringify({
+        name, password,
+        ...(email ? { email } : {}),
+        ...(teacherCardImage ? { teacher_card_image: teacherCardImage } : {}),
+      }),
     })
     if (!res.ok) {
       const err = await res.json().catch(() => ({ message: 'Failed to create teacher' }))
-      throw new Error(err.message ?? 'Failed to create teacher')
+      throw new Error((Array.isArray(err.message) ? err.message[0] : err.message) ?? 'Failed to create teacher')
     }
     const data = await res.json()
     await fetchUsers()
     await fetchStats()
     return data.data.email as string
+  }
+
+  async function getTeacherCard(userId: number): Promise<string | null> {
+    const res = await fetch(`${BASE}/api/v1/admin/users/${userId}/teacher-card`, { headers: headers.value })
+    if (!res.ok) throw new Error('Failed to load teacher card')
+    const data = await res.json()
+    return data.data.teacher_card_image as string | null
+  }
+
+  async function setVerified(userId: number, verified: boolean): Promise<void> {
+    const user = users.value.find(u => u.id === userId)
+    const previous = user?.is_verified
+    if (user) user.is_verified = verified // optimistic
+    try {
+      const res = await fetch(`${BASE}/api/v1/admin/users/${userId}/verify`, {
+        method: 'PATCH',
+        headers: headers.value,
+        body: JSON.stringify({ verified }),
+      })
+      if (!res.ok) throw new Error('Failed to update verification')
+    } catch (e) {
+      if (user && previous !== undefined) user.is_verified = previous // revert
+      throw e
+    }
+  }
+
+  async function fetchAiStatus(): Promise<{
+    enabled: boolean; provider: string; key_preview: string | null;
+    features: { name: string; key: string }[]
+  }> {
+    const res = await fetch(`${BASE}/api/v1/admin/ai/status`, { headers: headers.value })
+    if (!res.ok) throw new Error('Failed to fetch AI status')
+    const data = await res.json()
+    return data.data
+  }
+
+  async function setAiKey(key: string): Promise<string> {
+    const res = await fetch(`${BASE}/api/v1/admin/ai/key`, {
+      method: 'POST',
+      headers: headers.value,
+      body: JSON.stringify({ key }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message ?? 'Failed to set AI key')
+    return data.message as string
+  }
+
+  async function removeAiKey(): Promise<void> {
+    const res = await fetch(`${BASE}/api/v1/admin/ai/key`, {
+      method: 'DELETE',
+      headers: headers.value,
+    })
+    if (!res.ok) throw new Error('Failed to remove AI key')
   }
 
   return {
@@ -153,5 +212,7 @@ export const useAdminStore = defineStore('admin', () => {
     login, tryRestoreSession, logout,
     fetchStats, fetchUsers,
     setActive, resetPassword, deleteUser, createTeacher,
+    getTeacherCard, setVerified,
+    fetchAiStatus, setAiKey, removeAiKey,
   }
 })

@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsOptional, IsString, IsArray, Min, Max } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, IsArray, Min, Max, IsNumber } from 'class-validator';
 
 export type CefrLevel = 'beginner' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type TargetExam = 'IELTS' | 'TOEIC' | 'TOEFL' | 'General';
@@ -42,6 +42,29 @@ export interface MonthPlan {
   objective: string;
   total_hours: number;
   week_summaries: WeekSummary[];
+}
+
+export class ExtendScheduleDto {
+  @IsString()
+  current_level: string;
+
+  @IsString()
+  target_exam: string;
+
+  @IsString() @IsOptional()
+  target_band?: string;
+
+  @IsInt() @Min(2) @Max(40)
+  weekly_hours: number;
+
+  @IsNumber()
+  next_month_number: number;
+
+  @IsArray()
+  existing_themes: string[];
+
+  @IsArray() @IsOptional()
+  focus_areas?: string[];
 }
 
 export interface StudyPlan {

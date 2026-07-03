@@ -2,12 +2,12 @@
   <div class="min-h-full">
     <!-- Hero Banner -->
     <div class="relative overflow-hidden">
-      <div class="absolute inset-0 bg-linear-to-br from-green-600/15 via-emerald-600/8 to-transparent" />
-      <div class="absolute -top-20 -right-20 h-80 w-80 rounded-full bg-green-500/10 blur-3xl" />
+      <div class="absolute inset-0 bg-linear-to-br from-indigo-600/20 via-violet-600/10 to-transparent" />
+      <div class="absolute -top-20 -right-20 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" />
       <div class="relative mx-auto max-w-5xl px-6 py-10">
 
-        <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-4 py-1.5 text-sm font-semibold text-green-400">
-          <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400"></span>
+        <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-sm font-semibold text-indigo-400">
+          <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-indigo-400"></span>
           AI Study Planner
         </div>
         <div>
@@ -27,13 +27,13 @@
         <div v-if="savedPlans.length === 0"
           class="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border bg-card/50 py-20 text-center"
         >
-          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-green-500/10 text-3xl">📅</div>
+          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-3xl">📅</div>
           <div>
             <div class="text-foreground font-bold text-lg">No study plans yet</div>
             <div class="text-muted-foreground mt-1 text-sm">Create your first AI-powered monthly study plan to get started</div>
           </div>
           <button
-            class="flex items-center gap-2 rounded-xl bg-green-600 px-6 py-3 font-bold text-white hover:bg-green-500 transition-colors shadow-lg shadow-green-500/20"
+            class="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 font-bold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20"
             @click="startNewPlan"
           >
             <span>✨</span> Create My First Plan
@@ -47,7 +47,7 @@
               {{ savedPlans.length }} Study Plan{{ savedPlans.length > 1 ? 's' : '' }}
             </div>
             <button
-              class="flex items-center gap-1.5 rounded-xl border border-green-500/30 bg-green-500/8 px-4 py-2 text-sm font-semibold text-green-400 hover:border-green-500/50 hover:bg-green-500/15 transition-all duration-200 active:scale-95"
+              class="flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/8 px-4 py-2 text-sm font-semibold text-indigo-400 hover:border-indigo-500/50 hover:bg-indigo-500/15 transition-all duration-200 active:scale-95"
               @click="startNewPlan"
             >
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -59,7 +59,7 @@
           <div
             v-for="sp in savedPlans"
             :key="sp.id"
-            class="group bg-card border-border rounded-2xl border p-5 transition-all hover:border-green-500/30 hover:shadow-lg cursor-pointer"
+            class="group bg-card border-border rounded-2xl border p-5 transition-all hover:border-indigo-500/30 hover:shadow-lg cursor-pointer"
             @click="viewSavedPlan(sp)"
           >
             <div class="flex items-start justify-between gap-4">
@@ -72,7 +72,7 @@
                 <div class="min-w-0">
                   <div class="text-foreground font-bold text-base">{{ sp.name }}</div>
                   <div class="flex flex-wrap items-center gap-2 mt-1">
-                    <span class="rounded-full border border-green-500/30 bg-green-500/10 px-2.5 py-0.5 text-xs font-semibold text-green-400">{{ sp.plan.target }}</span>
+                    <span class="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-xs font-semibold text-indigo-400">{{ sp.plan.target }}</span>
                     <span class="text-muted-foreground text-xs">{{ sp.plan.months_needed }} months</span>
                     <span class="text-muted-foreground text-xs">·</span>
                     <span class="text-muted-foreground text-xs">{{ sp.form.weekly_hours }}h/week</span>
@@ -119,7 +119,7 @@
           <div v-for="(step, i) in formSteps" :key="i" class="flex items-center gap-2">
             <div
               class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all"
-              :class="currentStep > i ? 'bg-green-500 text-white' : currentStep === i ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'"
+              :class="currentStep > i ? 'bg-indigo-500 text-white' : currentStep === i ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'"
             >
               <svg v-if="currentStep > i" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -219,7 +219,7 @@
             </div>
           </div>
 
-          <div v-if="!step1Valid" class="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+          <div v-if="!step1Valid" class="flex items-start gap-2 info-box info-box-amber">
             <span class="mt-0.5 text-amber-400 text-sm">⚠</span>
             <p class="text-amber-300/80 text-sm">
               <span v-if="!form.current_level">Select your current English level</span>
@@ -287,12 +287,12 @@
                 v-for="skill in skills"
                 :key="skill.name"
                 class="flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all duration-200"
-                :class="form.focus_areas.includes(skill.name) ? 'border-green-500 bg-green-500/10' : 'border-border hover:border-green-500/30'"
+                :class="form.focus_areas.includes(skill.name) ? 'border-indigo-500 bg-indigo-500/10' : 'border-border hover:border-indigo-500/30'"
                 @click="toggleSkill(skill.name)"
               >
                 <span class="text-xl">{{ skill.icon }}</span>
                 <div>
-                  <div class="text-sm font-semibold" :class="form.focus_areas.includes(skill.name) ? 'text-green-400' : 'text-foreground'">{{ skill.name }}</div>
+                  <div class="text-sm font-semibold" :class="form.focus_areas.includes(skill.name) ? 'text-indigo-400' : 'text-foreground'">{{ skill.name }}</div>
                   <div class="text-muted-foreground text-xs">{{ skill.desc }}</div>
                 </div>
               </button>
@@ -327,7 +327,7 @@
             </button>
             <button
               class="flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 font-bold text-white transition-all disabled:opacity-60"
-              :class="loading ? 'bg-primary/70 cursor-not-allowed' : 'bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 shadow-lg shadow-green-500/20'"
+              :class="loading ? 'bg-primary/70 cursor-not-allowed' : 'bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-500/20'"
               :disabled="loading"
               @click="generatePlan"
             >
@@ -335,6 +335,9 @@
               <span v-else>✨</span>
               {{ loading ? $t('schedule.generating') : $t('schedule.generate') }}
             </button>
+          </div>
+          <div v-if="generateError" class="info-box info-box-red mt-3 text-sm text-red-400">
+            ⚠ {{ generateError }}
           </div>
         </div>
       </div>
@@ -352,25 +355,24 @@
         </div>
 
         <!-- Plan hero card -->
-        <div class="relative overflow-hidden rounded-2xl border border-green-500/30 bg-linear-to-br from-green-950/60 via-card to-card p-6">
-          <div class="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-green-500/10 blur-2xl" />
+        <div class="relative overflow-hidden rounded-2xl border card-tint-indigo p-6">
           <div class="relative">
             <div class="text-foreground text-xl font-extrabold mb-3">{{ activePlan.name }}</div>
             <div class="flex flex-wrap gap-6">
               <div class="flex flex-col gap-1">
-                <span class="text-green-400/70 text-xs font-semibold uppercase tracking-wider">Level</span>
+                <span class="ct-indigo text-xs font-semibold uppercase tracking-wider">Level</span>
                 <span class="text-foreground text-lg font-extrabold">{{ activePlan.plan.level }}</span>
               </div>
               <div class="flex flex-col gap-1">
-                <span class="text-green-400/70 text-xs font-semibold uppercase tracking-wider">Target</span>
+                <span class="ct-indigo text-xs font-semibold uppercase tracking-wider">Target</span>
                 <span class="text-foreground text-lg font-extrabold">{{ activePlan.plan.target }}</span>
               </div>
               <div class="flex flex-col gap-1">
-                <span class="text-green-400/70 text-xs font-semibold uppercase tracking-wider">Duration</span>
+                <span class="ct-indigo text-xs font-semibold uppercase tracking-wider">Duration</span>
                 <span class="text-foreground text-lg font-extrabold">{{ activePlan.plan.months_needed }} months</span>
               </div>
               <div class="flex flex-col gap-1">
-                <span class="text-green-400/70 text-xs font-semibold uppercase tracking-wider">Study</span>
+                <span class="ct-indigo text-xs font-semibold uppercase tracking-wider">Study</span>
                 <span class="text-foreground text-lg font-extrabold">{{ activePlan.form.weekly_hours }}h / week</span>
               </div>
             </div>
@@ -388,10 +390,16 @@
               :class="activeMonthIdx === m.month - 1 ? 'border-primary bg-primary/15 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'"
               @click="activeMonthIdx = m.month - 1"
             >Month {{ m.month }}</button>
-            <div v-if="activePlan.plan.months_needed > activePlan.plan.monthly_plan.length"
-              class="flex shrink-0 items-center rounded-xl border border-dashed border-border px-4 py-2 text-sm text-muted-foreground">
-              + {{ activePlan.plan.months_needed - activePlan.plan.monthly_plan.length }} more months
-            </div>
+            <!-- Add month button -->
+            <button
+              class="shrink-0 flex items-center gap-1.5 rounded-xl border-2 border-dashed border-indigo-500/40 px-4 py-2 text-sm font-semibold text-indigo-400 hover:border-indigo-500 hover:bg-indigo-500/10 transition-all duration-200"
+              @click="showAddMonthModal = true"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              Add Month
+            </button>
           </div>
         </div>
 
@@ -475,6 +483,99 @@
       </div>
     </div>
 
+    <!-- Add Month Modal -->
+    <div v-if="showAddMonthModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" @click.self="closeAddMonthModal">
+      <div class="bg-card border-border rounded-2xl border p-6 w-full max-w-md space-y-5 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-foreground font-bold text-lg">Add Month {{ nextMonthNumber }}</div>
+            <div class="text-muted-foreground text-sm mt-0.5">Extend your study plan</div>
+          </div>
+          <button class="rounded-lg p-2 hover:bg-accent transition-colors" @click="closeAddMonthModal">
+            <svg class="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Option tabs -->
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            class="rounded-xl border-2 p-4 text-left transition-all duration-200"
+            :class="addMonthType === 'ai' ? 'border-indigo-500 bg-indigo-500/10' : 'border-border hover:border-indigo-500/40'"
+            @click="addMonthType = 'ai'"
+          >
+            <div class="text-xl mb-1">✨</div>
+            <div class="font-semibold text-sm" :class="addMonthType === 'ai' ? 'text-indigo-400' : 'text-foreground'">AI Generate</div>
+            <div class="text-muted-foreground text-xs mt-0.5">Let AI create the next month based on your plan</div>
+          </button>
+          <button
+            class="rounded-xl border-2 p-4 text-left transition-all duration-200"
+            :class="addMonthType === 'custom' ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/30'"
+            @click="addMonthType = 'custom'"
+          >
+            <div class="text-xl mb-1">✏️</div>
+            <div class="font-semibold text-sm" :class="addMonthType === 'custom' ? 'text-primary' : 'text-foreground'">Custom</div>
+            <div class="text-muted-foreground text-xs mt-0.5">Define the theme and goals yourself</div>
+          </button>
+        </div>
+
+        <!-- Custom form -->
+        <div v-if="addMonthType === 'custom'" class="space-y-4">
+          <div>
+            <label class="text-foreground text-sm font-medium block mb-1.5">Theme <span class="text-destructive">*</span></label>
+            <input
+              v-model="customMonth.theme"
+              type="text"
+              placeholder="e.g. Advanced Writing & Exam Technique"
+              class="bg-secondary text-foreground placeholder:text-muted-foreground h-11 w-full rounded-xl border-0 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div>
+            <label class="text-foreground text-sm font-medium block mb-1.5">Objective</label>
+            <textarea
+              v-model="customMonth.objective"
+              placeholder="What will you achieve this month?"
+              rows="2"
+              class="bg-secondary text-foreground placeholder:text-muted-foreground w-full resize-none rounded-xl border-0 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            ></textarea>
+          </div>
+          <div>
+            <label class="text-foreground text-sm font-medium block mb-1.5">Monthly Hours</label>
+            <input
+              v-model.number="customMonth.total_hours"
+              type="number"
+              min="1"
+              max="200"
+              class="bg-secondary text-foreground h-11 w-full rounded-xl border-0 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+        </div>
+
+        <!-- AI note -->
+        <div v-if="addMonthType === 'ai'" class="rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-3 text-sm text-indigo-300/80">
+          AI will generate a complete month with 4 weeks of daily schedules, continuing where your plan left off.
+        </div>
+
+        <div v-if="addMonthError" class="text-sm text-destructive">⚠ {{ addMonthError }}</div>
+
+        <div class="flex gap-3 pt-1">
+          <button
+            class="flex-1 rounded-xl border border-border py-2.5 text-sm font-semibold text-muted-foreground hover:bg-accent transition-colors"
+            @click="closeAddMonthModal"
+          >Cancel</button>
+          <button
+            class="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold text-white transition-all disabled:opacity-60"
+            :class="addingMonth ? 'bg-primary/70 cursor-not-allowed' : addMonthType === 'ai' ? 'bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500' : 'bg-primary hover:bg-primary/90'"
+            :disabled="addingMonth || (addMonthType === 'custom' && !customMonth.theme.trim())"
+            @click="confirmAddMonth"
+          >
+            <div v-if="addingMonth" class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            <span v-else>{{ addMonthType === 'ai' ? '✨' : '+' }}</span>
+            {{ addingMonth ? 'Generating...' : addMonthType === 'ai' ? 'Generate with AI' : 'Add Month' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Delete confirmation modal -->
     <div v-if="deletingId" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div class="bg-card border-border rounded-2xl border p-6 max-w-sm w-full space-y-4">
@@ -515,9 +616,80 @@ watch(view, (v) => {
 
 onUnmounted(clearBack)
 const loading = ref(false)
+const generateError = ref('')
 const activeMonthIdx = ref(0)
 const currentStep = ref(0)
 const deletingId = ref<string | null>(null)
+
+// ── Add month state ───────────────────────────────────────────────────────────
+const showAddMonthModal = ref(false)
+const addMonthType = ref<'ai' | 'custom'>('ai')
+const addingMonth = ref(false)
+const addMonthError = ref('')
+const customMonth = ref({ theme: '', objective: '', total_hours: 40 })
+
+const nextMonthNumber = computed(() =>
+  (activePlan.value?.plan?.monthly_plan?.length ?? 0) + 1
+)
+
+function closeAddMonthModal() {
+  showAddMonthModal.value = false
+  addMonthError.value = ''
+  customMonth.value = { theme: '', objective: '', total_hours: activePlan.value?.form?.weekly_hours ? activePlan.value.form.weekly_hours * 4 : 40 }
+}
+
+async function confirmAddMonth() {
+  if (!activePlan.value) return
+  addingMonth.value = true
+  addMonthError.value = ''
+  try {
+    if (addMonthType.value === 'ai') {
+      const existingThemes = activePlan.value.plan.monthly_plan.map((m: any) => m.theme)
+      const newMonth = await api.extendSchedule({
+        current_level: activePlan.value.form.current_level,
+        target_exam: activePlan.value.form.target_exam,
+        target_band: activePlan.value.form.target_band,
+        weekly_hours: activePlan.value.form.weekly_hours,
+        next_month_number: nextMonthNumber.value,
+        existing_themes: existingThemes,
+        focus_areas: activePlan.value.form.focus_areas,
+      })
+      activePlan.value.plan.monthly_plan.push(newMonth)
+    } else {
+      const weekHours = Math.round(customMonth.value.total_hours / 4)
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      const skills = ['Vocabulary', 'Grammar', 'Reading', 'Listening', 'Writing', 'Speaking', 'Rest']
+      const newMonth = {
+        month: nextMonthNumber.value,
+        theme: customMonth.value.theme.trim(),
+        objective: customMonth.value.objective.trim() || `Complete Month ${nextMonthNumber.value} objectives`,
+        total_hours: customMonth.value.total_hours,
+        week_summaries: [1, 2, 3, 4].map(w => ({
+          week_in_month: w,
+          focus: `Week ${w} — ${customMonth.value.theme}`,
+          daily_schedule: days.map((day, i) => ({
+            day,
+            skill: skills[i],
+            topic: i === 6 ? 'Rest & consolidation' : `Week ${w} ${skills[i]} practice`,
+            is_rest: i === 6,
+          })),
+        })),
+      }
+      activePlan.value.plan.monthly_plan.push(newMonth)
+    }
+    activePlan.value.plan.months_needed = Math.max(
+      activePlan.value.plan.months_needed,
+      activePlan.value.plan.monthly_plan.length,
+    )
+    savePlan(activePlan.value)
+    activeMonthIdx.value = activePlan.value.plan.monthly_plan.length - 1
+    closeAddMonthModal()
+  } catch (e: any) {
+    addMonthError.value = e?.errorMessage || e?.message || 'Failed to generate month. Please try again.'
+  } finally {
+    addingMonth.value = false
+  }
+}
 
 // ── Saved plans (localStorage) ───────────────────────────────────────────────
 const STORAGE_KEY = 'studyspark_study_plans'
@@ -666,6 +838,7 @@ function editSavedPlan(sp: SavedPlan) {
 
 async function generatePlan() {
   loading.value = true
+  generateError.value = ''
   try {
     const data = await api.generateSchedule(form.value as any)
     const planName = `${form.value.target_exam}${form.value.target_band ? ' ' + form.value.target_band : ''} — ${form.value.current_level}`
@@ -680,8 +853,13 @@ async function generatePlan() {
     activePlan.value = sp
     activeMonthIdx.value = 0
     view.value = 'detail'
-  } catch {
-    // fallback: stay on form
+  } catch (e: any) {
+    const status = e?.status ?? e?.response?.status
+    if (status === 503) {
+      generateError.value = 'AI is not configured. Please ask your admin to add an Anthropic API key.'
+    } else {
+      generateError.value = e?.errorMessage || e?.message || 'Failed to generate plan. Please try again.'
+    }
   }
   loading.value = false
 }

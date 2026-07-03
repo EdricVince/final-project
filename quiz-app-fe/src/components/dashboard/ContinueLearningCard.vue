@@ -3,10 +3,10 @@
     <div class="mb-4 flex items-center justify-between lg:mb-5">
       <h2 class="text-foreground flex items-center gap-3 text-base font-semibold lg:text-lg">
         <PlayCircle class="text-primary h-5 w-5" />
-        Continue Learning
+        {{ $t('dashboard.continueLearning') }}
       </h2>
       <Button variant="ghost" size="sm" class="text-primary" @click="$emit('viewAll')">
-        View All
+        {{ $t('dashboard.viewAll') }}
         <ChevronRight class="ml-1 h-4 w-4" />
       </Button>
     </div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-slate-100">
+  <div class="flex h-screen overflow-hidden bg-background">
     <!-- Sidebar -->
     <aside class="flex flex-col w-64 shrink-0 bg-slate-900 text-white">
       <!-- Logo -->
@@ -75,10 +75,10 @@
     <!-- Main content -->
     <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
       <!-- Top bar -->
-      <header class="flex items-center gap-4 px-6 h-14 bg-white border-b border-slate-200 shrink-0">
-        <h1 class="text-sm font-semibold text-slate-700">{{ pageTitle }}</h1>
+      <header class="flex items-center gap-4 px-6 h-14 bg-card border-b border-border shrink-0">
+        <h1 class="text-sm font-semibold text-foreground">{{ pageTitle }}</h1>
         <div class="ml-auto flex items-center gap-3">
-          <span class="text-[11px] text-slate-400">{{ currentDate }}</span>
+          <span class="text-[11px] text-muted-foreground">{{ currentDate }}</span>
           <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
           <span class="text-[11px] text-emerald-600 font-medium">Online</span>
         </div>
@@ -111,6 +111,7 @@ const pageTitle = computed(() => {
     '/admin/users': 'User Management',
     '/admin/students': 'Students',
     '/admin/teachers': 'Teachers',
+    '/admin/ai': 'AI Configuration',
   }
   for (const [key, val] of Object.entries(map)) {
     if (route.path.startsWith(key)) return val
@@ -149,9 +150,14 @@ const IconLogout = defineComponent({ render: () => h('svg', { fill:'none', viewB
   h('path', { 'stroke-linecap':'round', 'stroke-linejoin':'round', d:'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1' })
 ]) })
 
+const IconAI = defineComponent({ render: () => h('svg', { fill:'none', viewBox:'0 0 24 24', stroke:'currentColor', 'stroke-width':'2' }, [
+  h('path', { 'stroke-linecap':'round', 'stroke-linejoin':'round', d:'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H4a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-1' })
+]) })
+
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: IconHome },
   { to: '/admin/users', label: 'All Users', icon: IconUsers },
+  { to: '/admin/ai', label: 'AI Settings', icon: IconAI },
 ]
 
 const mgmtItems = [

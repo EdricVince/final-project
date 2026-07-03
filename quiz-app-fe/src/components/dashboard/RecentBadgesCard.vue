@@ -2,7 +2,7 @@
   <div class="bg-card border-border rounded-2xl border p-5 lg:p-6">
     <h2 class="text-foreground mb-4 flex items-center gap-3 text-base font-semibold lg:mb-5 lg:text-lg">
       <Award class="text-primary h-5 w-5" />
-      Recent Badges
+      {{ $t('dashboard.recentBadges') }}
     </h2>
     <div class="flex flex-wrap gap-3 lg:gap-4">
       <div

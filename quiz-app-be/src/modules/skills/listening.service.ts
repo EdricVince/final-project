@@ -1,95 +1,166 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 import type { GetListeningDto, CefrLevel, ListeningType } from './dto/skills.dto';
+
+// Diverse topic pools per type to prevent repetitive generation
+const TOPICS: Record<ListeningType, string[]> = {
+  conversation: [
+    'planning a surprise birthday party',
+    'debating which film to watch on a Friday night',
+    'discussing a recent neighbourhood change',
+    'arranging a job interview time by phone',
+    'two flatmates deciding how to split chores',
+    'a customer complaining about a delayed delivery',
+    'two friends comparing their holiday experiences',
+    'a parent and teacher discussing a student\'s progress',
+    'colleagues planning a team-building outing',
+    'two people arguing about a parking incident',
+    'a couple disagreeing on where to live',
+    'friends deciding which restaurant to try',
+  ],
+  monologue: [
+    'the benefits of cold-water swimming',
+    'how to start composting at home',
+    'the history of the Olympic Games',
+    'a personal experience learning to drive',
+    'why minimalism is trending among young people',
+    'the impact of colour on mood and productivity',
+    'how to prepare for a long-haul flight',
+    'a travel experience in a remote location',
+    'what it takes to run a marathon',
+    'the rise of plant-based diets',
+    'how to negotiate a salary raise',
+    'lessons learned from starting a small business',
+  ],
+  ielts: [
+    'a museum curator explaining an upcoming exhibition',
+    'a student asking about library membership',
+    'a tour guide describing a national park',
+    'a university orientation for international students',
+    'a health professional explaining a study on sleep',
+    'a housing officer and student discussing accommodation',
+    'a radio documentary about urban wildlife',
+    'a seminar on sustainable architecture',
+    'a lecture on the psychology of motivation',
+    'a panel discussion on climate adaptation strategies',
+  ],
+  toeic: [
+    'a company announcement about a new office policy',
+    'a voicemail confirming a business meeting time',
+    'a store announcement about a seasonal sale',
+    'a conference call about quarterly sales targets',
+    'a radio advertisement for a new product launch',
+    'instructions from a manager before a client visit',
+    'an automated message from an airline about a delay',
+    'a presentation on employee benefit changes',
+    'a customer service call about a faulty product',
+    'a training session introduction by an HR manager',
+  ],
+  lecture: [
+    'the cognitive effects of bilingualism',
+    'plate tectonics and volcanic activity',
+    'the economics of microfinance in developing countries',
+    'the role of fungi in forest ecosystems',
+    'how social media algorithms shape public opinion',
+    'the neuroscience of creativity',
+    'the history and future of nuclear fusion',
+    'how ancient Rome managed its water supply',
+    'the rise of behavioural economics',
+    'the ethics of autonomous vehicles',
+    'how vaccines work at a cellular level',
+    'the physics of black holes explained simply',
+  ],
+};
+
+// Named speaker pairs for realistic dialogues (not generic A/B)
+const SPEAKER_PAIRS = [
+  ['Sarah', 'James'], ['Priya', 'Tom'], ['Maria', 'David'], ['Yuki', 'Alex'],
+  ['Leila', 'Chris'], ['Amara', 'Ben'], ['Sofia', 'Oliver'], ['Nadia', 'Ryan'],
+];
+
+const WORD_COUNTS: Record<CefrLevel, number> = { A1: 80, A2: 130, B1: 200, B2: 280, C1: 350, C2: 420 };
+
+const TYPE_DESC: Record<ListeningType, string> = {
+  conversation: 'a natural dialogue between 2 people',
+  monologue:    'a monologue or short informal talk',
+  ielts:        'an IELTS Listening section script (interview, tour, or talk)',
+  toeic:        'a TOEIC Listening script (announcement, conversation, or short talk)',
+  lecture:      'an academic lecture excerpt',
+};
 
 @Injectable()
 export class ListeningService {
   private readonly logger = new Logger(ListeningService.name);
-  private readonly client: Anthropic | null;
+  constructor() {}
 
-  constructor(private config: ConfigService) {
-    const key = this.config.get<string>('ANTHROPIC_API_KEY');
-    this.client = key && !key.includes('your-') ? new Anthropic({ apiKey: key }) : null;
+  private get client(): Anthropic | null {
+    const key = process.env.ANTHROPIC_API_KEY ?? '';
+    return key && key.startsWith('sk-ant-') ? new Anthropic({ apiKey: key }) : null;
   }
 
   async getExercise(dto: GetListeningDto) {
     const level = dto.level ?? 'B1';
-    const type = dto.type ?? 'monologue';
-    if (this.client) return this.generateExercise(level, type);
-    return this.fallbackExercise(level, type);
+    const type  = dto.type  ?? 'monologue';
+    if (!this.client) throw new ServiceUnavailableException('AI service not configured. Please add your Anthropic API key in admin settings.');
+    return this.generateExercise(level, type);
   }
 
-  private async generateExercise(level: CefrLevel, type: ListeningType) {
-    const typeDesc: Record<ListeningType, string> = {
-      conversation: 'a natural dialogue between 2 people (label speakers as "A:" and "B:")',
-      monologue: 'a monologue or short talk',
-      ielts: 'an IELTS Listening section script (interview or talk)',
-      toeic: 'a TOEIC Listening script (announcement, conversation, or short talk)',
-      lecture: 'an academic lecture excerpt',
-    };
-    const wordCount: Record<CefrLevel, number> = { A1: 80, A2: 130, B1: 200, B2: 280, C1: 350, C2: 420 };
+  private pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-    const prompt = `Generate a ${level}-level listening exercise as ${typeDesc[type]}.
-Return ONLY valid JSON:
+  private async generateExercise(level: CefrLevel, type: ListeningType) {
+    const topic = this.pick(TOPICS[type] ?? TOPICS.monologue);
+    const wc    = WORD_COUNTS[level];
+    const [spkA, spkB] = this.pick(SPEAKER_PAIRS);
+
+    // Dialogue types use named speakers; solo types don't need a second speaker
+    const isDialogue = type === 'conversation' || type === 'toeic';
+    const speakerNote = isDialogue
+      ? `Label speakers as "${spkA}:" and "${spkB}:". Alternate naturally.`
+      : 'Single speaker. Natural, varied pace.';
+
+    const prompt = `Generate a ${level}-level listening exercise as ${TYPE_DESC[type]}.
+Topic: "${topic}"
+Script: ~${wc} words of natural spoken English. ${speakerNote}
+Vocabulary and complexity must match ${level}. Make it engaging and topic-specific — do NOT use a generic script.
+
+Return ONLY valid JSON (no markdown):
 {
   "id": "l_${Date.now()}",
-  "title": "Exercise title",
+  "title": "Descriptive exercise title",
   "type": "${type}",
   "level": "${level}",
-  "duration_seconds": 90,
-  "script": "Full script text (~${wordCount[level]} words). Natural spoken English appropriate for ${level} listeners.",
-  "speakers": ["Speaker A", "Speaker B"],
+  "topic": "${topic}",
+  "duration_seconds": ${Math.round(wc / 2.2)},
+  "script": "Full script (~${wc} words). Natural spoken English.",
+  "speakers": ${isDialogue ? `["${spkA}", "${spkB}"]` : `["Narrator"]`},
   "questions": [
     {
       "id": 1,
-      "question": "Question?",
+      "question": "Comprehension question?",
       "options": ["A. option", "B. option", "C. option", "D. option"],
       "correct": 0,
-      "explanation": "Explanation"
+      "explanation": "Why this is correct."
     }
   ],
   "key_phrases": [
-    {"phrase": "phrase", "meaning": "meaning"}
+    {"phrase": "phrase from script", "meaning": "meaning"}
   ]
 }
-Generate 4 comprehension questions. Key phrases: 3-4 items.`;
+Generate 4 comprehension questions (mix of: main idea, specific detail, inference, speaker attitude). Key phrases: 4 items.`;
 
     try {
       const msg = await this.client!.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
+        max_tokens: 1800,
         messages: [{ role: 'user', content: prompt }],
       });
-      const text = (msg.content[0] as any).text;
-      const json = text.match(/\{[\s\S]*\}/)?.[0];
-      return json ? JSON.parse(json) : this.fallbackExercise(level, type);
+      const raw = (msg.content[0] as any).text;
+      const json = raw.match(/\{[\s\S]*\}/)?.[0];
+      if (!json) throw new Error('No JSON in response');
+      return JSON.parse(json);
     } catch (e) {
       this.logger.error('Listening generation failed', e);
-      return this.fallbackExercise(level, type);
+      throw new ServiceUnavailableException('AI listening generation failed. Please try again.');
     }
-  }
-
-  private fallbackExercise(level: CefrLevel, type: ListeningType) {
-    return {
-      id: `l_fallback_${Date.now()}`,
-      title: 'A Job Interview',
-      type,
-      level,
-      duration_seconds: 95,
-      script: `Interviewer: Good morning, Ms. Chen. Please have a seat. Thank you for coming in today.\n\nMs. Chen: Good morning. Thank you for the opportunity. I'm very excited about this position.\n\nInterviewer: Tell me a little about yourself and why you're interested in working for our company.\n\nMs. Chen: Of course. I have five years of experience in marketing, specializing in digital campaigns and social media strategy. I've followed your company's growth closely, and I'm particularly impressed by your commitment to sustainable practices and innovation.\n\nInterviewer: That's great to hear. Can you describe a successful project you led at your previous company?\n\nMs. Chen: Certainly. I led a product launch campaign that increased our social media engagement by 40% and resulted in a 25% boost in online sales over three months. I coordinated a team of six and managed a budget of $50,000.\n\nInterviewer: Impressive results. What do you consider your greatest professional strength?\n\nMs. Chen: I would say my ability to analyze data and translate insights into actionable strategies. I believe decisions should be driven by evidence, not just intuition.\n\nInterviewer: We have one more round of interviews next week. Would you be available?\n\nMs. Chen: Absolutely. I'm available any day next week. Just let me know the time that works best for your team.`,
-      speakers: ['Interviewer', 'Ms. Chen'],
-      questions: [
-        { id: 1, question: 'How many years of experience does Ms. Chen have?', options: ['A. Three years', 'B. Four years', 'C. Five years', 'D. Six years'], correct: 2, explanation: 'Ms. Chen says "I have five years of experience in marketing."' },
-        { id: 2, question: 'By how much did Ms. Chen increase social media engagement?', options: ['A. 25%', 'B. 30%', 'C. 35%', 'D. 40%'], correct: 3, explanation: 'She mentions the campaign "increased our social media engagement by 40%."' },
-        { id: 3, question: 'What does Ms. Chen say is her greatest strength?', options: ['A. Team leadership', 'B. Budget management', 'C. Data analysis and strategy', 'D. Creative writing'], correct: 2, explanation: 'She states "my ability to analyze data and translate insights into actionable strategies."' },
-        { id: 4, question: 'When is the next round of interviews?', options: ['A. Tomorrow', 'B. This week', 'C. Next week', 'D. Next month'], correct: 2, explanation: 'The interviewer says "We have one more round of interviews next week."' },
-      ],
-      key_phrases: [
-        { phrase: 'follow closely', meaning: 'to pay careful attention to something over time' },
-        { phrase: 'translate insights into', meaning: 'to convert understanding/knowledge into practical actions' },
-        { phrase: 'driven by evidence', meaning: 'based on facts and data rather than feelings' },
-      ],
-    };
   }
 }

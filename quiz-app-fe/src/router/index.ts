@@ -23,6 +23,7 @@ const ADMIN_ROUTES = {
         { path: 'users',     name: 'AdminUsers',     component: () => import('@/pages/admin/AdminUsersPage.vue') },
         { path: 'students',  name: 'AdminStudents',  component: () => import('@/pages/admin/AdminUsersPage.vue') },
         { path: 'teachers',  name: 'AdminTeachers',  component: () => import('@/pages/admin/AdminUsersPage.vue') },
+        { path: 'ai',        name: 'AdminAI',        component: () => import('@/pages/admin/AdminAISettingsPage.vue') },
       ],
     },
   ],

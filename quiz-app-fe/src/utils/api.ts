@@ -192,6 +192,8 @@ export const api = {
   joinClass: (classCode: string): Promise<unknown> =>
     apiRequest<unknown>('/classes/join', { method: 'POST', body: JSON.stringify({ class_code: classCode }) }),
 
+  getTeacherAnalytics: (): Promise<any> => apiRequest<any>('/classes/analytics'),
+
   // ── Videos ───────────────────────────────────────────────────
   getVideos: (classId?: number): Promise<unknown[]> => {
     const q = classId ? `?class_id=${classId}` : ''
@@ -309,6 +311,8 @@ export const api = {
   // ── Schedule ──────────────────────────────────────────────────
   generateSchedule: (data: { current_level: string; target_exam: string; target_band?: string; weekly_hours: number; focus_areas?: string[] }): Promise<any> =>
     apiRequest('/schedule/generate', { method: 'POST', body: JSON.stringify(data) }),
+  extendSchedule: (data: { current_level: string; target_exam: string; target_band?: string; weekly_hours: number; next_month_number: number; existing_themes: string[]; focus_areas?: string[] }): Promise<any> =>
+    apiRequest('/schedule/extend', { method: 'POST', body: JSON.stringify(data) }),
 
   // ── Skills ───────────────────────────────────────────────────
   getReadingPassage: (params?: { level?: string; type?: string; topic?: string }): Promise<any> => {
@@ -329,7 +333,7 @@ export const api = {
     return apiRequest<any>(`/skills/writing/prompt${q}`)
   },
 
-  submitWriting: (data: { prompt: string; essay: string; type: string; time_taken_seconds: number }): Promise<any> =>
+  submitWriting: (data: { prompt: string; essay: string; type: string; level?: string; time_taken_seconds: number }): Promise<any> =>
     apiRequest<any>('/skills/writing/submit', { method: 'POST', body: JSON.stringify(data) }),
 
   getSpeakingExercise: (level?: string): Promise<any> => {

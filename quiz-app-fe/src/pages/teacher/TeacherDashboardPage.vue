@@ -12,8 +12,14 @@
         @click="router.push('/teacher/classes')"
       >
         <Plus class="h-4 w-4" />
-        New Class
+        {{ $t('teacher.dashboard.newClass') }}
       </button>
+    </div>
+
+    <!-- Dashboard error -->
+    <div v-if="dashboardError" class="info-box info-box-red mb-6 flex items-center gap-3 text-sm text-red-400">
+      <span>⚠</span> {{ dashboardError }}
+      <button @click="dashboardError = ''" class="ml-auto text-red-400/50 hover:text-red-400">✕</button>
     </div>
 
     <!-- Stats -->
@@ -38,7 +44,7 @@
 
       <!-- Quick Actions — 2-column grid -->
       <div class="bg-card border-border rounded-2xl border p-6">
-        <h2 class="text-foreground mb-4 text-sm font-semibold uppercase tracking-wider">Quick Actions</h2>
+        <h2 class="text-foreground mb-4 text-sm font-semibold uppercase tracking-wider">{{ $t('teacher.dashboard.quickActions') }}</h2>
         <div class="grid grid-cols-2 gap-2">
           <button
             v-for="action in quickActions"
@@ -60,12 +66,12 @@
       <!-- Active Classes -->
       <div class="bg-card border-border rounded-2xl border p-6 lg:col-span-2">
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-foreground text-sm font-semibold uppercase tracking-wider">Active Classes</h2>
+          <h2 class="text-foreground text-sm font-semibold uppercase tracking-wider">{{ $t('teacher.dashboard.activeClasses') }}</h2>
           <button
             class="text-primary hover:text-primary/70 text-sm font-medium transition-colors"
             @click="router.push('/teacher/classes')"
           >
-            View all →
+            {{ $t('teacher.dashboard.viewAll') }}
           </button>
         </div>
 
@@ -74,13 +80,13 @@
           <div class="bg-secondary mb-3 flex h-14 w-14 items-center justify-center rounded-2xl">
             <BookOpen class="text-muted-foreground h-7 w-7" />
           </div>
-          <p class="text-foreground mb-1 font-medium">No classes yet</p>
-          <p class="text-muted-foreground text-sm">Create your first class to get started.</p>
+          <p class="text-foreground mb-1 font-medium">{{ $t('teacher.dashboard.noClassesYet') }}</p>
+          <p class="text-muted-foreground text-sm">{{ $t('teacher.dashboard.createFirstClassDesc') }}</p>
           <button
             class="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
             @click="router.push('/teacher/classes')"
           >
-            Create Class
+            {{ $t('teacher.dashboard.createClass') }}
           </button>
         </div>
 
@@ -97,7 +103,7 @@
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-foreground font-medium">{{ cls.name }}</p>
-              <p class="text-muted-foreground text-xs">{{ cls.studentCount }} students · {{ cls.lessonCount }} lessons</p>
+              <p class="text-muted-foreground text-xs">{{ cls.studentCount }} {{ $t('teacher.dashboard.stats.students').toLowerCase() }} · {{ cls.lessonCount }} lessons</p>
             </div>
             <div class="bg-primary/5 border-primary/20 rounded-lg border px-3 py-1.5">
               <p class="text-primary font-mono text-sm font-bold tracking-wider">{{ cls.joinCode }}</p>
@@ -111,15 +117,15 @@
     <div class="mt-6 bg-card border-border rounded-2xl border p-6">
       <div class="mb-4 flex items-center justify-between">
         <div>
-          <h2 class="text-foreground text-sm font-semibold uppercase tracking-wider">Active Assignments</h2>
-          <p class="text-muted-foreground mt-0.5 text-xs">Homework & goals assigned to your classes</p>
+          <h2 class="text-foreground text-sm font-semibold uppercase tracking-wider">{{ $t('teacher.dashboard.activeAssignments') }}</h2>
+          <p class="text-muted-foreground mt-0.5 text-xs">{{ $t('teacher.dashboard.activeAssignmentsDesc') }}</p>
         </div>
         <button
           class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
           @click="showAssignModal = true"
         >
           <Plus class="h-4 w-4" />
-          New Assignment
+          {{ $t('teacher.dashboard.newAssignment') }}
         </button>
       </div>
 
@@ -127,8 +133,8 @@
         <div class="bg-secondary mb-3 flex h-14 w-14 items-center justify-center rounded-2xl">
           <List class="text-muted-foreground h-7 w-7" />
         </div>
-        <p class="text-foreground mb-1 font-medium">No assignments yet</p>
-        <p class="text-muted-foreground text-sm">Create assignments to track student homework & goals.</p>
+        <p class="text-foreground mb-1 font-medium">{{ $t('teacher.dashboard.noAssignmentsYet') }}</p>
+        <p class="text-muted-foreground text-sm">{{ $t('teacher.dashboard.noAssignmentsDesc') }}</p>
       </div>
 
       <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -154,8 +160,8 @@
           <!-- Completion Bar -->
           <div class="mb-2">
             <div class="mb-1 flex items-center justify-between">
-              <span class="text-muted-foreground text-xs">Completion</span>
-              <span class="text-foreground text-xs font-semibold">{{ a.completed }}/{{ a.total }} students</span>
+              <span class="text-muted-foreground text-xs">{{ $t('teacher.dashboard.completion') }}</span>
+              <span class="text-foreground text-xs font-semibold">{{ a.completed }}/{{ a.total }} {{ $t('teacher.dashboard.stats.students').toLowerCase() }}</span>
             </div>
             <div class="bg-background h-1.5 overflow-hidden rounded-full">
               <div
@@ -167,7 +173,7 @@
           </div>
           <div class="flex items-center justify-between">
             <span class="bg-secondary text-muted-foreground rounded-md px-2 py-0.5 text-xs">{{ a.type }}</span>
-            <span class="text-muted-foreground text-xs">Due {{ a.due }}</span>
+            <span class="text-muted-foreground text-xs">{{ $t('teacher.dashboard.due', { date: a.due }) }}</span>
           </div>
         </div>
       </div>
@@ -178,11 +184,11 @@
 
       <!-- Recent Activity -->
       <div class="bg-card border-border rounded-2xl border p-6">
-        <h2 class="text-foreground mb-4 text-sm font-semibold uppercase tracking-wider">Recent Activity</h2>
+        <h2 class="text-foreground mb-4 text-sm font-semibold uppercase tracking-wider">{{ $t('teacher.dashboard.recentActivity') }}</h2>
 
         <div v-if="recentActivity.length === 0" class="flex flex-col items-center justify-center py-8 text-center">
           <Activity class="text-muted-foreground/40 mb-3 h-10 w-10" />
-          <p class="text-muted-foreground text-sm">Activity will appear here once students start studying.</p>
+          <p class="text-muted-foreground text-sm">{{ $t('teacher.dashboard.noActivity') }}</p>
         </div>
 
         <div v-else class="space-y-4">
@@ -201,20 +207,20 @@
       <!-- Upcoming Tests -->
       <div class="bg-card border-border rounded-2xl border p-6">
         <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-foreground text-sm font-semibold uppercase tracking-wider">Upcoming Tests</h2>
+          <h2 class="text-foreground text-sm font-semibold uppercase tracking-wider">{{ $t('teacher.dashboard.upcomingTests') }}</h2>
           <button class="text-primary hover:text-primary/70 text-sm font-medium transition-colors" @click="router.push('/teacher/tests')">
-            View all →
+            {{ $t('teacher.dashboard.viewAll') }}
           </button>
         </div>
 
         <div v-if="upcomingTests.length === 0" class="flex flex-col items-center justify-center py-8 text-center">
           <FileText class="text-muted-foreground/40 mb-3 h-10 w-10" />
-          <p class="text-muted-foreground text-sm">No upcoming tests scheduled.</p>
+          <p class="text-muted-foreground text-sm">{{ $t('teacher.dashboard.noUpcomingTests') }}</p>
           <button
             class="text-primary hover:text-primary/70 mt-3 text-sm font-medium underline-offset-4 hover:underline transition-colors"
             @click="router.push('/teacher/tests')"
           >
-            Create a test
+            {{ $t('teacher.dashboard.createATest') }}
           </button>
         </div>
 
@@ -231,10 +237,10 @@
                 <BookOpen class="h-3 w-3" /> {{ test.class }}
               </span>
               <span class="flex items-center gap-1">
-                <FileText class="h-3 w-3" /> {{ test.questions }} questions
+                <FileText class="h-3 w-3" /> {{ $t('teacher.dashboard.questionsCount', { count: test.questions }) }}
               </span>
               <span class="flex items-center gap-1">
-                <Clock class="h-3 w-3" /> {{ test.duration }} min
+                <Clock class="h-3 w-3" /> {{ $t('teacher.dashboard.durationMin', { min: test.duration }) }}
               </span>
             </div>
           </div>
@@ -248,20 +254,20 @@
           <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showAssignModal = false" />
           <div class="bg-card border-border relative z-10 w-full max-w-md rounded-2xl border shadow-xl">
             <div class="border-border flex items-center justify-between border-b p-6">
-              <h3 class="text-foreground text-lg font-semibold">New Assignment</h3>
+              <h3 class="text-foreground text-lg font-semibold">{{ $t('teacher.dashboard.assignModal.title') }}</h3>
               <button class="text-muted-foreground hover:text-foreground" @click="showAssignModal = false">
                 <X class="h-5 w-5" />
               </button>
             </div>
             <div class="space-y-4 p-6">
               <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">Title *</label>
-                <input v-model="newAssign.title" type="text" placeholder="e.g. Complete 30 flashcards"
+                <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.titleLabel') }}</label>
+                <input v-model="newAssign.title" type="text" :placeholder="$t('teacher.dashboard.assignModal.titlePlaceholder')"
                   class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="text-foreground mb-1.5 block text-sm font-medium">Type</label>
+                  <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.type') }}</label>
                   <select v-model="newAssign.type" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
                     <option>Flashcard</option>
                     <option>Quiz</option>
@@ -272,22 +278,22 @@
                   </select>
                 </div>
                 <div>
-                  <label class="text-foreground mb-1.5 block text-sm font-medium">Deadline</label>
+                  <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.deadline') }}</label>
                   <input v-model="newAssign.due" type="date"
                     class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
                 </div>
               </div>
               <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">Assign to Class</label>
+                <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.assignToClass') }}</label>
                 <select v-model="newAssign.classId" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                  <option value="">All Classes</option>
+                  <option value="">{{ $t('teacher.dashboard.allClasses') }}</option>
                   <option v-for="cls in recentClasses" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
                 </select>
               </div>
             </div>
             <div class="border-border flex gap-3 border-t p-6">
-              <button class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium transition-colors" @click="showAssignModal = false">Cancel</button>
-              <button class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50" :disabled="!newAssign.title.trim()" @click="createAssignment">Create</button>
+              <button class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium transition-colors" @click="showAssignModal = false">{{ $t('teacher.dashboard.assignModal.cancel') }}</button>
+              <button class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50" :disabled="!newAssign.title.trim()" @click="createAssignment">{{ $t('teacher.dashboard.assignModal.create') }}</button>
             </div>
           </div>
         </div>
@@ -299,6 +305,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   BookOpen, Users, FileText, GraduationCap, Plus,
   Languages, Video, Clock, UserCheck, Activity,
@@ -310,6 +317,7 @@ import type { Class } from '@/types/class'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const userName = computed(() => {
   if (authStore.user?.name) return authStore.user.name
@@ -319,36 +327,38 @@ const userName = computed(() => {
 
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 12) return 'Good morning 👋'
-  if (h < 18) return 'Good afternoon 👋'
-  return 'Good evening 👋'
+  if (h < 12) return t('dashboard.greeting.morning', 'Good morning 👋')
+  if (h < 18) return t('dashboard.greeting.afternoon', 'Good afternoon 👋')
+  return t('dashboard.greeting.evening', 'Good evening 👋')
 })
 
 const CLASS_EMOJIS = ['📚', '🎓', '🌟', '💡', '🔬', '🎨', '📖', '🏆']
 const CLASS_COLORS = ['bg-primary/10', 'bg-chart-2/10', 'bg-chart-3/10', 'bg-chart-4/10', 'bg-chart-5/10', 'bg-chart-1/10']
 
-const stats = ref([
-  { label: 'Classes', value: 0, icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
-  { label: 'Students', value: 0, icon: Users, color: 'text-chart-2', bg: 'bg-chart-2/10' },
-  { label: 'Videos', value: 0, icon: Video, color: 'text-chart-3', bg: 'bg-chart-3/10' },
-  { label: 'Tests', value: 0, icon: FileText, color: 'text-chart-1', bg: 'bg-chart-1/10' },
+const statsValues = ref({ classes: 0, students: 0, videos: 0, tests: 0 })
+const stats = computed(() => [
+  { label: t('teacher.dashboard.stats.classes'), value: statsValues.value.classes, icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
+  { label: t('teacher.dashboard.stats.students'), value: statsValues.value.students, icon: Users, color: 'text-chart-2', bg: 'bg-chart-2/10' },
+  { label: t('teacher.dashboard.stats.videos'), value: statsValues.value.videos, icon: Video, color: 'text-chart-3', bg: 'bg-chart-3/10' },
+  { label: t('teacher.dashboard.stats.tests'), value: statsValues.value.tests, icon: FileText, color: 'text-chart-1', bg: 'bg-chart-1/10' },
 ])
 
-const quickActions = [
-  { label: 'New Class', desc: 'Create & share join code', path: '/teacher/classes', icon: BookOpen, iconBg: 'bg-primary/10', iconColor: 'text-primary' },
-  { label: 'Add Lesson', desc: 'Create lesson content', path: '/teacher/lessons', icon: GraduationCap, iconBg: 'bg-chart-2/10', iconColor: 'text-chart-2' },
-  { label: 'Build Test', desc: 'Create a quiz or test', path: '/teacher/tests', icon: FileText, iconBg: 'bg-chart-1/10', iconColor: 'text-chart-1' },
-  { label: 'Vocabulary', desc: 'Manage word sets', path: '/teacher/vocabulary', icon: Languages, iconBg: 'bg-chart-3/10', iconColor: 'text-chart-3' },
-  { label: 'Upload Video', desc: 'Add video content', path: '/teacher/videos', icon: Video, iconBg: 'bg-chart-4/10', iconColor: 'text-chart-4' },
-  { label: 'Students', desc: 'Monitor progress', path: '/teacher/students', icon: UserCheck, iconBg: 'bg-chart-5/10', iconColor: 'text-chart-5' },
-]
+const quickActions = computed(() => [
+  { label: t('teacher.dashboard.actions.newClass'), desc: t('teacher.dashboard.actions.newClassDesc'), path: '/teacher/classes', icon: BookOpen, iconBg: 'bg-primary/10', iconColor: 'text-primary' },
+  { label: t('teacher.dashboard.actions.addLesson'), desc: t('teacher.dashboard.actions.addLessonDesc'), path: '/teacher/lessons', icon: GraduationCap, iconBg: 'bg-chart-2/10', iconColor: 'text-chart-2' },
+  { label: t('teacher.dashboard.actions.buildTest'), desc: t('teacher.dashboard.actions.buildTestDesc'), path: '/teacher/tests', icon: FileText, iconBg: 'bg-chart-1/10', iconColor: 'text-chart-1' },
+  { label: t('teacher.dashboard.actions.vocabulary'), desc: t('teacher.dashboard.actions.vocabularyDesc'), path: '/teacher/vocabulary', icon: Languages, iconBg: 'bg-chart-3/10', iconColor: 'text-chart-3' },
+  { label: t('teacher.dashboard.actions.uploadVideo'), desc: t('teacher.dashboard.actions.uploadVideoDesc'), path: '/teacher/videos', icon: Video, iconBg: 'bg-chart-4/10', iconColor: 'text-chart-4' },
+  { label: t('teacher.dashboard.actions.students'), desc: t('teacher.dashboard.actions.studentsDesc'), path: '/teacher/students', icon: UserCheck, iconBg: 'bg-chart-5/10', iconColor: 'text-chart-5' },
+])
 
 interface DashClass {
   id: number; name: string; studentCount: number; lessonCount: number; joinCode: string; emoji: string; bgColor: string
 }
 const recentClasses = ref<DashClass[]>([])
-const recentActivity: { id: number; text: string; time: string; icon: typeof Users; color: string; bg: string }[] = []
-const upcomingTests: { id: number; title: string; class: string; questions: number; duration: number; status: string }[] = []
+const recentActivity = ref<{ id: number; text: string; time: string; icon: typeof Users; color: string; bg: string }[]>([])
+const upcomingTests = ref<{ id: number; title: string; class: string; questions: number; duration: number; status: string }[]>([])
+const dashboardError = ref('')
 
 // Assignments
 const ASSIGN_TYPE_META: Record<string, { icon: typeof BookOpen; iconBg: string; iconColor: string }> = {
@@ -395,9 +405,9 @@ onMounted(async () => {
       api.getClasses() as Promise<(Class & { student_count: number })[]>,
       api.getVideos() as Promise<{ id: number }[]>,
     ])
-    if (stats.value[0]) stats.value[0].value = classes.length
-    if (stats.value[1]) stats.value[1].value = classes.reduce((sum, c) => sum + (c.student_count ?? 0), 0)
-    if (stats.value[2]) stats.value[2].value = videos.length
+    statsValues.value.classes = classes.length
+    statsValues.value.students = classes.reduce((sum, c) => sum + (c.student_count ?? 0), 0)
+    statsValues.value.videos = videos.length
     recentClasses.value = classes.slice(0, 5).map((c, i) => ({
       id: c.id,
       name: c.name,
@@ -407,8 +417,8 @@ onMounted(async () => {
       emoji: CLASS_EMOJIS[i % CLASS_EMOJIS.length] ?? '📚',
       bgColor: CLASS_COLORS[i % CLASS_COLORS.length] ?? 'bg-chart-1/10',
     }))
-  } catch {
-    // keep defaults
+  } catch (e: any) {
+    dashboardError.value = e?.errorMessage || e?.message || 'Failed to load dashboard data.'
   }
 })
 </script>

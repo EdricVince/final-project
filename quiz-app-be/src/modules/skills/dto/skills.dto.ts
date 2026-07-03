@@ -1,4 +1,5 @@
-import { IsEnum, IsString, IsOptional, IsInt, IsArray, Min } from 'class-validator';
+import { IsEnum, IsString, IsOptional, IsInt, IsArray, Min, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export type CefrLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type ReadingType = 'story' | 'ielts' | 'toeic' | 'academic' | 'news';
@@ -19,15 +20,23 @@ export class GetReadingDto {
   topic?: string;
 }
 
+class ReadingQuestionDto {
+  @IsInt()
+  correct: number;
+}
+
 export class SubmitReadingDto {
   @IsString()
   passage_id: string;
 
+  @IsArray()
   @IsInt({ each: true })
   answers: number[];
 
   @IsArray()
-  questions: { correct: number }[];
+  @ValidateNested({ each: true })
+  @Type(() => ReadingQuestionDto)
+  questions: ReadingQuestionDto[];
 }
 
 export class GetListeningDto {
@@ -63,6 +72,10 @@ export class SubmitWritingDto {
 
   @IsEnum(['ielts_task1','ielts_task2','toeic','general'])
   type: WritingType;
+
+  @IsEnum(['A1','A2','B1','B2','C1','C2'])
+  @IsOptional()
+  level?: CefrLevel;
 
   @IsInt() @Min(0)
   time_taken_seconds: number;

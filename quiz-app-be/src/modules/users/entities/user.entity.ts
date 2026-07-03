@@ -29,6 +29,14 @@ export class User {
   @Column({ type: 'varchar', nullable: true, default: null })
   avatar: string | null;
 
+  // Base64 data URL of the teacher's ID card image (uploaded by admin for verification)
+  @Column({ type: 'text', nullable: true, default: null })
+  teacher_card_image: string | null;
+
+  // Whether the teacher's identity has been verified (card uploaded / confirmed by admin)
+  @Column({ default: false })
+  is_verified: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

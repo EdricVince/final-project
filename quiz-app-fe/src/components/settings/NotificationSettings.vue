@@ -3,7 +3,7 @@
     <div class="bg-card border-border rounded-2xl border p-6">
       <h2 class="text-foreground mb-6 flex items-center gap-2 text-lg font-semibold">
         <Bell class="text-primary h-5 w-5" />
-        Notification Preferences
+        {{ $t('settings.notifications.notificationPreferences') }}
       </h2>
 
       <div class="space-y-4">
@@ -38,12 +38,12 @@
     <div class="bg-card border-border rounded-2xl border p-6">
       <h2 class="text-foreground mb-6 flex items-center gap-2 text-lg font-semibold">
         <Clock class="text-primary h-5 w-5" />
-        Reminder Schedule
+        {{ $t('settings.notifications.reminderSchedule') }}
       </h2>
 
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
-          <label class="text-foreground mb-2 block text-sm font-medium">Reminder Time</label>
+          <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('settings.notifications.reminderTime') }}</label>
           <input
             :value="notifications.reminderTime"
             type="time"
@@ -52,7 +52,7 @@
           />
         </div>
         <div>
-          <label class="text-foreground mb-2 block text-sm font-medium">Timezone</label>
+          <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('settings.notifications.timezone') }}</label>
           <select
             :value="notifications.timezone"
             class="bg-secondary border-border text-foreground w-full rounded-lg border px-4 py-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -70,7 +70,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Bell, Clock, Mail, Flame, Trophy, Zap } from '@/components/icons'
+
+const { t } = useI18n()
 
 export interface NotificationData {
   email: boolean
@@ -90,12 +94,12 @@ const emit = defineEmits<{
   'update:notifications': [value: NotificationData]
 }>()
 
-const notificationOptions = [
-  { key: 'email', label: 'Email Notifications', description: 'Receive updates via email', icon: Mail },
-  { key: 'streakReminder', label: 'Streak Reminders', description: 'Get notified to maintain your streak', icon: Flame },
-  { key: 'achievements', label: 'Achievement Alerts', description: 'Celebrate your milestones', icon: Trophy },
-  { key: 'weeklyReport', label: 'Weekly Reports', description: 'Summary of your learning progress', icon: Zap },
-]
+const notificationOptions = computed(() => [
+  { key: 'email', label: t('settings.notifications.emailNotifications'), description: t('settings.notifications.emailDesc'), icon: Mail },
+  { key: 'streakReminder', label: t('settings.notifications.streakReminder'), description: t('settings.notifications.streakDesc'), icon: Flame },
+  { key: 'achievements', label: t('settings.notifications.achievements'), description: t('settings.notifications.achievementsDesc'), icon: Trophy },
+  { key: 'weeklyReport', label: t('settings.notifications.weeklyReport'), description: t('settings.notifications.weeklyDesc'), icon: Zap },
+])
 
 const toggleNotification = (key: string) => {
   emit('update:notifications', {

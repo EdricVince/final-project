@@ -5,10 +5,10 @@
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">
-            Learning Statistics
+            {{ $t('statistics.learningStatistics') }}
           </h1>
           <p class="text-muted-foreground mt-2 text-base">
-            Track your learning progress and activity
+            {{ $t('statistics.trackActivity') }}
           </p>
         </div>
         <div class="flex items-center gap-3">
@@ -34,7 +34,7 @@
             @click="exportData"
           >
             <Download class="h-4 w-4" />
-            Export
+            {{ $t('statistics.export') }}
           </button>
         </div>
       </div>
@@ -50,7 +50,7 @@
               <div class="flex items-center gap-2">
                 <span class="text-foreground text-lg font-bold">Level {{ currentLevel }}</span>
                 <span class="bg-chart-1/10 text-chart-1 rounded-full px-2 py-0.5 text-xs font-medium">
-                  {{ xpToNextLevel }} XP to next
+                  {{ xpToNextLevel }} {{ $t('statistics.xpToNextSuffix') }}
                 </span>
               </div>
               <span class="text-foreground font-semibold">{{ totalXP.toLocaleString() }} XP</span>
@@ -103,14 +103,14 @@
           <div class="mb-6 flex items-center justify-between">
             <h3 class="text-foreground flex items-center gap-2 font-semibold">
               <Target class="text-primary h-5 w-5" />
-              {{ selectedPeriod === 'week' ? 'Weekly' : selectedPeriod === 'month' ? 'Monthly' : 'Yearly' }} Progress
+              {{ selectedPeriod === 'week' ? $t('statistics.weeklyProgress') : selectedPeriod === 'month' ? $t('statistics.monthlyProgress') : $t('statistics.yearlyProgress') }}
             </h3>
             <span
               v-if="statistics.weeklyProgress.percentage >= 100"
               class="bg-chart-2/10 text-chart-2 flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
             >
               <Check class="h-3 w-3" />
-              Complete!
+              {{ $t('statistics.complete') }}
             </span>
           </div>
           <div class="flex justify-center">
@@ -118,7 +118,7 @@
               :percentage="statistics.weeklyProgress.percentage"
               :current="statistics.weeklyProgress.current"
               :target="statistics.weeklyProgress.target"
-              :label="selectedPeriod === 'week' ? 'Weekly Goal' : selectedPeriod === 'month' ? 'Monthly Goal' : 'Yearly Goal'"
+              :label="selectedPeriod === 'week' ? $t('statistics.weeklyGoal') : selectedPeriod === 'month' ? $t('statistics.monthlyGoal') : $t('statistics.yearlyGoal')"
               :size="160"
               :stroke-width="12"
             />
@@ -135,7 +135,7 @@
         <div class="bg-card border-border rounded-2xl border p-6">
           <h3 class="text-foreground mb-6 flex items-center gap-2 font-semibold">
             <BarChart3 class="text-primary h-5 w-5" />
-            Learning Summary
+            {{ $t('statistics.learningSummary') }}
           </h3>
           <LearningSummaryGrid :summary="statistics.learningSummary" />
         </div>
@@ -147,10 +147,10 @@
           <div class="mb-6 flex items-center justify-between">
             <h3 class="text-foreground flex items-center gap-2 font-semibold">
               <Activity class="text-primary h-5 w-5" />
-              {{ selectedPeriod === 'week' ? 'Daily' : selectedPeriod === 'month' ? 'Weekly' : 'Monthly' }} Activity
+              {{ selectedPeriod === 'week' ? $t('statistics.dailyActivity') : selectedPeriod === 'month' ? $t('statistics.weeklyActivityChart') : $t('statistics.monthlyActivity') }}
             </h3>
             <div class="text-muted-foreground text-sm">
-              Total: <span class="text-foreground font-medium">{{ getTotalActivity() }}</span> activities
+              {{ $t('statistics.totalActivities', { count: getTotalActivity() }) }}
             </div>
           </div>
           <WeeklyActivityChart :activity="statistics.weeklyActivity" />
@@ -163,14 +163,14 @@
           <div class="mb-6 flex items-center justify-between">
             <h3 class="text-foreground flex items-center gap-2 font-semibold">
               <Flame class="text-chart-1 h-5 w-5" />
-              Learning Streak
+              {{ $t('statistics.learningStreak') }}
             </h3>
             <div
               v-if="statistics.currentStreak >= 7"
               class="bg-chart-1/10 text-chart-1 flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium"
             >
               <Flame class="h-3 w-3" />
-              On Fire!
+              {{ $t('statistics.onFire') }}
             </div>
           </div>
           <StreakCalendar
@@ -187,7 +187,7 @@
       <div class="bg-card border-border rounded-2xl border p-6">
         <h3 class="text-foreground mb-6 flex items-center gap-2 font-semibold">
           <Lightbulb class="text-chart-5 h-5 w-5" />
-          Performance Insights
+          {{ $t('statistics.performanceInsights') }}
         </h3>
         <div class="grid gap-4 md:grid-cols-3">
           <div
@@ -216,6 +216,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Target,
   BarChart3,
@@ -242,14 +243,15 @@ import StreakCalendar from '@/components/statistics/StreakCalendar.vue'
 import type { ProfileStatistics } from '@/types/profile'
 import { useProgressStore } from '@/stores/progress.store'
 
+const { t } = useI18n()
 const progressStore = useProgressStore()
 
 // Time period selection
-const periods = [
-  { value: 'week', label: 'Week' },
-  { value: 'month', label: 'Month' },
-  { value: 'year', label: 'Year' },
-]
+const periods = computed(() => [
+  { value: 'week', label: t('statistics.periods.week') },
+  { value: 'month', label: t('statistics.periods.month') },
+  { value: 'year', label: t('statistics.periods.year') },
+])
 const selectedPeriod = ref('week')
 
 // XP System — from progress store
@@ -263,53 +265,53 @@ const quickStats = computed(() => [
   {
     icon: BookOpen,
     value: progressStore.totalCardsStudied.toLocaleString(),
-    label: 'Cards Studied',
+    label: t('statistics.quickStats.cardsStudied'),
     change: 0,
   },
   {
     icon: Trophy,
     value: progressStore.totalQuizzesCompleted.toLocaleString(),
-    label: 'Quizzes Done',
+    label: t('statistics.quickStats.quizzesDone'),
     change: 0,
   },
   {
     icon: Flame,
     value: progressStore.streakCount,
-    label: 'Day Streak',
+    label: t('statistics.quickStats.dayStreak'),
     change: 0,
   },
   {
     icon: Zap,
     value: progressStore.longestStreak,
-    label: 'Best Streak',
+    label: t('statistics.quickStats.bestStreak'),
     change: 0,
   },
 ])
 
 // Performance Insights — generic tips, not fake user-specific stats
-const insights = [
+const insights = computed(() => [
   {
     icon: Brain,
-    title: 'Study Consistently',
-    description: 'Short daily sessions are more effective than occasional long ones.',
+    title: t('statistics.insights.studyConsistently'),
+    description: t('statistics.insights.studyConsistentlyDesc'),
     bgClass: 'bg-chart-2/10',
     iconClass: 'text-chart-2',
   },
   {
     icon: Zap,
-    title: 'Build Your Streak',
-    description: 'Start your streak today! Even 5 minutes of study counts.',
+    title: t('statistics.insights.buildStreak'),
+    description: t('statistics.insights.buildStreakDesc'),
     bgClass: 'bg-chart-1/10',
     iconClass: 'text-chart-1',
   },
   {
     icon: Calendar,
-    title: 'Track Your Progress',
-    description: 'Complete quizzes and review flashcards to see your stats grow here.',
+    title: t('statistics.insights.trackProgress'),
+    description: t('statistics.insights.trackProgressDesc'),
     bgClass: 'bg-chart-4/10',
     iconClass: 'text-chart-4',
   },
-]
+])
 
 const generateStreakDays = () => {
   const activeDates = new Set(
@@ -407,11 +409,11 @@ const getTotalActivity = () => {
 
 const getMotivationalMessage = () => {
   const percentage = statistics.value.weeklyProgress.percentage
-  if (percentage >= 100) return "Amazing! You've crushed your weekly goal! 🎉"
-  if (percentage >= 75) return "Almost there! Keep pushing! 💪"
-  if (percentage >= 50) return "Halfway done! You're doing great! 🌟"
-  if (percentage >= 25) return "Good start! Keep the momentum going! 🚀"
-  return "Every step counts! Let's get started! 📚"
+  if (percentage >= 100) return t('statistics.motivational.crushedGoal')
+  if (percentage >= 75) return t('statistics.motivational.almostThere')
+  if (percentage >= 50) return t('statistics.motivational.halfwayDone')
+  if (percentage >= 25) return t('statistics.motivational.goodStart')
+  return t('statistics.motivational.getStarted')
 }
 
 const exportData = () => {

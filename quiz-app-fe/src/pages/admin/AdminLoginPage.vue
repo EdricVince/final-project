@@ -9,11 +9,11 @@
           </svg>
         </div>
         <h1 class="text-2xl font-bold text-white">Admin Portal</h1>
-        <p class="text-slate-400 text-sm mt-1">SPRK Platform Management</p>
+        <p class="text-sm mt-1 text-slate-400">SPRK Platform Management</p>
       </div>
 
       <!-- Card -->
-      <div class="bg-slate-800 rounded-2xl p-6 border border-white/10 shadow-2xl">
+      <div class="adm-login-card">
         <h2 class="text-base font-semibold text-white mb-5">Sign in with Admin Key</h2>
 
         <form @submit.prevent="handleLogin" class="space-y-4">
@@ -26,8 +26,8 @@
                 :type="showKey ? 'text' : 'password'"
                 placeholder="Enter admin secret key"
                 autocomplete="current-password"
-                class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pr-10 transition"
-                :class="{ 'border-red-500/60 focus:ring-red-500': errorMsg }"
+                class="adm-login-input"
+                :class="{ 'adm-login-input-err': errorMsg }"
               />
               <button
                 type="button"
@@ -58,7 +58,7 @@
           <button
             type="submit"
             :disabled="loading || !keyInput.trim()"
-            class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl py-3 transition-all"
+            class="adm-login-btn"
           >
             <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

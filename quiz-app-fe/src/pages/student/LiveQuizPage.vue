@@ -10,8 +10,8 @@
               <Radio class="text-primary h-10 w-10" />
             </div>
           </div>
-          <h1 class="text-foreground text-3xl font-bold">Join Live Quiz</h1>
-          <p class="text-muted-foreground mt-2">Enter the PIN your teacher shared</p>
+          <h1 class="text-foreground text-3xl font-bold">{{ $t('liveQuiz.title') }}</h1>
+          <p class="text-muted-foreground mt-2">{{ $t('liveQuiz.enterPinDesc') }}</p>
         </div>
 
         <form @submit.prevent="joinSession" class="space-y-4">
@@ -19,7 +19,7 @@
             v-model="pin"
             type="text"
             inputmode="numeric"
-            placeholder="Enter PIN"
+            :placeholder="$t('liveQuiz.pinPlaceholder')"
             maxlength="8"
             class="bg-secondary text-foreground placeholder:text-muted-foreground h-16 w-full rounded-2xl border-0 px-6 text-center text-3xl font-black tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-primary/30"
             :disabled="joining"
@@ -32,7 +32,7 @@
             :disabled="pin.length < 4 || joining"
           >
             <span v-if="joining" class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-            {{ joining ? 'Joining...' : 'Join Now' }}
+            {{ joining ? $t('liveQuiz.joining') : $t('liveQuiz.joinNow') }}
           </button>
         </form>
       </div>
@@ -47,13 +47,13 @@
         </span>
       </div>
       <h2 class="text-foreground mb-2 text-2xl font-bold">{{ session.title }}</h2>
-      <p class="text-muted-foreground mb-1">Waiting for the teacher to start...</p>
-      <p class="text-muted-foreground text-sm">{{ session.total_questions }} questions ready</p>
+      <p class="text-muted-foreground mb-1">{{ $t('liveQuiz.waitingDesc') }}</p>
+      <p class="text-muted-foreground text-sm">{{ $t('liveQuiz.questionsReady', { n: session.total_questions }) }}</p>
       <button
         class="mt-8 text-sm text-muted-foreground hover:text-foreground transition-colors"
         @click="leaveSession"
       >
-        Leave session
+        {{ $t('liveQuiz.leaveSession') }}
       </button>
     </div>
 
@@ -63,7 +63,7 @@
       <div class="mb-6">
         <div class="mb-3 flex items-center justify-between">
           <span class="text-muted-foreground text-sm font-medium">
-            Question {{ currentQIndex + 1 }} / {{ session.total_questions }}
+            {{ $t('liveQuiz.questionOf', { current: currentQIndex + 1, total: session.total_questions }) }}
           </span>
           <div
             class="flex h-12 w-12 items-center justify-center rounded-full text-lg font-black transition-colors"
@@ -109,7 +109,7 @@
 
       <!-- Feedback -->
       <div v-if="answered" class="mt-4 text-center">
-        <p class="text-muted-foreground text-sm">Answer locked in! Waiting for the next question...</p>
+        <p class="text-muted-foreground text-sm">{{ $t('liveQuiz.answerLocked') }}</p>
       </div>
     </div>
 
@@ -120,13 +120,13 @@
           <Trophy class="text-primary h-12 w-12" />
         </div>
       </div>
-      <h2 class="text-foreground mb-2 text-3xl font-bold">Quiz Complete!</h2>
-      <p class="text-muted-foreground mb-8">You answered {{ answeredQuestions }} out of {{ session.total_questions }} questions</p>
+      <h2 class="text-foreground mb-2 text-3xl font-bold">{{ $t('liveQuiz.quizComplete') }}</h2>
+      <p class="text-muted-foreground mb-8">{{ $t('liveQuiz.answeredOf', { answered: answeredQuestions, total: session.total_questions }) }}</p>
       <button
         class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-8 py-3 font-semibold transition-colors"
         @click="reset"
       >
-        Join Another Quiz
+        {{ $t('liveQuiz.joinAnother') }}
       </button>
     </div>
 
@@ -135,8 +135,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Radio, Trophy } from '@/components/icons'
 import { api } from '@/utils/api'
+
+const { t } = useI18n()
 
 type Phase = 'join' | 'waiting' | 'question' | 'finished'
 
@@ -202,7 +205,7 @@ const joinSession = async () => {
       startPolling()
     }
   } catch {
-    joinError.value = 'Session not found. Check the PIN and try again.'
+    joinError.value = t('liveQuiz.sessionNotFound')
   } finally {
     joining.value = false
   }

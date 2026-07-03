@@ -7,15 +7,15 @@
           <Trophy class="text-primary h-5 w-5" />
         </div>
         <div>
-          <h3 class="text-foreground font-semibold">Leaderboard</h3>
-          <p class="text-muted-foreground text-sm">This Week</p>
+          <h3 class="text-foreground font-semibold">{{ $t('dashboard.leaderboard') }}</h3>
+          <p class="text-muted-foreground text-sm">{{ $t('dashboard.leaderboardCard.thisWeek') }}</p>
         </div>
       </div>
       <button
         class="text-primary hover:text-primary/80 text-sm font-medium transition-colors"
         @click="viewAll"
       >
-        View All
+        {{ $t('common.viewAll') }}
       </button>
     </div>
 
@@ -48,7 +48,7 @@
           </div>
         </div>
         <div class="flex-1">
-          <p class="text-foreground font-medium">You</p>
+          <p class="text-foreground font-medium">{{ $t('dashboard.leaderboardCard.you') }}</p>
           <p class="text-muted-foreground text-sm">{{ currentUserXP.toLocaleString() }} XP</p>
         </div>
         <div class="text-right">
@@ -98,9 +98,9 @@
         <div class="flex-1">
           <p class="text-foreground font-medium">
             {{ user.name }}
-            <span v-if="user.isCurrentUser" class="text-primary text-xs">(You)</span>
+            <span v-if="user.isCurrentUser" class="text-primary text-xs">{{ $t('dashboard.leaderboardCard.youBadge') }}</span>
           </p>
-          <p class="text-muted-foreground text-sm">Level {{ user.level }}</p>
+          <p class="text-muted-foreground text-sm">{{ $t('dashboard.leaderboardCard.level', { n: user.level }) }}</p>
         </div>
 
         <!-- XP -->
@@ -116,9 +116,9 @@
       <p class="text-muted-foreground text-sm">
         <Zap class="text-primary -mt-0.5 mr-1 inline h-4 w-4" />
         <span v-if="xpToNextRank > 0">
-          Earn <span class="text-primary font-semibold">{{ xpToNextRank.toLocaleString() }} XP</span> more to reach rank {{ currentUserRank - 1 }}!
+          {{ $t('dashboard.leaderboardCard.earnMore', { xp: xpToNextRank.toLocaleString(), rank: currentUserRank - 1 }) }}
         </span>
-        <span v-else>You're at the top! Keep going!</span>
+        <span v-else>{{ $t('dashboard.leaderboardCard.atTop') }}</span>
       </p>
     </div>
   </div>
@@ -127,10 +127,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Minus, Zap } from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
 import { useProgressStore } from '@/stores/progress.store'
 import type { LeaderboardItem } from '@/stores/progress.store'
+
+const { t } = useI18n()
 
 interface LeaderboardUser {
   id: number
@@ -146,12 +149,12 @@ const authStore = useAuthStore()
 const progressStore = useProgressStore()
 const selectedPeriod = ref<'daily' | 'weekly' | 'monthly' | 'all'>('weekly')
 
-const timePeriods = [
-  { label: 'Daily', value: 'daily' as const },
-  { label: 'Weekly', value: 'weekly' as const },
-  { label: 'Monthly', value: 'monthly' as const },
-  { label: 'All Time', value: 'all' as const },
-]
+const timePeriods = computed(() => [
+  { label: t('dashboard.leaderboardCard.periodDaily'), value: 'daily' as const },
+  { label: t('dashboard.leaderboardCard.periodWeekly'), value: 'weekly' as const },
+  { label: t('dashboard.leaderboardCard.periodMonthly'), value: 'monthly' as const },
+  { label: t('dashboard.leaderboardCard.periodAllTime'), value: 'all' as const },
+])
 
 const userInitials = computed(() => {
   const name = authStore.user?.name || authStore.user?.email?.split('@')[0] || 'GU'

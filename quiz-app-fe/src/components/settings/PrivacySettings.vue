@@ -3,7 +3,7 @@
     <div class="bg-card border-border rounded-2xl border p-6">
       <h2 class="text-foreground mb-6 flex items-center gap-2 text-lg font-semibold">
         <Shield class="text-primary h-5 w-5" />
-        Privacy Options
+        {{ $t('settings.privacy.privacyOptions') }}
       </h2>
 
       <div class="space-y-4">
@@ -33,35 +33,35 @@
     <div class="bg-card border-border rounded-2xl border p-6">
       <h2 class="text-foreground mb-6 flex items-center gap-2 text-lg font-semibold">
         <Download class="text-primary h-5 w-5" />
-        Data Management
+        {{ $t('settings.privacy.dataManagement') }}
       </h2>
 
       <div class="space-y-4">
         <div class="bg-secondary/50 flex items-center justify-between rounded-xl p-4">
           <div>
-            <p class="text-foreground font-medium">Export Your Data</p>
-            <p class="text-muted-foreground text-sm">Download all your learning data as JSON</p>
+            <p class="text-foreground font-medium">{{ $t('settings.privacy.exportYourData') }}</p>
+            <p class="text-muted-foreground text-sm">{{ $t('settings.privacy.exportDesc') }}</p>
           </div>
           <button
             class="bg-primary text-primary-foreground flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all hover:opacity-90"
             @click="$emit('export')"
           >
             <Download class="h-4 w-4" />
-            Export
+            {{ $t('settings.privacy.exportBtn') }}
           </button>
         </div>
 
         <div class="bg-destructive/5 flex items-center justify-between rounded-xl p-4">
           <div>
-            <p class="text-foreground font-medium">Delete Account</p>
-            <p class="text-muted-foreground text-sm">Permanently delete your account and all data</p>
+            <p class="text-foreground font-medium">{{ $t('settings.privacy.deleteAccount') }}</p>
+            <p class="text-muted-foreground text-sm">{{ $t('settings.privacy.deleteAccountDesc') }}</p>
           </div>
           <button
             class="bg-destructive text-destructive-foreground flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all hover:opacity-90"
             @click="$emit('showDeleteModal')"
           >
             <Trash2 class="h-4 w-4" />
-            Delete
+            {{ $t('settings.privacy.deleteBtn') }}
           </button>
         </div>
       </div>
@@ -70,7 +70,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Shield, Download, Trash2 } from '@/components/icons'
+
+const { t } = useI18n()
 
 export interface PrivacyData {
   publicProfile: boolean
@@ -90,12 +94,12 @@ const emit = defineEmits<{
   showDeleteModal: []
 }>()
 
-const privacyOptions = [
-  { key: 'publicProfile', label: 'Public Profile', description: 'Allow others to see your profile' },
-  { key: 'showStreak', label: 'Show Streak', description: 'Display your learning streak publicly' },
-  { key: 'showAchievements', label: 'Show Achievements', description: 'Display your achievements publicly' },
-  { key: 'analytics', label: 'Usage Analytics', description: 'Help improve StudySpark with anonymous data' },
-]
+const privacyOptions = computed(() => [
+  { key: 'publicProfile', label: t('settings.privacy.publicProfile'), description: t('settings.privacy.publicProfileDesc') },
+  { key: 'showStreak', label: t('settings.privacy.showStreak'), description: t('settings.privacy.showStreakDesc') },
+  { key: 'showAchievements', label: t('settings.privacy.showAchievements'), description: t('settings.privacy.showAchievementsDesc') },
+  { key: 'analytics', label: t('settings.privacy.analytics'), description: t('settings.privacy.analyticsDesc') },
+])
 
 const togglePrivacy = (key: string) => {
   emit('update:privacy', {

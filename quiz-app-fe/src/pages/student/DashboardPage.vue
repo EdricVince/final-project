@@ -141,7 +141,7 @@ import type {
   BadgeItem,
 } from '@/types/dashboard'
 
-const { t: _t } = useI18n()
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const progressStore = useProgressStore()
@@ -183,11 +183,11 @@ const continueLearning = ref<DashboardCourse[]>([])
 const recentFlashcards = ref<DashboardFlashcard[]>([])
 
 // Study Modes - linked to actual pages
-const studyModes = ref<StudyMode[]>([
-  { id: 1, title: 'Flashcards', description: 'Classic study mode', icon: Layers, path: '/flashcards' },
-  { id: 2, title: 'Quiz Mode', description: 'Test your knowledge', icon: Brain, path: '/quizzes' },
-  { id: 3, title: 'Speed Round', description: 'Race against time', icon: Timer, path: '/quizzes/speed-round' },
-  { id: 4, title: 'Multiple Choice', description: 'Select answers', icon: Shuffle, path: '/quizzes/multiple-choice' },
+const studyModes = computed<StudyMode[]>(() => [
+  { id: 1, title: t('dashboard.modes.flashcards'), description: t('dashboard.modes.flashcardsDesc'), icon: Layers, path: '/flashcards' },
+  { id: 2, title: t('dashboard.modes.quizMode'), description: t('dashboard.modes.quizModeDesc'), icon: Brain, path: '/quizzes' },
+  { id: 3, title: t('dashboard.modes.speedRound'), description: t('dashboard.modes.speedRoundDesc'), icon: Timer, path: '/quizzes/speed-round' },
+  { id: 4, title: t('dashboard.modes.multipleChoice'), description: t('dashboard.modes.multipleChoiceDesc'), icon: Shuffle, path: '/quizzes/multiple-choice' },
 ])
 
 // Weekly Activity — from progress store
@@ -246,11 +246,11 @@ const handleQuickAction = (action: string) => {
 // Claim reward handler
 const handleClaimReward = (_challengeId: number, xpReward?: number) => {
   celebrationType.value = 'success'
-  celebrationTitle.value = 'Challenge Complete!'
-  celebrationSubtitle.value = 'Great job completing your daily challenge!'
+  celebrationTitle.value = t('dashboard.celebration.challengeComplete')
+  celebrationSubtitle.value = t('dashboard.celebration.challengeCompleteSubtitle')
   celebrationRewards.value = [
-    { value: `+${xpReward ?? 0}`, label: 'XP Earned' },
-    { value: (progressStore.xp + (xpReward ?? 0)).toLocaleString(), label: 'Total XP' },
+    { value: `+${xpReward ?? 0}`, label: t('dashboard.celebration.xpEarned') },
+    { value: (progressStore.xp + (xpReward ?? 0)).toLocaleString(), label: t('dashboard.celebration.totalXP') },
   ]
   celebrationBadge.value = undefined
   showCelebration.value = true

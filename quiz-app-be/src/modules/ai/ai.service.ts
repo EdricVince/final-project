@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import Anthropic from '@anthropic-ai/sdk';
 
 export interface ImportedContent {
@@ -31,14 +30,13 @@ const FALLBACK_WORDS: WordOfTheDay[] = [
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
-  private readonly client: Anthropic | null;
   private cache: { date: string; word: WordOfTheDay } | null = null;
 
-  constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('ANTHROPIC_API_KEY');
-    this.client = apiKey && apiKey !== 'your-anthropic-api-key-here'
-      ? new Anthropic({ apiKey })
-      : null;
+  constructor() {}
+
+  private get client(): Anthropic | null {
+    const key = process.env.ANTHROPIC_API_KEY ?? '';
+    return key && key.startsWith('sk-ant-') ? new Anthropic({ apiKey: key }) : null;
   }
 
   async scanContent(dto: { url?: string; text?: string; language?: string }): Promise<ImportedContent> {

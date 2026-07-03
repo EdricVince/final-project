@@ -28,7 +28,7 @@
         </template>
 
         <div class="ml-auto flex items-center gap-2">
-          <span class="text-muted-foreground text-xs">Word of the Day</span>
+          <span class="text-muted-foreground text-xs">{{ $t('dashboard.wordOfTheDay') }}</span>
           <ChevronDown
             class="text-muted-foreground h-4 w-4 transition-transform duration-200"
             :class="{ 'rotate-180': expanded }"
@@ -85,7 +85,7 @@
                 @click.stop="addToFlashcard"
               >
                 <Plus class="h-3.5 w-3.5" />
-                Add to Flashcards
+                {{ $t('dashboard.addToFlashcards') }}
               </button>
               <button
                 class="bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg px-3 py-1.5 text-sm transition-colors"
@@ -104,10 +104,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Sparkles, Volume2, Plus, RefreshCw, ChevronDown } from '@/components/icons'
 import { api } from '@/utils/api'
 import { useToast } from '@/composables/useToast'
 
+const { t } = useI18n()
 const { success: showToast } = useToast()
 const CACHE_KEY = 'wotd-cache'
 
@@ -154,7 +156,7 @@ const speak = () => {
 }
 
 const addToFlashcard = () => {
-  showToast(`"${word.value?.word}" saved to flashcards!`)
+  showToast(t('dashboard.savedToFlashcards', { word: word.value?.word }))
 }
 
 onMounted(fetchWord)

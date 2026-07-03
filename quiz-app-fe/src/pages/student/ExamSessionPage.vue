@@ -4,10 +4,24 @@
     <div v-if="loading" class="flex min-h-64 flex-col items-center justify-center gap-4">
       <div class="border-primary h-10 w-10 animate-spin rounded-full border-4 border-t-transparent" />
       <p class="text-muted-foreground text-sm">{{ $t('exam.loading', { type: examType.toUpperCase() }) }}</p>
+      <p class="text-muted-foreground text-xs">AI is generating your unique exam — this may take 15–30 seconds</p>
+    </div>
+
+    <!-- Load error -->
+    <div v-else-if="loadError" class="flex min-h-64 flex-col items-center justify-center gap-5 text-center">
+      <div class="text-4xl">⚠️</div>
+      <div>
+        <h3 class="text-foreground text-lg font-bold">Failed to Generate Exam</h3>
+        <p class="text-muted-foreground mt-1 text-sm max-w-sm">{{ loadError }}</p>
+      </div>
+      <button
+        class="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 transition-colors"
+        @click="loadExam"
+      >Try Again</button>
     </div>
 
     <!-- Exam Active -->
-    <template v-else-if="!finished">
+    <template v-else-if="!finished && questions.length > 0">
       <!-- Header -->
       <div class="bg-card border-border flex items-center justify-between gap-3 rounded-2xl border px-4 py-3">
         <div class="flex items-center gap-3">
@@ -17,7 +31,7 @@
           <span class="text-foreground text-sm font-semibold">
             {{ $t('exam.questionOf', { current: currentIdx + 1, total: questions.length }) }}
           </span>
-          <span v-if="targetBand" class="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-xs font-semibold text-indigo-400">
+          <span v-if="targetBand" class="sec-indigo rounded-full px-2.5 py-0.5 text-xs font-semibold">
             🎯 {{ targetBand }}
           </span>
         </div>
@@ -138,6 +152,7 @@ const targetBand = computed(() => (route.query.target as string) || localStorage
 
 const loading = ref(true)
 const finished = ref(false)
+const loadError = ref('')
 const questions = ref<any[]>([])
 const answers = ref<Record<number, number>>({})
 const writingAnswers = ref<Record<number, string>>({})
@@ -147,20 +162,20 @@ const result = ref<any>(null)
 const sessionId = ref('')
 
 const sectionStyleMap: Record<string, { icon: string; banner: string; desc: string }> = {
-  'Listening Part 1':  { icon: '🎧', banner: 'border-blue-500/30 bg-blue-500/10 text-blue-300',     desc: 'Listen to the audio and answer the questions — no transcript shown' },
-  'Listening Part 2':  { icon: '🎧', banner: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300',     desc: 'Listen to the monologue / announcement and answer the questions' },
-  Reading:             { icon: '📖', banner: 'border-green-500/30 bg-green-500/10 text-green-300',   desc: 'Academic passage — note completion (ONE WORD from text) + True/False/Not Given' },
-  Writing:             { icon: '✍️', banner: 'border-violet-500/30 bg-violet-500/10 text-violet-300', desc: 'Write your responses — Task 1 (150+ words) and Task 2 (250+ words)' },
-  'Listening Part 3':  { icon: '🗣️', banner: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300',    desc: 'Part 3 — Short Conversations: listen and answer the questions' },
-  'Listening Part 4':  { icon: '📢', banner: 'border-teal-500/30 bg-teal-500/10 text-teal-300',     desc: 'Part 4 — Short Talks: listen and answer the questions' },
-  'Reading Part 5':    { icon: '📝', banner: 'border-amber-500/30 bg-amber-500/10 text-amber-300',  desc: 'Part 5 — Incomplete Sentences: choose the word or phrase that best completes each sentence' },
-  'Reading Part 6':    { icon: '📄', banner: 'border-orange-500/30 bg-orange-500/10 text-orange-300', desc: 'Part 6 — Text Completion: read the passage and choose the best word for each blank' },
-  'Reading Part 7':    { icon: '📰', banner: 'border-green-500/30 bg-green-500/10 text-green-300',  desc: 'Part 7 — Reading Comprehension: read the article and answer the questions' },
-  Listening:               { icon: '🎧', banner: 'border-blue-500/30 bg-blue-500/10 text-blue-300',     desc: 'Listening section' },
-  'Reading Passage 1':     { icon: '📖', banner: 'border-teal-500/30 bg-teal-500/10 text-teal-300',     desc: 'Academic passage — read carefully and answer the questions' },
-  'Reading Passage 2':     { icon: '📖', banner: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300',     desc: 'Second academic passage — read carefully and answer the questions' },
-  'Listening — Lecture':   { icon: '🎓', banner: 'border-teal-500/30 bg-teal-500/10 text-teal-300',     desc: 'Professor lecture — listen and answer comprehension questions' },
-  'Listening — Discussion':{ icon: '🗣️', banner: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300',    desc: 'Classroom discussion — listen and answer comprehension questions' },
+  'Listening Part 1':  { icon: '🎧', banner: 'sec-blue',   desc: 'Listen to the audio and answer the questions — no transcript shown' },
+  'Listening Part 2':  { icon: '🎧', banner: 'sec-cyan',   desc: 'Listen to the monologue / announcement and answer the questions' },
+  Reading:             { icon: '📖', banner: 'sec-green',  desc: 'Academic passage — note completion (ONE WORD from text) + True/False/Not Given' },
+  Writing:             { icon: '✍️', banner: 'sec-violet', desc: 'Write your responses — Task 1 (150+ words) and Task 2 (250+ words)' },
+  'Listening Part 3':  { icon: '🗣️', banner: 'sec-cyan',   desc: 'Part 3 — Short Conversations: listen and answer the questions' },
+  'Listening Part 4':  { icon: '📢', banner: 'sec-teal',   desc: 'Part 4 — Short Talks: listen and answer the questions' },
+  'Reading Part 5':    { icon: '📝', banner: 'sec-amber',  desc: 'Part 5 — Incomplete Sentences: choose the word or phrase that best completes each sentence' },
+  'Reading Part 6':    { icon: '📄', banner: 'sec-orange', desc: 'Part 6 — Text Completion: read the passage and choose the best word for each blank' },
+  'Reading Part 7':    { icon: '📰', banner: 'sec-green',  desc: 'Part 7 — Reading Comprehension: read the article and answer the questions' },
+  Listening:               { icon: '🎧', banner: 'sec-blue', desc: 'Listening section' },
+  'Reading Passage 1':     { icon: '📖', banner: 'sec-teal', desc: 'Academic passage — read carefully and answer the questions' },
+  'Reading Passage 2':     { icon: '📖', banner: 'sec-cyan', desc: 'Second academic passage — read carefully and answer the questions' },
+  'Listening — Lecture':   { icon: '🎓', banner: 'sec-teal', desc: 'Professor lecture — listen and answer comprehension questions' },
+  'Listening — Discussion':{ icon: '🗣️', banner: 'sec-cyan', desc: 'Classroom discussion — listen and answer comprehension questions' },
 }
 
 // Build section passage map: first passage per section for TTS replay
@@ -216,14 +231,16 @@ onMounted(loadExam)
 
 async function loadExam() {
   loading.value = true
+  loadError.value = ''
+  questions.value = []
   try {
-    const variant = Math.floor(Math.random() * 6)
+    const variant = Math.floor(Math.random() * 18)
     const data = await api.generateExam({ exam_type: examType.value as any, question_count: 20, variant })
     questions.value = data.questions
     sessionId.value = data.session_id
     timeLimitSecs.value = Math.round((data.time_limit ?? 30) * 60)
-  } catch {
-    questions.value = []
+  } catch (e: any) {
+    loadError.value = e?.errorMessage || e?.message || 'AI exam generation failed. Please try again.'
   } finally {
     loading.value = false
   }
@@ -277,6 +294,7 @@ function resetExam() {
   answers.value = {}
   writingAnswers.value = {}
   currentIdx.value = 0
+  result.value = null
   loadExam()
 }
 

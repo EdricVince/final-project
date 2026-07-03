@@ -88,12 +88,23 @@ export function useSettings() {
     return names.map(n => n[0]).join('').toUpperCase().slice(0, 2)
   })
 
-  // Appearance - read saved theme from localStorage to sync with actual theme
+  // Appearance - read saved theme/fontSize from localStorage
   const savedTheme = localStorage.getItem('studyspark-theme') as 'light' | 'dark' | 'system' | null
+  const savedFontSize = Number(localStorage.getItem('studyspark-font-size') || '100')
   const appearanceSettings = reactive<AppearanceSettings>({
     theme: savedTheme && ['light', 'dark', 'system'].includes(savedTheme) ? savedTheme : 'system',
-    fontSize: 100,
+    fontSize: savedFontSize,
   })
+
+  // Apply font size to root element and persist whenever it changes
+  watch(
+    () => appearanceSettings.fontSize,
+    (size) => {
+      document.documentElement.style.fontSize = `${size}%`
+      localStorage.setItem('studyspark-font-size', String(size))
+    },
+    { immediate: true }
+  )
 
   // Notifications
   const notificationSettings = reactive<NotificationSettings>({

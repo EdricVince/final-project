@@ -9,7 +9,7 @@ export class StartExamDto {
   @IsInt() @Min(10) @Max(40) @IsOptional()
   question_count?: number;
 
-  @IsInt() @Min(0) @Max(5) @IsOptional()
+  @IsInt() @Min(0) @Max(17) @IsOptional()
   variant?: number;
 }
 

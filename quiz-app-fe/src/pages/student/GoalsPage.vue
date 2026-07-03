@@ -4,9 +4,9 @@
     <div class="animate-fade-in-down mb-6">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Learning Goals</h1>
+          <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('goals.title') }}</h1>
           <p class="text-muted-foreground mt-1 text-sm">
-            Track your daily targets, weekly challenges, and milestones
+            {{ $t('goals.trackDesc') }}
           </p>
         </div>
         <div class="flex items-center gap-2">
@@ -16,14 +16,14 @@
             @click="toggleNotifications"
           >
             <Bell class="h-4 w-4" />
-            <span class="hidden sm:inline">{{ notificationsEnabled ? 'Alerts On' : 'Alerts Off' }}</span>
+            <span class="hidden sm:inline">{{ notificationsEnabled ? $t('goals.alertsOn') : $t('goals.alertsOff') }}</span>
           </button>
           <button
             class="bg-primary text-primary-foreground flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all hover:opacity-90"
             @click="showAddGoalModal = true"
           >
             <Plus class="h-4 w-4" />
-            Add Goal
+            {{ $t('goals.addGoal') }}
           </button>
         </div>
       </div>
@@ -51,14 +51,14 @@
           <div class="mb-4 flex items-center justify-between">
             <h3 class="text-foreground flex items-center gap-2 font-semibold">
               <Target class="text-primary h-4 w-4" />
-              Today's Goals
+              {{ $t('goals.todaysGoals') }}
             </h3>
             <button
               class="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs transition-colors"
               @click="fetchGoals"
             >
               <RefreshCw class="h-3 w-3" />
-              Refresh
+              {{ $t('goals.refresh') }}
             </button>
           </div>
 
@@ -71,13 +71,13 @@
             />
             <div v-if="dailyGoals.length === 0" class="py-6 text-center">
               <Target class="text-muted-foreground mx-auto mb-2 h-8 w-8 opacity-40" />
-              <p class="text-muted-foreground text-sm">No goals yet — start learning to track progress!</p>
+              <p class="text-muted-foreground text-sm">{{ $t('goals.noGoalsStart') }}</p>
             </div>
           </div>
 
           <!-- Custom Goals section -->
           <div v-if="customGoals.length > 0" class="border-border mt-4 border-t pt-4">
-            <h4 class="text-foreground mb-3 text-sm font-medium">Personal Goals</h4>
+            <h4 class="text-foreground mb-3 text-sm font-medium">{{ $t('goals.personalGoals') }}</h4>
             <div class="space-y-2">
               <CustomGoalItem
                 v-for="goal in customGoals"
@@ -95,11 +95,11 @@
           <div class="mb-4 flex items-center justify-between">
             <h3 class="text-foreground flex items-center gap-2 font-semibold">
               <Calendar class="text-primary h-4 w-4" />
-              Weekly Challenges
+              {{ $t('goals.weeklyChallenges') }}
             </h3>
             <div class="text-muted-foreground flex items-center gap-1 text-xs">
               <Clock class="h-3 w-3" />
-              {{ daysRemaining }} days left
+              {{ $t('goals.daysLeft', { n: daysRemaining }) }}
             </div>
           </div>
 
@@ -111,7 +111,7 @@
             />
             <div v-if="weeklyChallenges.length === 0" class="py-6 text-center">
               <Calendar class="text-muted-foreground mx-auto mb-2 h-8 w-8 opacity-40" />
-              <p class="text-muted-foreground text-sm">Challenges load based on your activity</p>
+              <p class="text-muted-foreground text-sm">{{ $t('goals.challengesLoad') }}</p>
             </div>
           </div>
 
@@ -128,10 +128,10 @@
         <div class="mb-4 flex items-center justify-between">
           <h3 class="text-foreground flex items-center gap-2 font-semibold">
             <Flag class="text-primary h-4 w-4" />
-            Milestones
+            {{ $t('goals.milestones') }}
           </h3>
           <span class="text-muted-foreground text-sm">
-            {{ completedMilestones }} / {{ milestones.length }} achieved
+            {{ $t('goals.achieved', { done: completedMilestones, total: milestones.length }) }}
           </span>
         </div>
         <MilestoneTracker :milestones="milestones" />
@@ -148,7 +148,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Target, Calendar, Flag, Bell, Plus, Clock, RefreshCw } from '@/components/icons'
+
+const { t } = useI18n()
 
 import TodaysProgressCard from '@/components/goals/TodaysProgressCard.vue'
 import DailyGoalItem from '@/components/goals/DailyGoalItem.vue'

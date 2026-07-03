@@ -2,8 +2,8 @@
   <div class="p-6 lg:p-8">
     <!-- Header -->
     <div class="animate-fade-in-down mb-8">
-      <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Your Profile</h1>
-      <p class="text-muted-foreground mt-2 text-base">View your learning journey and manage your profile</p>
+      <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('profile.yourProfile') }}</h1>
+      <p class="text-muted-foreground mt-2 text-base">{{ $t('profile.yourProfileDesc') }}</p>
     </div>
 
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
@@ -88,6 +88,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import ProfileAvatarCard from '@/components/profile/ProfileAvatarCard.vue'
 import ProfileSocialLinksCard from '@/components/profile/ProfileSocialLinksCard.vue'
 import PersonalInformationCard from '@/components/profile/PersonalInformationCard.vue'
@@ -98,6 +99,8 @@ import ProfileAchievementsShowcase from '@/components/profile/ProfileAchievement
 import SocialLinkModal from '@/components/profile/SocialLinkModal.vue'
 
 import { useProfile } from '@/composables'
+
+const { t: $t } = useI18n()
 
 const {
   profile,

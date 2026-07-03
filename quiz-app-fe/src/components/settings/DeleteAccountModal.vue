@@ -11,20 +11,20 @@
             <AlertTriangle class="text-destructive h-6 w-6" />
           </div>
           <h3 class="text-foreground mb-2 text-center text-lg font-semibold">
-            Delete Account?
+            {{ $t('settings.deleteModal.title') }}
           </h3>
           <p class="text-muted-foreground mb-6 text-center text-sm">
-            This action cannot be undone. All your data will be permanently deleted.
+            {{ $t('settings.deleteModal.message') }}
           </p>
 
           <div class="mb-4">
             <label class="text-foreground mb-2 block text-sm font-medium">
-              Type "DELETE" to confirm
+              {{ $t('settings.deleteModal.typeToConfirm') }}
             </label>
             <input
               v-model="confirmText"
               type="text"
-              placeholder="DELETE"
+              :placeholder="$t('settings.deleteModal.confirmPlaceholder')"
               class="bg-secondary border-border text-foreground w-full rounded-lg border px-4 py-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-destructive/50"
             />
           </div>
@@ -34,14 +34,14 @@
               class="bg-secondary text-foreground flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-all hover:bg-secondary/80"
               @click="$emit('close')"
             >
-              Cancel
+              {{ $t('settings.deleteModal.cancel') }}
             </button>
             <button
               class="bg-destructive text-destructive-foreground flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-all hover:opacity-90 disabled:opacity-50"
               :disabled="confirmText !== 'DELETE'"
               @click="handleDelete"
             >
-              Delete Account
+              {{ $t('settings.deleteModal.confirm') }}
             </button>
           </div>
         </div>
@@ -52,7 +52,10 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AlertTriangle } from '@/components/icons'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   show: boolean

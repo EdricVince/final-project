@@ -3,15 +3,15 @@
     <!-- Header -->
     <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h2 class="text-foreground text-2xl font-bold">Classes</h2>
-        <p class="text-muted-foreground mt-1 text-sm">Manage your classes and share join codes with students</p>
+        <h2 class="text-foreground text-2xl font-bold">{{ $t('teacher.classes.title') }}</h2>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.classes.manageSubtitle') }}</p>
       </div>
       <button
         class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-colors"
         @click="openCreateModal"
       >
         <Plus class="h-4 w-4" />
-        Create Class
+        {{ $t('teacher.classes.createClass') }}
       </button>
     </div>
 

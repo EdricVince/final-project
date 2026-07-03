@@ -76,14 +76,29 @@
     </div>
 
     <div class="mx-auto max-w-5xl space-y-6 px-6 pb-12">
+      <!-- AI Not Configured Banner -->
+      <div v-if="aiReady === false" class="flex items-start gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+        <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-lg">⚠</div>
+        <div class="flex-1 space-y-1">
+          <div class="text-sm font-semibold text-amber-400">AI Not Configured</div>
+          <p class="text-xs leading-relaxed text-amber-300/80">
+            This feature requires an Anthropic API key. Exams are generated entirely by AI — no hardcoded questions.
+            Please add your API key in admin settings to enable exam generation.
+          </p>
+          <a href="/admin/ai" class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-300 transition hover:bg-amber-500/30">
+            Go to Admin Settings →
+          </a>
+        </div>
+      </div>
+
       <!-- Exam Cards -->
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         <div
           v-for="exam in exams"
           :key="exam.type"
-          class="group relative flex flex-col cursor-pointer overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-          :class="exam.cardClass"
-          @click="startExam(exam.type)"
+          class="group relative flex flex-col overflow-hidden rounded-2xl border transition-all duration-300"
+          :class="[exam.cardClass, aiReady ? 'cursor-pointer hover:-translate-y-1 hover:shadow-2xl' : 'opacity-60 cursor-not-allowed']"
+          @click="aiReady && startExam(exam.type)"
         >
           <!-- Gradient overlay -->
           <div class="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" :class="exam.hoverGradient" />
@@ -151,11 +166,12 @@
 
             <!-- Start button -->
             <button
-              class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-bold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              :class="exam.btnClass"
-              @click.stop="startExam(exam.type)"
+              class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-bold transition-all duration-200"
+              :class="aiReady ? [exam.btnClass, 'hover:scale-[1.02] active:scale-[0.98]'] : 'bg-muted text-muted-foreground cursor-not-allowed'"
+              :disabled="!aiReady"
+              @click.stop="aiReady && startExam(exam.type)"
             >
-              {{ $t('exam.startExam') }}
+              {{ aiReady === false ? 'AI Key Required' : $t('exam.startExam') }}
             </button>
           </div>
         </div>
@@ -192,13 +208,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { CheckCircle, Clock, FileText, BarChart3, Shuffle } from '@/components/icons'
+import { apiRequest } from '@/utils/api'
 
 const router = useRouter()
 const { t } = useI18n({ useScope: 'global' })
+
+const aiReady = ref<boolean | null>(null)
+
+onMounted(async () => {
+  try {
+    const status = await apiRequest<{ ai_enabled: boolean }>('/entrance-exam/ai-status', { requiresAuth: false })
+    aiReady.value = status.ai_enabled
+  } catch {
+    aiReady.value = false
+  }
+})
 
 const TARGET_KEY = 'studyspark_target_band'
 const targetBand = ref(parseFloat(localStorage.getItem(TARGET_KEY) ?? '7.0'))

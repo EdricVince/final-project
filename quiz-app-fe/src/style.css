@@ -343,6 +343,7 @@
   .sk-spinner-blue    { @apply h-10 w-10 animate-spin text-blue-400; }
   .sk-spinner-amber   { @apply h-10 w-10 animate-spin text-amber-400; }
   .sk-spinner-emerald { @apply h-10 w-10 animate-spin text-emerald-400; }
+  .sk-spinner-indigo  { @apply h-10 w-10 animate-spin text-indigo-400; }
 
   /* ── Score bar ── */
   .score-track { @apply h-1.5 overflow-hidden rounded-full bg-muted/30; }
@@ -477,6 +478,494 @@
   .dark .note-box-indigo-icon  { color: oklch(0.72 0.218 278); }
   .note-box-indigo-title { color: oklch(0.42 0.238 278); } .dark .note-box-indigo-title { color: oklch(0.72 0.218 278); }
   .note-box-indigo-text  { color: oklch(0.50 0.188 278 / 82%); } .dark .note-box-indigo-text  { color: oklch(0.72 0.218 278 / 70%); }
+
+  /* ══════════════════════════════════════════════════════════
+     EXAM LISTENING PLAYER — fully light/dark aware
+     ══════════════════════════════════════════════════════════ */
+
+  /* Outer card */
+  .listen-card { border-radius: 1rem; overflow: hidden; border: 1px solid oklch(0.58 0.175 220 / 25%); background: linear-gradient(160deg, #eff6ff 0%, #dbeafe 100%); }
+  .dark .listen-card { background: linear-gradient(160deg, #0d1b35 0%, #0a1628 100%); border-color: oklch(0.58 0.175 220 / 20%); }
+
+  /* Header row */
+  .listen-card-header { @apply flex items-center justify-between px-5 py-3.5; border-bottom: 1px solid oklch(0.58 0.175 220 / 12%); }
+
+  /* Icon box */
+  .listen-icon-box { @apply flex h-9 w-9 items-center justify-center rounded-xl text-lg select-none; background: oklch(0.58 0.175 220 / 18%); }
+  .dark .listen-icon-box { background: oklch(0.58 0.175 220 / 15%); }
+
+  /* Title & sub-label */
+  .listen-title { @apply text-sm font-bold leading-tight; color: oklch(0.30 0.160 220); }
+  .dark .listen-title { color: oklch(0.92 0.050 220); }
+  .listen-sub { @apply text-[10px] uppercase tracking-widest mt-0.5; color: oklch(0.48 0.145 220 / 65%); }
+  .dark .listen-sub { color: oklch(0.60 0.115 220 / 55%); }
+
+  /* Status badge — 3 states */
+  .listen-badge { display: flex; align-items: center; gap: 0.375rem; border-radius: 9999px; padding: 0.25rem 0.625rem; font-size: 0.625rem; line-height: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.15s, background-color 0.15s; }
+  .listen-badge-playing { background: oklch(0.58 0.175 220 / 14%); color: oklch(0.38 0.165 220); }
+  .dark .listen-badge-playing { background: oklch(0.58 0.175 220 / 20%); color: oklch(0.74 0.168 212); }
+  .listen-badge-done { background: oklch(0.60 0.195 152 / 10%); color: oklch(0.40 0.178 152); }
+  .dark .listen-badge-done { background: oklch(0.60 0.195 152 / 15%); color: oklch(0.72 0.188 152); }
+  .listen-badge-idle { background: oklch(0.50 0.015 220 / 7%); color: oklch(0.46 0.018 220); }
+  .dark .listen-badge-idle { background: oklch(0.28 0.015 220 / 30%); color: oklch(0.62 0.012 220); }
+
+  /* Status dot */
+  .listen-dot { @apply h-1.5 w-1.5 rounded-full transition-colors; }
+  .listen-dot-playing { background: oklch(0.52 0.185 220); animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+  .dark .listen-dot-playing { background: oklch(0.70 0.165 212); }
+  .listen-dot-done { background: oklch(0.52 0.185 152); }
+  .dark .listen-dot-done { background: oklch(0.72 0.188 152); }
+  .listen-dot-idle { background: oklch(0.52 0.015 220); }
+  .dark .listen-dot-idle { background: oklch(0.50 0.012 220); }
+
+  /* Waveform container */
+  .listen-wave-bg { @apply relative flex items-center justify-center h-16 rounded-xl overflow-hidden; background: oklch(0.58 0.175 220 / 7%); border: 1px solid oklch(0.58 0.175 220 / 14%); }
+  .dark .listen-wave-bg { background: rgba(30, 58, 138, 0.18); border-color: oklch(0.58 0.175 220 / 10%); }
+
+  /* Sweep animation overlay */
+  .listen-sweep { @apply absolute inset-0 opacity-60; background: linear-gradient(90deg, transparent 0%, oklch(0.58 0.175 220 / 7%) 50%, transparent 100%); animation: listen-bg-sweep 2s ease-in-out infinite; }
+  .dark .listen-sweep { background: linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.06) 50%, transparent 100%); }
+
+  /* Waveform bar colours */
+  .listen-bar-playing { background: oklch(0.52 0.185 220); }
+  .dark .listen-bar-playing { background: oklch(0.68 0.165 212); }
+  .listen-bar-done { background: oklch(0.55 0.160 220 / 35%); }
+  .dark .listen-bar-done { background: oklch(0.38 0.130 220 / 60%); }
+  .listen-bar-idle { background: oklch(0.55 0.015 220 / 22%); }
+  .dark .listen-bar-idle { background: oklch(0.42 0.012 220 / 40%); }
+
+  /* Native-style player control bar — colors only (layout is inline in template) */
+  .listen-controls { background: oklch(0.58 0.175 220 / 6%); border: 1px solid oklch(0.58 0.175 220 / 14%); }
+  .dark .listen-controls { background: rgba(30, 58, 138, 0.18); border-color: oklch(0.58 0.175 220 / 10%); }
+
+  .listen-play-btn { background: linear-gradient(135deg, oklch(0.50 0.238 264), oklch(0.48 0.218 290)); color: #fff; }
+  .listen-play-btn:hover { background: linear-gradient(135deg, oklch(0.55 0.235 264), oklch(0.53 0.215 290)); }
+
+  .listen-time { color: oklch(0.42 0.09 235); }
+  .dark .listen-time { color: oklch(0.80 0.09 225); }
+
+  .listen-seek { background: oklch(0.55 0.05 235 / 22%); }
+  .dark .listen-seek { background: oklch(0.65 0.05 230 / 28%); }
+  .listen-seek-fill { background: oklch(0.52 0.185 220); transition: width 0.2s linear; }
+  .dark .listen-seek-fill { background: oklch(0.68 0.165 212); }
+  .listen-seek-knob { background: #fff; border: 2px solid oklch(0.52 0.185 220); transition: left 0.2s linear; }
+  .dark .listen-seek-knob { border-color: oklch(0.68 0.165 212); }
+
+  .listen-vol { color: oklch(0.45 0.06 235); }
+  .dark .listen-vol { color: oklch(0.74 0.07 228); }
+
+  /* ── Hero page background gradients ── */
+  .hero-bg-indigo  { @apply absolute inset-0 bg-linear-to-br from-indigo-600/20 via-violet-600/10 to-transparent; }
+  .hero-bg-violet  { @apply absolute inset-0 bg-linear-to-br from-violet-600/20 via-purple-600/10 to-transparent; }
+  .hero-bg-blue    { @apply absolute inset-0 bg-linear-to-br from-blue-600/20 via-cyan-600/10 to-transparent; }
+  .hero-bg-emerald { @apply absolute inset-0 bg-linear-to-br from-emerald-600/15 via-teal-600/8 to-transparent; }
+  .hero-bg-rose    { @apply absolute inset-0 bg-linear-to-br from-rose-600/15 via-pink-600/8 to-transparent; }
+  .hero-bg-amber   { @apply absolute inset-0 bg-linear-to-br from-amber-600/15 via-orange-600/8 to-transparent; }
+
+  /* ── Info / alert boxes ── */
+  .info-box    { @apply rounded-xl border px-4 py-3; }
+  .info-box-sm { @apply rounded-xl border p-3; }
+  .info-box-lg { @apply rounded-2xl border p-5; }
+  .info-box-amber        { @apply border-amber-500/20 bg-amber-500/5; }
+  .info-box-amber-strong { @apply border-amber-500/30 bg-amber-500/10; }
+  .info-box-blue         { @apply border-blue-500/20 bg-blue-500/5; }
+  .info-box-indigo       { @apply border-indigo-500/20 bg-indigo-500/5; }
+  .info-box-emerald      { @apply border-emerald-500/20 bg-emerald-500/5; }
+  .info-box-rose         { @apply border-rose-500/20 bg-rose-500/5; }
+  .info-box-red          { @apply border-red-500/30 bg-red-500/5; }
+
+  /* ── Small inline action buttons (TTS, Listen, Camera, Replay) ── */
+  .action-btn         { @apply flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors; }
+  .action-btn-blue    { @apply border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20; }
+  .action-btn-emerald { @apply border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20; }
+  .action-btn-rose    { @apply border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20; }
+  .action-btn-indigo  { @apply border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20; }
+  .action-btn-amber   { @apply border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20; }
+
+  /* ── Skill tab toggle (active selected state) ── */
+  .skill-tab-rose    { @apply border-rose-500/50 bg-rose-500/15 text-rose-300; }
+  .skill-tab-blue    { @apply border-blue-500/50 bg-blue-500/15 text-blue-300; }
+  .skill-tab-emerald { @apply border-emerald-500/50 bg-emerald-500/15 text-emerald-300; }
+  .skill-tab-indigo  { @apply border-indigo-500/50 bg-indigo-500/15 text-indigo-300; }
+  .skill-tab-amber   { @apply border-amber-500/50 bg-amber-500/15 text-amber-300; }
+
+  /* ── CEFR level filter buttons (active state, stronger opacity) ── */
+  .level-filter-a1  { @apply border-red-500/50 bg-red-500/15 text-red-300; }
+  .level-filter-a2  { @apply border-orange-500/50 bg-orange-500/15 text-orange-300; }
+  .level-filter-b1  { @apply border-amber-500/50 bg-amber-500/15 text-amber-300; }
+  .level-filter-b2  { @apply border-yellow-500/50 bg-yellow-500/15 text-yellow-300; }
+  .level-filter-c1  { @apply border-emerald-500/50 bg-emerald-500/15 text-emerald-300; }
+  .level-filter-c2  { @apply border-blue-500/50 bg-blue-500/15 text-blue-300; }
+  .level-filter-all-blue    { @apply border-blue-500/50 bg-blue-500/15 text-blue-300; }
+  .level-filter-all-emerald { @apply border-emerald-500/50 bg-emerald-500/15 text-emerald-300; }
+  .level-filter-all-rose    { @apply border-rose-500/50 bg-rose-500/15 text-rose-300; }
+
+  /* ── Library sidebar item active states ── */
+  .lib-item-active-blue    { @apply border-blue-500/50 bg-blue-500/10; }
+  .lib-item-active-emerald { @apply border-emerald-500/50 bg-emerald-500/10; }
+  .lib-item-active-rose    { @apply border-rose-500/50 bg-rose-500/10; }
+
+  /* ── Audio player / waveform container ── */
+  .audio-player         { @apply rounded-2xl border p-5; }
+  .audio-player-emerald { @apply border-emerald-500/20 bg-emerald-500/5; }
+  .audio-player-blue    { @apply border-blue-500/20 bg-blue-500/5; }
+  .audio-player-rose    { @apply border-rose-500/20 bg-rose-500/5; }
+
+  /* ── Quiz answer feedback states ── */
+  .answer-correct { @apply border-emerald-500 bg-emerald-500/10 text-emerald-300; }
+  .answer-wrong   { @apply border-red-500 bg-red-500/10 text-red-300; }
+  .answer-pass    { @apply border-emerald-500/30 bg-emerald-500/10; }
+  .answer-fail    { @apply border-red-500/30 bg-red-500/10; }
+
+  /* ── Icon wrapper squares ── */
+  .icon-box-sm { @apply flex h-8 w-8 items-center justify-center rounded-lg text-lg; }
+  .icon-box-blue    { @apply bg-blue-500/15; }
+  .icon-box-emerald { @apply bg-emerald-500/15; }
+  .icon-box-rose    { @apply bg-rose-500/15; }
+  .icon-box-amber   { @apply bg-amber-500/15; }
+  .icon-box-indigo  { @apply bg-indigo-500/15; }
+
+  /* ══════════════════════════════════════════════════════════
+     ADMIN PORTAL — light/dark-mode semantic classes  (prefix: adm-)
+     ══════════════════════════════════════════════════════════ */
+
+  /* ── Surfaces ── */
+  .adm-card        { @apply bg-card border border-border rounded-xl overflow-hidden; }
+  .adm-card-2xl    { @apply bg-card border border-border rounded-2xl overflow-hidden; }
+  .adm-card-header { @apply px-5 py-4 border-b border-border flex items-center justify-between; }
+  .adm-divider     { @apply border-b border-border; }
+
+  /* ── Skeleton loaders ── */
+  .adm-skel   { @apply bg-muted/40 animate-pulse rounded; }
+  .adm-skel-c { @apply bg-muted/40 animate-pulse rounded-full; }
+
+  /* ── Typography ── */
+  .adm-h1       { @apply text-xl font-bold text-foreground; }
+  .adm-h2       { @apply text-lg font-bold text-foreground; }
+  .adm-h3       { @apply text-sm font-semibold text-foreground; }
+  .adm-label    { @apply text-xs font-medium text-muted-foreground; }
+  .adm-text     { @apply text-sm text-muted-foreground; }
+  .adm-meta     { @apply text-xs text-muted-foreground/70; }
+  .adm-link     { @apply text-indigo-600 font-medium hover:underline transition-colors; }
+  .dark .adm-link { @apply text-indigo-400; }
+  .adm-required { @apply text-red-400; }
+
+  /* ── Role & status badges ── */
+  .adm-badge          { @apply inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full; }
+  .adm-badge-teacher  { @apply bg-violet-100 text-violet-700; }
+  .dark .adm-badge-teacher  { @apply bg-violet-500/20 text-violet-400; }
+  .adm-badge-student  { @apply bg-blue-100 text-blue-700; }
+  .dark .adm-badge-student  { @apply bg-blue-500/20 text-blue-400; }
+  .adm-badge-active   { @apply bg-emerald-100 text-emerald-700; }
+  .dark .adm-badge-active   { @apply bg-emerald-500/20 text-emerald-400; }
+  .adm-badge-inactive { @apply bg-slate-100 text-slate-500; }
+  .dark .adm-badge-inactive { @apply bg-muted/40 text-muted-foreground; }
+  .adm-badge-warning  { @apply bg-amber-100 text-amber-700; }
+  .dark .adm-badge-warning  { @apply bg-amber-500/20 text-amber-400; }
+  .adm-badge-error    { @apply bg-red-100 text-red-600; }
+  .dark .adm-badge-error    { @apply bg-red-500/20 text-red-400; }
+
+  /* ── Stat/icon container tints ── */
+  .adm-icon-indigo  { @apply bg-indigo-50  text-indigo-600; }
+  .dark .adm-icon-indigo  { @apply bg-indigo-500/15  text-indigo-400; }
+  .adm-icon-blue    { @apply bg-blue-50    text-blue-600; }
+  .dark .adm-icon-blue    { @apply bg-blue-500/15    text-blue-400; }
+  .adm-icon-violet  { @apply bg-violet-50  text-violet-600; }
+  .dark .adm-icon-violet  { @apply bg-violet-500/15  text-violet-400; }
+  .adm-icon-emerald { @apply bg-emerald-50 text-emerald-600; }
+  .dark .adm-icon-emerald { @apply bg-emerald-500/15 text-emerald-400; }
+  .adm-icon-amber   { @apply bg-amber-50   text-amber-600; }
+  .dark .adm-icon-amber   { @apply bg-amber-500/15   text-amber-400; }
+  .adm-icon-rose    { @apply bg-rose-50    text-rose-600; }
+  .dark .adm-icon-rose    { @apply bg-rose-500/15    text-rose-400; }
+  .adm-icon-red     { @apply bg-red-50     text-red-500; }
+  .dark .adm-icon-red     { @apply bg-red-500/15     text-red-400; }
+
+  /* ── Avatar initials ── */
+  .adm-avatar         { @apply w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0; }
+  .adm-avatar-teacher { @apply bg-violet-100 text-violet-700; }
+  .dark .adm-avatar-teacher { @apply bg-violet-500/20 text-violet-400; }
+  .adm-avatar-student { @apply bg-blue-100  text-blue-700; }
+  .dark .adm-avatar-student { @apply bg-blue-500/20  text-blue-400; }
+
+  /* ── Toggle switch ── */
+  .adm-toggle-on  { @apply bg-emerald-500; }
+  .adm-toggle-off { @apply bg-slate-300; }
+  .dark .adm-toggle-off { @apply bg-muted/60; }
+
+  /* ── Buttons ── */
+  .adm-btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
+           bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-sm transition-colors;
+  }
+  .adm-btn-primary:disabled { @apply opacity-50 cursor-not-allowed pointer-events-none; }
+
+  .adm-btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium
+           bg-card border border-border text-foreground rounded-lg hover:bg-muted/20 transition;
+  }
+  .adm-btn-ghost:disabled { @apply opacity-50 cursor-not-allowed pointer-events-none; }
+
+  .adm-btn-soft-primary {
+    @apply flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg
+           bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition;
+  }
+  .dark .adm-btn-soft-primary { @apply bg-indigo-500/15 hover:bg-indigo-500/20 text-indigo-400; }
+
+  .adm-btn-soft-neutral {
+    @apply flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg
+           bg-slate-50 hover:bg-slate-100 text-slate-700 transition;
+  }
+  .dark .adm-btn-soft-neutral { @apply bg-muted/20 hover:bg-muted/30 text-foreground; }
+
+  .adm-btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
+           bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors;
+  }
+
+  /* ── Icon-only action buttons ── */
+  .adm-icon-btn       { @apply p-1.5 rounded-lg text-muted-foreground transition cursor-pointer bg-transparent; }
+  .adm-icon-btn-warn  { @apply hover:bg-amber-50 hover:text-amber-600; }
+  .dark .adm-icon-btn-warn  { @apply hover:bg-amber-500/15 hover:text-amber-400; }
+  .adm-icon-btn-del   { @apply hover:bg-red-50   hover:text-red-600; }
+  .dark .adm-icon-btn-del   { @apply hover:bg-red-500/15   hover:text-red-400; }
+  .adm-icon-btn-close { @apply hover:bg-slate-100 hover:text-slate-600; }
+  .dark .adm-icon-btn-close { @apply hover:bg-muted/30 hover:text-foreground; }
+
+  /* ── Tab groups ── */
+  .adm-tabs   { @apply flex bg-muted/20 border border-border rounded-lg p-1 gap-1; }
+  .adm-tab    { @apply px-3 py-1.5 text-xs font-semibold rounded-md transition text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer; }
+  .adm-tab-on { @apply bg-card text-foreground shadow-sm; }
+
+  /* ── Form controls ── */
+  .adm-input {
+    @apply w-full bg-card border border-border rounded-lg px-3 py-2.5 text-sm
+           text-foreground placeholder:text-muted-foreground/60
+           focus:outline-none focus:ring-2 focus:ring-indigo-400/60 focus:border-indigo-400 transition;
+  }
+  .adm-search {
+    @apply w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2 text-sm
+           text-foreground placeholder:text-muted-foreground/60
+           focus:outline-none focus:ring-2 focus:ring-indigo-400/60 focus:border-indigo-400 transition;
+  }
+  .adm-form-label { @apply block text-xs font-medium text-muted-foreground mb-1.5; }
+
+  /* ── Data table ── */
+  .adm-thead  { @apply bg-muted/10 border-b border-border; }
+  .adm-th     { @apply px-5 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wide; }
+  .adm-tr     { @apply hover:bg-muted/10 transition-colors; }
+  .adm-td     { @apply px-5 py-3.5; }
+  .adm-divide { @apply divide-y divide-border/50; }
+
+  /* ── Toast / flash notifications ── */
+  .adm-toast {
+    @apply fixed top-4 right-4 z-[100] flex items-center gap-3 text-white
+           text-sm font-medium px-4 py-3 rounded-xl shadow-lg max-w-sm;
+  }
+  .adm-toast-error   { @apply bg-red-600; }
+  .adm-toast-success { @apply bg-emerald-600; }
+
+  /* ── Progress distribution bars ── */
+  .adm-bar-track   { @apply h-2 bg-muted/30 rounded-full overflow-hidden; }
+  .adm-bar-blue    { @apply h-full bg-blue-500    rounded-full transition-all; }
+  .adm-bar-violet  { @apply h-full bg-violet-600  rounded-full transition-all; }
+  .adm-bar-emerald { @apply h-full bg-emerald-500 rounded-full transition-all; }
+  .adm-bar-amber   { @apply h-full bg-amber-500   rounded-full transition-all; }
+
+  /* ── Admin login page (dark standalone screen) ── */
+  .adm-login-card { @apply bg-slate-800 rounded-2xl p-6 border border-white/10 shadow-2xl; }
+  .adm-login-input {
+    background: oklch(0.09 0.02 278);
+    border: 1px solid rgb(255 255 255 / 0.10);
+    color: #fff;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem 0.75rem 1rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: box-shadow 0.15s;
+    width: 100%;
+    padding-right: 2.5rem;
+  }
+  .adm-login-input:focus { box-shadow: 0 0 0 2px oklch(0.55 0.245 278 / 50%); }
+  .adm-login-input::placeholder { color: oklch(0.44 0.044 265); }
+  .adm-login-input-err { border-color: oklch(0.58 0.22 25 / 60%); }
+  .adm-login-input-err:focus { box-shadow: 0 0 0 2px oklch(0.58 0.22 25 / 20%); }
+  .adm-login-btn {
+    @apply w-full flex items-center justify-center gap-2
+           bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed
+           text-white font-semibold text-sm rounded-xl py-3 transition-all border-none cursor-pointer;
+  }
+
+  /* ── Teacher / Student portal icon-bg helpers (dark-mode palette, use with ct-* text) ── */
+  .sk-icon-indigo  { @apply bg-indigo-500/10  rounded-xl p-2.5; }
+  .sk-icon-blue    { @apply bg-blue-500/10    rounded-xl p-2.5; }
+  .sk-icon-emerald { @apply bg-emerald-500/10 rounded-xl p-2.5; }
+  .sk-icon-amber   { @apply bg-amber-500/10   rounded-xl p-2.5; }
+  .sk-icon-rose    { @apply bg-rose-500/10    rounded-xl p-2.5; }
+  .sk-icon-violet  { @apply bg-violet-500/10  rounded-xl p-2.5; }
+
+  /* ══════════════════════════════════════════════════════════
+     SECTION / SKILL ACCENT BADGES — light + dark aware  (prefix: sec-)
+     One class per colour role. Used by exam & skill pages so the palette
+     lives here, not scattered inline. Each = soft bg + coloured text + border.
+     ══════════════════════════════════════════════════════════ */
+  .sec-blue    { @apply border border-blue-200    bg-blue-50    text-blue-700; }
+  .dark .sec-blue    { @apply border-blue-500/30    bg-blue-500/10    text-blue-300; }
+  .sec-cyan    { @apply border border-cyan-200    bg-cyan-50    text-cyan-700; }
+  .dark .sec-cyan    { @apply border-cyan-500/30    bg-cyan-500/10    text-cyan-300; }
+  .sec-sky     { @apply border border-sky-200     bg-sky-50     text-sky-700; }
+  .dark .sec-sky     { @apply border-sky-500/30     bg-sky-500/10     text-sky-300; }
+  .sec-teal    { @apply border border-teal-200    bg-teal-50    text-teal-700; }
+  .dark .sec-teal    { @apply border-teal-500/30    bg-teal-500/10    text-teal-300; }
+  .sec-green   { @apply border border-green-200   bg-green-50   text-green-700; }
+  .dark .sec-green   { @apply border-green-500/30   bg-green-500/10   text-green-300; }
+  .sec-emerald { @apply border border-emerald-200 bg-emerald-50 text-emerald-700; }
+  .dark .sec-emerald { @apply border-emerald-500/30 bg-emerald-500/10 text-emerald-300; }
+  .sec-violet  { @apply border border-violet-200  bg-violet-50  text-violet-700; }
+  .dark .sec-violet  { @apply border-violet-500/30  bg-violet-500/10  text-violet-300; }
+  .sec-purple  { @apply border border-purple-200  bg-purple-50  text-purple-700; }
+  .dark .sec-purple  { @apply border-purple-500/30  bg-purple-500/10  text-purple-300; }
+  .sec-indigo  { @apply border border-indigo-200  bg-indigo-50  text-indigo-700; }
+  .dark .sec-indigo  { @apply border-indigo-500/30  bg-indigo-500/10  text-indigo-300; }
+  .sec-amber   { @apply border border-amber-200   bg-amber-50   text-amber-700; }
+  .dark .sec-amber   { @apply border-amber-500/30   bg-amber-500/10   text-amber-300; }
+  .sec-yellow  { @apply border border-yellow-200  bg-yellow-50  text-yellow-700; }
+  .dark .sec-yellow  { @apply border-yellow-500/30  bg-yellow-500/10  text-yellow-300; }
+  .sec-orange  { @apply border border-orange-200  bg-orange-50  text-orange-700; }
+  .dark .sec-orange  { @apply border-orange-500/30  bg-orange-500/10  text-orange-300; }
+  .sec-pink    { @apply border border-pink-200    bg-pink-50    text-pink-700; }
+  .dark .sec-pink    { @apply border-pink-500/30    bg-pink-500/10    text-pink-300; }
+  .sec-rose    { @apply border border-rose-200    bg-rose-50    text-rose-700; }
+  .dark .sec-rose    { @apply border-rose-500/30    bg-rose-500/10    text-rose-300; }
+  .sec-red     { @apply border border-red-200     bg-red-50     text-red-700; }
+  .dark .sec-red     { @apply border-red-500/30     bg-red-500/10     text-red-300; }
+
+  /* ══════════════════════════════════════════════════════════
+     AI SETTINGS PAGE — admin portal specific (prefix: adm-)
+     ══════════════════════════════════════════════════════════ */
+
+  /* Page background wrapper */
+  .adm-page { @apply min-h-full bg-background; }
+
+  /* Model pill in page header */
+  .adm-model-pill { @apply flex items-center gap-1.5 rounded-full bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground; }
+
+  /* Status badge pills */
+  .adm-status-on  { @apply border-emerald-200 bg-emerald-50 text-emerald-700; }
+  .dark .adm-status-on  { @apply border-emerald-500/30 bg-emerald-500/15 text-emerald-400; }
+  .adm-status-off { @apply border-amber-200   bg-amber-50   text-amber-700; }
+  .dark .adm-status-off { @apply border-amber-500/30   bg-amber-500/15   text-amber-400; }
+  .adm-ping-on    { @apply bg-emerald-400; }
+  .adm-ping-off   { @apply bg-amber-400; }
+  .adm-dot-on     { @apply bg-emerald-500; }
+  .adm-dot-off    { @apply bg-amber-500; }
+  .adm-dot-dim    { @apply bg-slate-300; }
+  .dark .adm-dot-dim    { @apply bg-muted/60; }
+
+  /* Hero banner */
+  .adm-hero-on        { @apply bg-linear-to-br from-violet-600 via-indigo-600 to-indigo-700; }
+  .adm-hero-off       { @apply bg-linear-to-br from-slate-600 via-slate-700 to-slate-800; }
+  .adm-hero-orb       { @apply absolute rounded-full bg-white/5; }
+  .adm-hero-icon-box  { @apply flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm; }
+  .adm-hero-icon-on   { @apply text-white; }
+  .adm-hero-icon-off  { @apply text-white/70; }
+  .adm-hero-sublabel  { @apply text-white/60 text-xs font-semibold uppercase tracking-widest mb-1; }
+  .adm-hero-title     { @apply text-white text-2xl font-bold leading-tight; }
+  .adm-hero-desc      { @apply text-white/65 text-sm mt-1.5; }
+  .adm-hero-code      { @apply font-mono bg-white/10 px-1.5 py-0.5 rounded text-white/90 text-xs; }
+
+  /* Hero stat bubbles */
+  .adm-stat-bubble     { @apply flex flex-col items-center justify-center rounded-2xl px-6 py-4 text-center min-w-20; }
+  .adm-stat-bubble-off { @apply bg-white/10; }
+  .adm-stat-bubble-on  { @apply bg-emerald-500/25; }
+  .adm-stat-num        { @apply text-white text-3xl font-black; }
+  .adm-stat-num-sm     { @apply text-white text-lg font-black leading-tight; }
+  .adm-stat-label      { @apply text-white/60 text-xs font-semibold mt-0.5 leading-tight; }
+
+  /* Alert / message boxes */
+  .adm-alert             { @apply flex items-start gap-2.5 rounded-xl border px-4 py-3; }
+  .adm-alert-error       { @apply bg-red-50     border-red-200; }
+  .dark .adm-alert-error   { @apply bg-red-500/10   border-red-500/30; }
+  .adm-alert-success     { @apply bg-emerald-50 border-emerald-200; }
+  .dark .adm-alert-success { @apply bg-emerald-500/10 border-emerald-500/30; }
+  .adm-alert-info        { @apply bg-blue-50    border-blue-100; }
+  .dark .adm-alert-info    { @apply bg-blue-500/10   border-blue-500/20; }
+  .adm-alert-icon-error  { @apply h-4 w-4 text-red-500 mt-0.5 shrink-0; }
+  .adm-alert-icon-ok     { @apply h-4 w-4 text-emerald-500 mt-0.5 shrink-0; }
+  .adm-alert-icon-info   { @apply h-4 w-4 text-blue-500 shrink-0 mt-0.5; }
+  .adm-alert-text-error  { @apply text-xs text-red-700; }
+  .dark .adm-alert-text-error  { @apply text-red-400; }
+  .adm-alert-text-ok     { @apply text-xs text-emerald-700; }
+  .dark .adm-alert-text-ok     { @apply text-emerald-400; }
+  .adm-alert-text-info   { @apply text-xs text-blue-700 leading-relaxed; }
+  .dark .adm-alert-text-info   { @apply text-blue-400; }
+
+  /* API key text input */
+  .adm-api-input {
+    @apply w-full pl-4 pr-12 py-3 text-sm rounded-xl border border-border bg-card
+           font-mono text-foreground placeholder:text-muted-foreground/50
+           focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400
+           transition-all;
+  }
+
+  /* Inline code snippet */
+  .adm-code { @apply bg-muted/40 text-muted-foreground px-1 py-0.5 rounded font-mono text-[11px]; }
+
+  /* Save & deactivate buttons */
+  .adm-ai-save-btn     { @apply flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white shadow-sm transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50; }
+  .adm-ai-save-btn-on  { @apply bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/25; }
+  .adm-ai-save-btn-off { @apply bg-indigo-400; }
+  .adm-btn-deactivate  { @apply flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 active:scale-[0.98] disabled:opacity-50; }
+  .dark .adm-btn-deactivate { @apply border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/15; }
+
+  /* Sidebar stat counter numbers */
+  .adm-count-on  { @apply text-2xl font-black text-indigo-600; }
+  .dark .adm-count-on  { @apply text-indigo-400; }
+  .adm-count-ok  { @apply text-2xl font-black text-emerald-600; }
+  .dark .adm-count-ok  { @apply text-emerald-400; }
+  .adm-count-off { @apply text-2xl font-black text-slate-300; }
+  .dark .adm-count-off { @apply text-muted-foreground/40; }
+
+  /* Model name mono label */
+  .adm-model-name { @apply text-xs font-bold text-muted-foreground font-mono; }
+
+  /* Sub-heading inside cards (smaller than adm-h3) */
+  .adm-h4 { @apply text-xs font-semibold text-foreground; }
+
+  /* AI features grid layout */
+  .adm-feat-grid { @apply gap-px bg-border/50; }
+  .adm-feat-cell { @apply bg-card p-5 transition-all hover:bg-muted/10; }
+  .adm-skel-cell { @apply bg-card p-5; }
+
+  /* Feature active/fallback badge */
+  .adm-feat-status-on  { @apply bg-emerald-100 text-emerald-700; }
+  .dark .adm-feat-status-on  { @apply bg-emerald-500/20 text-emerald-400; }
+  .adm-feat-status-off { @apply bg-slate-100 text-slate-400; }
+  .dark .adm-feat-status-off { @apply bg-muted/30 text-muted-foreground/60; }
+
+  /* Feature icon background tints (emoji containers) */
+  .adm-feat-bg-off    { @apply bg-muted/30; }
+  .adm-feat-bg-slate  { @apply bg-muted/20; }
+  .adm-feat-bg-indigo { @apply bg-indigo-50; }
+  .dark .adm-feat-bg-indigo { @apply bg-indigo-500/15; }
+  .adm-feat-bg-violet { @apply bg-violet-50; }
+  .dark .adm-feat-bg-violet { @apply bg-violet-500/15; }
+  .adm-feat-bg-blue   { @apply bg-blue-50; }
+  .dark .adm-feat-bg-blue   { @apply bg-blue-500/15; }
+  .adm-feat-bg-purple { @apply bg-purple-50; }
+  .dark .adm-feat-bg-purple { @apply bg-purple-500/15; }
+  .adm-feat-bg-pink   { @apply bg-pink-50; }
+  .dark .adm-feat-bg-pink   { @apply bg-pink-500/15; }
+  .adm-feat-bg-amber  { @apply bg-amber-50; }
+  .dark .adm-feat-bg-amber  { @apply bg-amber-500/15; }
+  .adm-feat-bg-teal   { @apply bg-teal-50; }
+  .dark .adm-feat-bg-teal   { @apply bg-teal-500/15; }
+  .adm-feat-bg-rose   { @apply bg-rose-50; }
+  .dark .adm-feat-bg-rose   { @apply bg-rose-500/15; }
+  .adm-feat-bg-cyan   { @apply bg-cyan-50; }
+  .dark .adm-feat-bg-cyan   { @apply bg-cyan-500/15; }
+  .adm-feat-bg-lime   { @apply bg-lime-50; }
+  .dark .adm-feat-bg-lime   { @apply bg-lime-500/15; }
 
   /* ── Target band slider ── */
   .target-slider {

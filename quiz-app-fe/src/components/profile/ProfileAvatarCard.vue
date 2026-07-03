@@ -44,23 +44,23 @@
 
       <!-- Name & Role -->
       <div class="mt-4">
-        <h2 class="text-foreground text-xl font-bold">{{ fullName || 'Your Name' }}</h2>
-        <p class="text-muted-foreground text-sm">{{ title || 'Add your title' }}</p>
+        <h2 class="text-foreground text-xl font-bold">{{ fullName || $t('profile.yourProfile') }}</h2>
+        <p class="text-muted-foreground text-sm">{{ title || $t('profile.avatar.learner') }}</p>
       </div>
 
       <!-- Quick Stats -->
       <div class="border-border mt-4 grid grid-cols-3 gap-4 border-t pt-4">
         <div class="text-center">
           <p class="text-foreground text-lg font-bold">{{ stats.courses }}</p>
-          <p class="text-muted-foreground text-xs">Courses</p>
+          <p class="text-muted-foreground text-xs">{{ $t('profile.avatar.courses') }}</p>
         </div>
         <div class="text-center">
           <p class="text-foreground text-lg font-bold">{{ stats.streak }}</p>
-          <p class="text-muted-foreground text-xs">Day Streak</p>
+          <p class="text-muted-foreground text-xs">{{ $t('profile.stats.streak') }}</p>
         </div>
         <div class="text-center">
           <p class="text-foreground text-lg font-bold">{{ stats.xp }}</p>
-          <p class="text-muted-foreground text-xs">Total XP</p>
+          <p class="text-muted-foreground text-xs">{{ $t('profile.stats.xp') }}</p>
         </div>
       </div>
     </div>
@@ -69,8 +69,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Camera } from '@/components/icons'
 import type { ProfileStats } from '@/types/profile'
+
+const { t: $t } = useI18n()
 
 interface Props {
   avatar: string

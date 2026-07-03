@@ -30,6 +30,7 @@
               <Input
                 v-bind="componentField"
                 type="email"
+                autocomplete="email"
                 placeholder="name@example.com"
                 class="border-input bg-background focus:border-primary focus:ring-primary/20 h-12 rounded-xl pl-12 text-base transition-all focus:ring-2"
               />
@@ -42,7 +43,7 @@
       <!-- Password Field -->
       <FormField v-slot="{ componentField }" name="password">
         <FormItem class="space-y-2">
-          <FormLabel class="text-foreground text-sm font-medium">Password</FormLabel>
+          <FormLabel class="text-foreground text-sm font-medium">{{ $t('auth.register.password') }}</FormLabel>
           <FormControl>
             <div class="relative">
               <Lock
@@ -51,7 +52,8 @@
               <Input
                 v-bind="componentField"
                 :type="showPassword ? 'text' : 'password'"
-                placeholder="Create a strong password"
+                autocomplete="new-password"
+                :placeholder="$t('auth.register.passwordPlaceholder')"
                 class="border-input bg-background focus:border-primary focus:ring-primary/20 h-12 rounded-xl pl-12 pr-12 text-base transition-all focus:ring-2"
               />
               <button
@@ -71,7 +73,7 @@
       <!-- Confirm Password Field -->
       <FormField v-slot="{ componentField }" name="confirmPassword">
         <FormItem class="space-y-2">
-          <FormLabel class="text-foreground text-sm font-medium">Confirm password</FormLabel>
+          <FormLabel class="text-foreground text-sm font-medium">{{ $t('auth.register.confirmPassword') }}</FormLabel>
           <FormControl>
             <div class="relative">
               <Lock
@@ -80,7 +82,8 @@
               <Input
                 v-bind="componentField"
                 :type="showConfirmPassword ? 'text' : 'password'"
-                placeholder="Confirm your password"
+                autocomplete="new-password"
+                :placeholder="$t('auth.register.confirmPasswordPlaceholder')"
                 class="border-input bg-background focus:border-primary focus:ring-primary/20 h-12 rounded-xl pl-12 pr-12 text-base transition-all focus:ring-2"
               />
               <button

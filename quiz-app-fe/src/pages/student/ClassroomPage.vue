@@ -3,15 +3,15 @@
     <!-- Header -->
     <div class="animate-fade-in-down mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Classroom</h1>
-        <p class="text-muted-foreground mt-2">Watch lesson videos from your teachers</p>
+        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('classroom.title') }}</h1>
+        <p class="text-muted-foreground mt-2">{{ $t('classroom.watchVideos') }}</p>
       </div>
       <button
         class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-colors"
         @click="showJoinModal = true"
       >
         <Plus class="h-4 w-4" />
-        Join a Class
+        {{ $t('classroom.joinClass') }}
       </button>
     </div>
 
@@ -26,16 +26,16 @@
         <div class="bg-secondary mb-4 flex h-16 w-16 items-center justify-center rounded-full">
           <BookOpen class="text-muted-foreground h-8 w-8" />
         </div>
-        <h3 class="text-foreground mb-2 font-medium">No classes joined yet</h3>
+        <h3 class="text-foreground mb-2 font-medium">{{ $t('classroom.noClassesJoined') }}</h3>
         <p class="text-muted-foreground mb-6 max-w-sm text-sm">
-          Ask your teacher for a join code and enter it here to access lesson videos.
+          {{ $t('classroom.noClassesJoinedDesc') }}
         </p>
         <button
           class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-colors"
           @click="showJoinModal = true"
         >
           <Plus class="h-4 w-4" />
-          Join a Class
+          {{ $t('classroom.joinClass') }}
         </button>
       </div>
 
@@ -46,7 +46,7 @@
             class="shrink-0 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
             :class="selectedClassId === null ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'"
             @click="selectClass(null)"
-          >All Classes</button>
+          >{{ $t('classroom.allClasses') }}</button>
           <button
             v-for="cls in classes"
             :key="cls.id"
@@ -104,8 +104,8 @@
           <div class="bg-secondary mb-4 flex h-16 w-16 items-center justify-center rounded-full">
             <PlayCircle class="text-muted-foreground h-8 w-8" />
           </div>
-          <h3 class="text-foreground mb-2 font-medium">No videos yet</h3>
-          <p class="text-muted-foreground text-sm">Your teacher hasn't uploaded any videos for this class.</p>
+          <h3 class="text-foreground mb-2 font-medium">{{ $t('classroom.noVideosYet') }}</h3>
+          <p class="text-muted-foreground text-sm">{{ $t('classroom.noVideosDesc') }}</p>
         </div>
       </template>
     </template>
@@ -152,13 +152,13 @@
         <div v-if="showJoinModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showJoinModal = false"></div>
           <div class="bg-card border-border relative z-10 w-full max-w-sm rounded-2xl border p-6 shadow-xl">
-            <h3 class="text-foreground mb-1 text-lg font-semibold">Join a Class</h3>
-            <p class="text-muted-foreground mb-5 text-sm">Enter the join code your teacher shared with you.</p>
+            <h3 class="text-foreground mb-1 text-lg font-semibold">{{ $t('classroom.modal.title') }}</h3>
+            <p class="text-muted-foreground mb-5 text-sm">{{ $t('classroom.modal.desc') }}</p>
 
             <input
               v-model="joinCode"
               type="text"
-              placeholder="e.g. ABC-1234"
+              :placeholder="$t('classroom.modal.placeholder')"
               maxlength="10"
               class="border-border bg-background text-foreground placeholder:text-muted-foreground mb-2 h-12 w-full rounded-xl border px-4 text-center font-mono text-lg font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/30"
               @input="joinCode = joinCode.toUpperCase()"
@@ -170,13 +170,13 @@
               <button
                 class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium transition-colors"
                 @click="showJoinModal = false"
-              >Cancel</button>
+              >{{ $t('classroom.modal.cancel') }}</button>
               <button
                 class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
                 :disabled="joinCode.length < 4 || joining"
                 @click="joinClass"
               >
-                {{ joining ? 'Joining...' : 'Join Class' }}
+                {{ joining ? $t('classroom.modal.joining') : $t('classroom.modal.join') }}
               </button>
             </div>
           </div>
@@ -188,6 +188,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { BookOpen, Play, PlayCircle, Plus, X } from '@/components/icons'
 import { formatDuration } from '@/types/video'
 import { useToast } from '@/composables/useToast'
@@ -204,6 +205,7 @@ interface VideoItem {
   video_url: string
 }
 
+const { t } = useI18n()
 const toast = useToast()
 const loading = ref(true)
 const videosLoading = ref(false)

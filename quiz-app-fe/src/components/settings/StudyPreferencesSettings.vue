@@ -3,13 +3,13 @@
     <div class="bg-card border-border rounded-2xl border p-6">
       <h2 class="text-foreground mb-6 flex items-center gap-2 text-lg font-semibold">
         <Target class="text-primary h-5 w-5" />
-        Daily Goals
+        {{ $t('settings.study.dailyGoals') }}
       </h2>
 
       <div class="space-y-6">
         <div>
           <div class="mb-2 flex items-center justify-between">
-            <span class="text-foreground font-medium">Cards per day</span>
+            <span class="text-foreground font-medium">{{ $t('settings.study.cardsPerDay') }}</span>
             <span class="text-primary font-bold">{{ study.cardsPerDay }}</span>
           </div>
           <input
@@ -25,8 +25,8 @@
 
         <div>
           <div class="mb-2 flex items-center justify-between">
-            <span class="text-foreground font-medium">Study minutes</span>
-            <span class="text-primary font-bold">{{ study.studyMinutes }} min</span>
+            <span class="text-foreground font-medium">{{ $t('settings.study.studyMinutes') }}</span>
+            <span class="text-primary font-bold">{{ study.studyMinutes }} {{ $t('settings.study.studyMinutesSuffix') }}</span>
           </div>
           <input
             :value="study.studyMinutes"
@@ -45,7 +45,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Target } from '@/components/icons'
+
+const { t } = useI18n()
 
 export interface StudyData {
   cardsPerDay: number

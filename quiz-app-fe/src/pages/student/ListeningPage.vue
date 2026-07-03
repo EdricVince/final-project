@@ -27,7 +27,7 @@
             <div class="space-y-1">
               <button v-for="ex in cat.exercises" :key="ex.title" @click="selectExercise(ex, cat.type)"
                 class="lib-item"
-                :class="selectedExercise?.title === ex.title ? 'border-emerald-500/50 bg-emerald-500/10' : 'lib-item-inactive'">
+                :class="selectedExercise?.title === ex.title ? 'lib-item-active-emerald' : 'lib-item-inactive'">
                 <div class="flex items-start justify-between gap-2">
                   <span class="text-foreground text-sm font-medium leading-tight">{{ ex.title }}</span>
                   <span class="mt-0.5 shrink-0" :class="levelBadge(ex.level)">{{ ex.level }}</span>
@@ -69,7 +69,7 @@
             <h2 class="text-foreground mb-5 text-xl font-extrabold">{{ exercise.title }}</h2>
 
             <!-- Waveform + controls -->
-            <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+            <div class="audio-player audio-player-emerald">
               <div class="mb-4 flex items-end justify-center gap-0.5 h-10">
                 <div v-for="i in 32" :key="i"
                   class="w-1 rounded-full bg-emerald-400 transition-all duration-75"
@@ -97,8 +97,8 @@
           <!-- Script / Key phrases tabs -->
           <div class="sk-card-p">
             <div class="mb-4 flex gap-2 border-b border-border pb-3">
-              <button @click="tab='script'" class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors" :class="tab==='script' ? 'bg-emerald-500/20 text-emerald-300' : 'text-muted-foreground hover:text-foreground'">Transcript</button>
-              <button @click="tab='phrases'" class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors" :class="tab==='phrases' ? 'bg-emerald-500/20 text-emerald-300' : 'text-muted-foreground hover:text-foreground'">Key Phrases</button>
+              <button @click="tab='script'" class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors" :class="tab==='script' ? 'sec-emerald' : 'text-muted-foreground hover:text-foreground'">Transcript</button>
+              <button @click="tab='phrases'" class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors" :class="tab==='phrases' ? 'sec-emerald' : 'text-muted-foreground hover:text-foreground'">Key Phrases</button>
             </div>
             <div v-if="tab==='script'" class="space-y-2">
               <p v-for="(line,i) in scriptLines" :key="i" class="text-foreground text-sm leading-relaxed rounded-lg px-2 py-1" :class="Number(i)%2===0?'bg-muted/5':''">{{ line }}</p>
@@ -128,7 +128,7 @@
                 <div v-if="qSubmitted && q.explanation" class="mt-2 rounded-lg bg-muted/20 p-2.5 text-xs text-muted-foreground">ℹ {{ q.explanation }}</div>
               </div>
             </div>
-            <div v-if="qSubmitted" class="mt-5 flex items-center justify-between rounded-xl border p-4" :class="qPassed?'border-emerald-500/30 bg-emerald-500/10':'border-red-500/30 bg-red-500/10'">
+            <div v-if="qSubmitted" class="mt-5 flex items-center justify-between rounded-xl border p-4" :class="qPassed?'answer-pass':'answer-fail'">
               <div>
                 <div class="font-bold" :class="qPassed?'text-emerald-400':'text-red-400'">{{ qCorrect }}/{{ exercise.questions.length }}</div>
                 <div class="text-muted-foreground text-sm">{{ Math.round(qCorrect/exercise.questions.length*100) }}%  ·  {{ completedAt }}</div>
@@ -215,15 +215,10 @@ function levelBadge(l: string) {
 }
 function levelFilterClass(l: string) {
   const m: Record<string,string> = {
-    '':  'border-emerald-500/50 bg-emerald-500/15 text-emerald-300',
-    A1:  'border-red-500/50 bg-red-500/15 text-red-300',
-    A2:  'border-orange-500/50 bg-orange-500/15 text-orange-300',
-    B1:  'border-amber-500/50 bg-amber-500/15 text-amber-300',
-    B2:  'border-yellow-500/50 bg-yellow-500/15 text-yellow-300',
-    C1:  'border-emerald-500/50 bg-emerald-500/15 text-emerald-300',
-    C2:  'border-blue-500/50 bg-blue-500/15 text-blue-300',
+    '': 'level-filter-all-emerald', A1: 'level-filter-a1', A2: 'level-filter-a2',
+    B1: 'level-filter-b1', B2: 'level-filter-b2', C1: 'level-filter-c1', C2: 'level-filter-c2',
   }
-  return m[l] ?? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300'
+  return m[l] ?? 'level-filter-all-emerald'
 }
 
 let utterance: SpeechSynthesisUtterance | null = null
@@ -282,19 +277,19 @@ function cycleSpeed() { speedIndex.value = (speedIndex.value+1)%speeds.length; i
 
 function qOptClass(qi: string | number, oi: string | number) {
   const q = Number(qi), o = Number(oi)
-  if (!qSubmitted.value) return qAnswers.value[q]===o ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300' : 'border-border text-foreground hover:border-emerald-500/40'
+  if (!qSubmitted.value) return qAnswers.value[q]===o ? 'sec-emerald' : 'border border-border text-foreground hover:border-emerald-500/40'
   const c = exercise.value?.questions[q]?.correct
-  if (o===c) return 'border-emerald-500 bg-emerald-500/10 text-emerald-300'
-  if (o===qAnswers.value[q]) return 'border-red-500 bg-red-500/10 text-red-300'
-  return 'border-border text-muted-foreground opacity-40'
+  if (o===c) return 'answer-correct'
+  if (o===qAnswers.value[q]) return 'answer-wrong'
+  return 'border border-border text-muted-foreground opacity-40'
 }
 function qOptBadge(qi: string | number, oi: string | number) {
   const q = Number(qi), o = Number(oi)
-  if (!qSubmitted.value) return qAnswers.value[q]===o ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300' : 'border-border text-muted-foreground'
+  if (!qSubmitted.value) return qAnswers.value[q]===o ? 'sec-emerald' : 'border border-border text-muted-foreground'
   const c = exercise.value?.questions[q]?.correct
-  if (o===c) return 'border-emerald-500 bg-emerald-500/20 text-emerald-300'
-  if (o===qAnswers.value[q]) return 'border-red-500 bg-red-500/20 text-red-300'
-  return 'border-border text-muted-foreground'
+  if (o===c) return 'sec-emerald'
+  if (o===qAnswers.value[q]) return 'sec-red'
+  return 'border border-border text-muted-foreground'
 }
 
 onUnmounted(() => stopSpeech())

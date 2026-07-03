@@ -1,224 +1,354 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 import type { GetWritingPromptDto, SubmitWritingDto, CefrLevel, WritingType } from './dto/skills.dto';
-import { WRITING_PROMPTS } from '../../writing-prompts';
-import { WRITING_IMAGES } from '../../writing-images';
+
+// SVG color palette (dark-theme friendly)
+const CHART_COLORS = [
+  '#6366f1', '#06b6d4', '#10b981', '#f59e0b',
+  '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6',
+];
+
+// Topic pool for Task 1 to prevent repetition
+const TASK1_TOPICS = [
+  'smartphone ownership across 5 countries',
+  'household energy consumption by source',
+  'university enrollment by subject area',
+  'CO₂ emissions by transport type',
+  'internet usage by age group',
+  'annual tourism revenue by region',
+  'water usage by industry sector',
+  'average salary by profession',
+  'vehicle sales by fuel type',
+  'renewable energy production share',
+  'literacy rates over three decades',
+  'population growth in urban vs rural areas',
+  'healthcare spending as % of GDP',
+  'employment rates by education level',
+  'daily screen time by device type',
+  'food waste by category',
+  'commute time by city',
+  'student pass rates by subject',
+];
+
+// Topic pools for Task 2 / TOEIC / General
+const TASK2_TOPICS = [
+  'technology replacing human jobs', 'social media impact on mental health',
+  'climate change individual responsibility', 'online education vs traditional classrooms',
+  'gap year benefits and drawbacks', 'public transport vs private car ownership',
+  'genetic engineering ethics', 'cultural globalisation losing local identity',
+  'mandatory volunteering for students', 'remote work changing cities',
+  'free university education', 'celebrity influence on youth',
+  'space exploration funding priority', 'nuclear energy revival',
+  'shorter working week productivity',
+];
+
+const TOEIC_SCENARIOS = [
+  'project deadline extension request', 'new employee onboarding policy',
+  'customer complaint response', 'team meeting agenda', 'office relocation announcement',
+  'budget proposal summary', 'quarterly performance review', 'supplier partnership offer',
+  'remote work policy update', 'product launch announcement',
+];
+
+const GENERAL_TASKS = [
+  'describe a memorable childhood place', 'narrate an unexpected event that changed you',
+  'write to a friend about moving abroad', 'describe your ideal future city',
+  'opinion on social media age limits', 'letter to a local authority about a problem',
+  'describe a person who inspired you', 'narrate a time you overcame a fear',
+  'opinion on space tourism', 'describe your favourite season',
+];
 
 @Injectable()
 export class WritingService {
   private readonly logger = new Logger(WritingService.name);
-  private readonly client: Anthropic | null;
+  constructor() {}
 
-  constructor(private config: ConfigService) {
-    const key = this.config.get<string>('ANTHROPIC_API_KEY');
-    this.client = key && !key.includes('your-') ? new Anthropic({ apiKey: key }) : null;
+  private get client(): Anthropic | null {
+    const key = process.env.ANTHROPIC_API_KEY ?? '';
+    return key && key.startsWith('sk-ant-') ? new Anthropic({ apiKey: key }) : null;
   }
 
   async getPrompt(dto: GetWritingPromptDto) {
     const type = dto.type ?? 'general';
-    const level = dto.level ?? 'B1';
-    if (this.client) return this.generatePrompt(type, level);
-    return this.fallbackPrompt(type, level);
+    const level = dto.level ?? this.defaultLevel(type);
+    if (!this.client) throw new ServiceUnavailableException('AI service not configured. Please add your Anthropic API key in admin settings.');
+    return this.generatePrompt(type, level);
   }
 
   async submitEssay(dto: SubmitWritingDto) {
-    if (this.client) return this.evaluateEssay(dto);
-    return this.fallbackEvaluation(dto);
+    if (!this.client) throw new ServiceUnavailableException('AI service not configured. Please add your Anthropic API key in admin settings.');
+    return this.evaluateEssay(dto);
   }
 
-  private async generatePrompt(type: WritingType, level: CefrLevel) {
-    const typeDesc: Record<WritingType, string> = {
-      ielts_task1: 'IELTS Academic Writing Task 1 (describe a graph, chart, diagram, or map)',
-      ielts_task2: 'IELTS Writing Task 2 (argumentative or discursive essay)',
-      toeic: 'TOEIC Writing (email response or opinion essay)',
-      general: 'general English writing task (letter, description, or opinion)',
+  private defaultLevel(type: WritingType): CefrLevel {
+    const map: Record<WritingType, CefrLevel> = {
+      ielts_task2: 'B2', ielts_task1: 'B1', toeic: 'B1', general: 'B1',
     };
-    const timeLimit: Record<WritingType, number> = {
-      ielts_task1: 20, ielts_task2: 40, toeic: 30, general: 25,
-    };
-    const wordTarget: Record<WritingType, string> = {
-      ielts_task1: '150 words minimum', ielts_task2: '250 words minimum',
-      toeic: '100-200 words', general: '150-250 words',
-    };
+    return map[type];
+  }
 
-    const prompt = `Generate a ${level}-level ${typeDesc[type]} writing prompt.
-Return ONLY valid JSON:
+  private pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  private async generatePrompt(type: WritingType, level: CefrLevel) {
+    // Task 1 gets its own chart-focused path
+    if (type === 'ielts_task1') return this.generateTask1WithChart(level);
+
+    const topicHint =
+      type === 'ielts_task2' ? this.pick(TASK2_TOPICS) :
+      type === 'toeic'       ? this.pick(TOEIC_SCENARIOS) :
+      this.pick(GENERAL_TASKS);
+
+    const specs = {
+      ielts_task2: {
+        desc: 'IELTS Academic Writing Task 2', time: 40, words: '250 words minimum',
+        instr: `Write about "${topicHint}". Choose ONE type: Opinion, Discussion, Problem-Solution, or Advantages-Disadvantages. Level: ${level}.`,
+      },
+      toeic: {
+        desc: 'TOEIC Writing Task', time: 30, words: '100-200 words',
+        instr: `Scenario: "${topicHint}". Either (1) write an email based on 3 bullet points, or (2) express an opinion on a workplace issue.`,
+      },
+      general: {
+        desc: 'General English Writing', time: 25, words: '150-250 words',
+        instr: `Task about "${topicHint}". Level ${level}. Types: descriptive, narrative, opinion, or letter.`,
+      },
+    };
+    const spec = specs[type as keyof typeof specs];
+
+    const prompt = `You are an expert ${spec.desc} examiner. Generate a unique task.
+${spec.instr}
+
+Return ONLY valid JSON (no markdown):
 {
   "id": "w_${Date.now()}",
   "type": "${type}",
   "level": "${level}",
-  "title": "Short task title",
-  "prompt": "Full writing task instructions (2-4 sentences). Be specific and clear.",
-  "context": "Additional context or stimulus material (for task1: describe what to write about; for task2: background statement)",
-  "time_limit_seconds": ${timeLimit[type] * 60},
-  "word_target": "${wordTarget[type]}",
-  "band_criteria": ["Task Achievement", "Coherence & Cohesion", "Lexical Resource", "Grammatical Range & Accuracy"],
-  "tips": ["tip1", "tip2", "tip3"]
+  "title": "Concise title (5-8 words)",
+  "prompt": "Full official task instruction (2-4 sentences, exam-authentic).",
+  "context": "Background or scenario for the student.",
+  "time_limit_seconds": ${spec.time * 60},
+  "word_target": "${spec.words}",
+  "band_criteria": ${type === 'ielts_task2' ? '["Task Achievement","Coherence & Cohesion","Lexical Resource","Grammatical Range & Accuracy"]' : '["Task Achievement","Organization","Vocabulary & Grammar","Tone & Register"]'},
+  "tips": ["Specific tip 1", "Specific tip 2", "Specific tip 3"]
 }`;
 
     try {
       const msg = await this.client!.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 800,
+        max_tokens: 700,
         messages: [{ role: 'user', content: prompt }],
       });
-      const text = (msg.content[0] as any).text;
-      const json = text.match(/\{[\s\S]*\}/)?.[0];
-      return json ? JSON.parse(json) : this.fallbackPrompt(type, level);
+      const raw = (msg.content[0] as any).text;
+      return JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
     } catch (e) {
       this.logger.error('Writing prompt generation failed', e);
-      return this.fallbackPrompt(type, level);
+      throw new ServiceUnavailableException('AI writing prompt generation failed. Please try again.');
     }
   }
 
-  private async evaluateEssay(dto: SubmitWritingDto) {
-    const wordCount = dto.essay.trim().split(/\s+/).length;
-    const prompt = `You are an expert IELTS/TOEIC examiner. Evaluate this ${dto.type} essay.
+  // ── IELTS Task 1: ask Claude for chart data, generate SVG server-side ────────
 
-Writing Prompt: ${dto.prompt}
+  private async generateTask1WithChart(level: CefrLevel) {
+    const chartType = this.pick(['bar', 'line', 'pie']) as 'bar' | 'line' | 'pie';
+    const topic = this.pick(TASK1_TOPICS);
 
-Student Essay:
-${dto.essay}
-
-Word Count: ${wordCount}
-Time Taken: ${Math.floor(dto.time_taken_seconds / 60)} minutes ${dto.time_taken_seconds % 60} seconds
-
-Return ONLY valid JSON:
+    const prompt = `Generate IELTS Academic Writing Task 1 ${chartType} chart data about "${topic}".
+Return ONLY valid JSON (no markdown):
 {
-  "overall_band": 6.5,
-  "scores": {
-    "task_achievement": 7,
-    "coherence_cohesion": 6,
-    "lexical_resource": 6.5,
-    "grammatical_accuracy": 6
-  },
-  "word_count": ${wordCount},
-  "time_taken_seconds": ${dto.time_taken_seconds},
-  "strengths": ["strength1", "strength2"],
-  "improvements": ["improvement1", "improvement2", "improvement3"],
-  "grammar_errors": [
-    {"original": "incorrect phrase", "corrected": "correct phrase", "explanation": "why"}
-  ],
-  "vocabulary_feedback": {
-    "good_words": ["word1", "word2"],
-    "suggestions": [{"replace": "basic word", "with": "advanced alternative"}]
-  },
-  "corrected_paragraph": "Rewrite the weakest paragraph with corrections applied.",
-  "summary": "2-sentence overall assessment."
+  "title": "Clear chart title including context (year, country, unit)",
+  "task_prompt": "Official IELTS instruction (2-3 sentences): summarise information, select key features, make comparisons where relevant. Write at least 150 words.",
+  "labels": ["Label1","Label2","Label3","Label4","Label5"],
+  "values": [72, 45, 88, 31, 61],
+  "unit": "%",
+  "tips": ["IELTS Task 1 structure tip","Language tip for comparing data","Common mistake to avoid"]
 }
-
-Be strict but fair. grammar_errors: up to 5 most important. vocabulary suggestions: up to 3.`;
+Rules: 4-7 data points. Values realistic and clearly varied. Labels max 12 chars. Unit appropriate to topic.`;
 
     try {
       const msg = await this.client!.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
+        max_tokens: 500,
         messages: [{ role: 'user', content: prompt }],
       });
-      const text = (msg.content[0] as any).text;
-      const json = text.match(/\{[\s\S]*\}/)?.[0];
-      return json ? JSON.parse(json) : this.fallbackEvaluation(dto);
-    } catch (e) {
-      this.logger.error('Essay evaluation failed', e);
-      return this.fallbackEvaluation(dto);
-    }
-  }
+      const raw = (msg.content[0] as any).text;
+      const data = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
 
-  private fallbackPrompt(type: WritingType, level: CefrLevel) {
-    const prompts = WRITING_PROMPTS[type];
-    if (!prompts || prompts.length === 0) {
-      return this.getDefaultFallback(type, level);
-    }
-    const selectedPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-    const result = {
-      id: selectedPrompt.id,
-      type: selectedPrompt.type,
-      level,
-      title: selectedPrompt.title,
-      prompt: selectedPrompt.prompt,
-      context: selectedPrompt.context,
-      time_limit_seconds: selectedPrompt.time_limit_seconds,
-      word_target: selectedPrompt.word_target,
-      band_criteria: selectedPrompt.band_criteria,
-      tips: selectedPrompt.tips,
-      ...(selectedPrompt.image_key && { 
-        image_key: selectedPrompt.image_key,
-        image_url: `/images/writing-task1/${selectedPrompt.image_key}.svg`
-      })
-    };
-    return result;
-  }
+      // Build SVG deterministically from chart data (zero extra tokens)
+      const chartSvg = this.buildChartSvg({ type: chartType, title: data.title ?? topic, labels: data.labels ?? [], values: data.values ?? [], unit: data.unit ?? '' });
 
-  private getDefaultFallback(type: WritingType, level: CefrLevel) {
-    const defaultPrompts: Record<WritingType, object> = {
-      ielts_task2: {
-        id: `w_fallback_${Date.now()}`,
-        type, level,
-        title: 'Technology and Human Connection',
-        prompt: 'Some people believe that modern technology has made it easier for people to connect with others. Others argue that technology has made people more isolated. Discuss both views and give your own opinion.',
-        context: 'In recent years, smartphones and social media have transformed how people communicate and interact on a daily basis.',
-        time_limit_seconds: 2400,
-        word_target: '250 words minimum',
-        band_criteria: ['Task Achievement', 'Coherence & Cohesion', 'Lexical Resource', 'Grammatical Range & Accuracy'],
-        tips: ['Address both sides before stating your opinion', 'Use linking words: however, furthermore, on the other hand', 'Include a clear conclusion that matches your thesis'],
-      },
-      ielts_task1: {
-        id: `w_fallback_${Date.now()}`,
-        type, level,
-        title: 'Online Shopping Trends',
-        prompt: 'The graph below shows the percentage of people who shopped online in four countries between 2010 and 2023. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.',
-        context: 'A line graph showing online shopping adoption rates (%) for UK, USA, Japan, and Brazil from 2010 to 2023.',
-        time_limit_seconds: 1200,
+      // Human-readable data summary for context field
+      const contextDesc = (data.labels as string[]).map((l, i) => `${l}: ${data.values[i]}${data.unit}`).join(' · ');
+
+      return {
+        id: `w_${Date.now()}`,
+        type: 'ielts_task1',
+        level,
+        title: data.title ?? topic,
+        prompt: data.task_prompt ?? 'Summarise the information in the chart and make comparisons where relevant.',
+        context: contextDesc,
+        chart_type: chartType,
+        chart_svg: chartSvg,
+        time_limit_seconds: 20 * 60,
         word_target: '150 words minimum',
         band_criteria: ['Task Achievement', 'Coherence & Cohesion', 'Lexical Resource', 'Grammatical Range & Accuracy'],
-        tips: ['Begin with an overview before details', 'Use data to support your points (approximately, roughly, around)', 'Compare countries at key points in time'],
-        image_url: '/images/writing-task1/line-graph-shopping.svg',
-      },
-      toeic: {
-        id: `w_fallback_${Date.now()}`,
-        type, level,
-        title: 'Work-From-Home Policy',
-        prompt: 'Your company is considering a permanent work-from-home policy. Write an email to your manager sharing your opinion on this policy and explaining how it would affect your productivity and work-life balance.',
-        context: 'You work at a mid-sized marketing firm. Your manager has asked for employee feedback before the board meeting next Friday.',
-        time_limit_seconds: 1800,
-        word_target: '100-200 words',
-        band_criteria: ['Task Achievement', 'Coherence & Cohesion', 'Lexical Resource', 'Grammatical Range & Accuracy'],
-        tips: ['Use formal email format with greeting and closing', 'State your position clearly in the first paragraph', 'Give 2-3 specific reasons to support your view'],
-      },
-      general: {
-        id: `w_fallback_${Date.now()}`,
-        type, level,
-        title: 'A Place That Inspired You',
-        prompt: 'Write about a place that has had a significant impact on your life. Describe the place, explain why it is meaningful to you, and reflect on how it has influenced who you are today.',
-        context: 'This could be a place from your childhood, a place you visited, or somewhere you live now.',
-        time_limit_seconds: 1500,
-        word_target: '150-250 words',
-        band_criteria: ['Task Achievement', 'Coherence & Cohesion', 'Lexical Resource', 'Grammatical Range & Accuracy'],
-        tips: ['Use descriptive language to paint a picture', 'Structure: introduction → description → impact → reflection', 'Use past and present tenses appropriately'],
-      },
-    };
-    return defaultPrompts[type];
+        tips: data.tips ?? [],
+      };
+    } catch (e) {
+      this.logger.error('Task 1 chart generation failed', e);
+      throw new ServiceUnavailableException('AI chart generation failed. Please try again.');
+    }
   }
 
-  private fallbackEvaluation(dto: SubmitWritingDto) {
-    const wordCount = dto.essay.trim().split(/\s+/).length;
-    return {
-      overall_band: 5.5,
-      scores: { task_achievement: 5, coherence_cohesion: 6, lexical_resource: 5.5, grammatical_accuracy: 5.5 },
-      word_count: wordCount,
-      time_taken_seconds: dto.time_taken_seconds,
-      strengths: ['Addresses the main topic', 'Basic paragraph structure is present'],
-      improvements: ['Develop arguments with more specific examples', 'Use a wider range of vocabulary', 'Vary sentence structures to demonstrate grammatical range'],
-      grammar_errors: [
-        { original: 'There is many reasons', corrected: 'There are many reasons', explanation: 'Subject-verb agreement: "reasons" is plural, so use "are"' },
-      ],
-      vocabulary_feedback: {
-        good_words: ['however', 'furthermore'],
-        suggestions: [{ replace: 'good', with: 'beneficial / advantageous' }],
-      },
-      corrected_paragraph: 'AI evaluation is currently unavailable. Your essay has been saved successfully. Please try again later for detailed feedback.',
-      summary: 'The essay demonstrates basic English writing ability. Focus on developing arguments with specific examples and expanding vocabulary range to improve your band score.',
+  // ── SVG Chart Builder (no AI tokens used) ────────────────────────────────────
+
+  private buildChartSvg(cfg: { type: 'bar' | 'line' | 'pie'; title: string; labels: string[]; values: number[]; unit: string }): string {
+    const { type, title, labels, values, unit } = cfg;
+    if (!labels.length || !values.length) return '';
+
+    const W = 480, H = 300;
+    const P = { top: 46, right: 22, bottom: 66, left: 54 };
+    const cW = W - P.left - P.right;
+    const cH = H - P.top - P.bottom;
+    const maxV = Math.max(...values);
+    const scale = cH / (maxV * 1.18);
+
+    const shortTitle = title.length > 58 ? title.slice(0, 57) + '…' : title;
+
+    const gridLines = () => Array.from({ length: 5 }, (_, i) => {
+      const v = Math.round(maxV * 1.18 / 5 * (i + 1));
+      const y = H - P.bottom - v * scale;
+      return `<line x1="${P.left}" y1="${y}" x2="${W - P.right}" y2="${y}" stroke="#1e293b" stroke-width="0.8"/>`
+           + `<text x="${P.left - 5}" y="${y + 4}" text-anchor="end" font-size="9.5" fill="#64748b">${v}${unit}</text>`;
+    }).join('') + `<text x="${P.left - 5}" y="${H - P.bottom + 4}" text-anchor="end" font-size="9.5" fill="#64748b">0</text>`
+      + `<line x1="${P.left}" y1="${H - P.bottom}" x2="${W - P.right}" y2="${H - P.bottom}" stroke="#334155" stroke-width="0.8"/>`;
+
+    const axes = () => `<line x1="${P.left}" y1="${P.top - 4}" x2="${P.left}" y2="${H - P.bottom}" stroke="#334155" stroke-width="1"/>`;
+
+    const xLbl = (label: string, xPos: number) => {
+      const s = label.length > 11 ? label.slice(0, 10) + '…' : label;
+      return `<text x="${xPos}" y="${H - P.bottom + 14}" text-anchor="middle" font-size="9.5" fill="#64748b">${s}</text>`;
     };
+
+    let body = '';
+
+    if (type === 'bar') {
+      const bW = (cW / labels.length) * 0.58;
+      const gap = cW / labels.length;
+      body = gridLines() + axes()
+           + values.map((v, i) => {
+               const x = P.left + gap * i + (gap - bW) / 2;
+               const bH = Math.max(v * scale, 2);
+               const y = H - P.bottom - bH;
+               const col = CHART_COLORS[i % CHART_COLORS.length];
+               return `<rect x="${x}" y="${y}" width="${bW}" height="${bH}" fill="${col}" rx="3" opacity="0.85"/>`
+                    + `<text x="${x + bW / 2}" y="${y - 4}" text-anchor="middle" font-size="9.5" fill="#e2e8f0" font-weight="600">${v}${unit}</text>`
+                    + xLbl(labels[i], P.left + gap * i + gap / 2);
+             }).join('');
+    }
+
+    if (type === 'line') {
+      const xStep = cW / Math.max(labels.length - 1, 1);
+      const pts = values.map((v, i) => `${P.left + i * xStep},${H - P.bottom - v * scale}`).join(' ');
+      body = gridLines() + axes()
+           + `<polyline points="${pts}" fill="none" stroke="${CHART_COLORS[0]}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`
+           + values.map((v, i) => {
+               const cx = P.left + i * xStep;
+               const cy = H - P.bottom - v * scale;
+               return `<circle cx="${cx}" cy="${cy}" r="4.5" fill="${CHART_COLORS[0]}" stroke="#0f172a" stroke-width="2"/>`
+                    + `<text x="${cx}" y="${cy - 10}" text-anchor="middle" font-size="9.5" fill="#e2e8f0">${v}${unit}</text>`
+                    + xLbl(labels[i], cx);
+             }).join('');
+    }
+
+    if (type === 'pie') {
+      const total = values.reduce((a, b) => a + b, 0);
+      const cx = 185, cy = H / 2 + 6, r = 92;
+      let angle = -Math.PI / 2;
+      const slices = values.map((v, i) => {
+        const sweep = (v / total) * 2 * Math.PI;
+        const x1 = cx + r * Math.cos(angle), y1 = cy + r * Math.sin(angle);
+        const a2 = angle + sweep;
+        const x2 = cx + r * Math.cos(a2), y2 = cy + r * Math.sin(a2);
+        const large = sweep > Math.PI ? 1 : 0;
+        const mid = angle + sweep / 2;
+        const lx = cx + r * 0.65 * Math.cos(mid);
+        const ly = cy + r * 0.65 * Math.sin(mid);
+        const pct = Math.round((v / total) * 100);
+        const col = CHART_COLORS[i % CHART_COLORS.length];
+        angle = a2;
+        return `<path d="M${cx},${cy}L${x1},${y1}A${r},${r},0,${large},1,${x2},${y2}Z" fill="${col}" stroke="#0f172a" stroke-width="1.5" opacity="0.9"/>`
+             + (pct > 4 ? `<text x="${lx}" y="${ly + 4}" text-anchor="middle" font-size="10" fill="white" font-weight="700">${pct}%</text>` : '');
+      }).join('');
+      const legend = labels.map((l, i) => {
+        const s = l.length > 15 ? l.slice(0, 14) + '…' : l;
+        return `<rect x="296" y="${36 + i * 22}" width="11" height="11" fill="${CHART_COLORS[i % CHART_COLORS.length]}" rx="2"/>`
+             + `<text x="313" y="${47 + i * 22}" font-size="9.5" fill="#94a3b8">${s}: ${values[i]}${unit}</text>`;
+      }).join('');
+      body = slices + legend;
+    }
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" style="font-family:ui-sans-serif,system-ui,sans-serif;background:#0f172a;border-radius:10px">`
+         + `<text x="${W / 2}" y="26" text-anchor="middle" font-size="12" font-weight="700" fill="#e2e8f0">${shortTitle}</text>`
+         + body
+         + `</svg>`;
+  }
+
+  // ── Essay Evaluation ─────────────────────────────────────────────────────────
+
+  private async evaluateEssay(dto: SubmitWritingDto) {
+    const wordCount = dto.essay.trim().split(/\s+/).filter(Boolean).length;
+    const level = dto.level ?? this.defaultLevel(dto.type);
+    const min = Math.floor(dto.time_taken_seconds / 60);
+    const sec = dto.time_taken_seconds % 60;
+
+    const examinerStyle: Record<WritingType, string> = {
+      ielts_task1: 'IELTS Academic Writing Task 1 examiner. Grade using the official 9-band scale.',
+      ielts_task2: 'IELTS Academic Writing Task 2 examiner. Grade using the official 9-band scale.',
+      toeic: 'TOEIC Writing examiner. Convert criterion scores to 9-band equivalent for overall_band.',
+      general: 'English writing teacher. Convert 0-10 grade to 9-band equivalent for overall_band.',
+    };
+
+    const criteriaKeys: Record<WritingType, string[]> = {
+      ielts_task1: ['task_achievement', 'coherence_cohesion', 'lexical_resource', 'grammatical_accuracy'],
+      ielts_task2: ['task_achievement', 'coherence_cohesion', 'lexical_resource', 'grammatical_accuracy'],
+      toeic:   ['task_achievement', 'organization', 'vocabulary_usage', 'grammatical_accuracy'],
+      general: ['task_achievement', 'coherence_cohesion', 'lexical_resource', 'grammatical_accuracy'],
+    };
+
+    const prompt = `You are a strict but fair ${examinerStyle[dto.type]}
+Level: ${level} | Words: ${wordCount} | Time: ${min}m ${sec}s
+
+TASK: ${dto.prompt}
+
+ESSAY: ${dto.essay}
+
+Reference ACTUAL phrases from the essay. Return ONLY valid JSON:
+{
+  "overall_band": 6.5,
+  "scores": {${criteriaKeys[dto.type].map(k => `"${k}": 6.5`).join(', ')}},
+  "word_count": ${wordCount},
+  "time_taken_seconds": ${dto.time_taken_seconds},
+  "strengths": ["Specific strength with quote from essay", "Another strength"],
+  "improvements": ["Specific actionable improvement", "Another improvement", "Third improvement"],
+  "grammar_errors": [{"original": "exact phrase from essay", "corrected": "corrected version", "explanation": "why wrong"}],
+  "vocabulary_feedback": {
+    "good_words": ["strong word from essay", "another"],
+    "suggestions": [{"replace": "basic word from essay", "with": "stronger alternative"}]
+  },
+  "corrected_paragraph": "Rewritten weakest paragraph with fixes applied.",
+  "summary": "2-sentence overall assessment with band score and top improvement."
+}
+grammar_errors: up to 6 real errors (exact quotes). vocabulary suggestions: up to 4.`;
+
+    try {
+      const msg = await this.client!.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1800,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const raw = (msg.content[0] as any).text;
+      return JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+    } catch (e) {
+      this.logger.error('Essay evaluation failed', e);
+      throw new ServiceUnavailableException('AI essay evaluation failed. Please try again.');
+    }
   }
 }

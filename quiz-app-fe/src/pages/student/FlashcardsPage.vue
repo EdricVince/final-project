@@ -70,11 +70,11 @@
         <span class="text-2xl">🎯</span>
       </div>
       <div class="flex-1 min-w-0">
-        <h3 class="text-foreground font-semibold text-lg">Vocab Practice</h3>
-        <p class="text-muted-foreground text-sm">Study random vocabulary with instant translation — flip to see meaning in your language</p>
+        <h3 class="text-foreground font-semibold text-lg">{{ $t('flashcards.vocabPractice') }}</h3>
+        <p class="text-muted-foreground text-sm">{{ $t('flashcards.vocabPracticeDesc') }}</p>
       </div>
       <div class="shrink-0">
-        <span class="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-xl">Start →</span>
+        <span class="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-xl">{{ $t('flashcards.startBtn') }}</span>
       </div>
     </div>
 
@@ -244,16 +244,16 @@
           <div class="min-w-0 flex-1">
             <h3 class="text-foreground mb-1 text-lg font-semibold">{{ deck.title }}</h3>
             <div class="flex flex-wrap items-center gap-3">
-              <span class="text-muted-foreground text-sm">{{ deck.cardCount }} cards</span>
+              <span class="text-muted-foreground text-sm">{{ deck.cardCount }} {{ $t('flashcards.deck.cards') }}</span>
               <span class="text-muted-foreground text-sm">{{ deck.lastStudied }}</span>
-              <span class="text-muted-foreground text-sm">{{ deck.progress }}% complete</span>
+              <span class="text-muted-foreground text-sm">{{ deck.progress }}% {{ $t('flashcards.deck.complete') }}</span>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
             <Button variant="default" size="sm" @click.stop="startStudy(deck.id)">
               <Play class="mr-2 h-4 w-4" />
-              Study
+              {{ $t('flashcards.deck.study') }}
             </Button>
             <button
               class="hover:bg-secondary rounded-lg p-2 transition-colors"
@@ -271,9 +271,9 @@
       <div class="bg-secondary mb-6 flex h-24 w-24 items-center justify-center rounded-full">
         <Layers class="text-muted-foreground h-12 w-12" />
       </div>
-      <h3 class="text-foreground mb-2 text-xl font-semibold lg:text-2xl">No flashcard decks yet</h3>
+      <h3 class="text-foreground mb-2 text-xl font-semibold lg:text-2xl">{{ $t('flashcards.empty.title') }}</h3>
       <p class="text-muted-foreground mb-6 max-w-md text-base">
-        Create your first deck to start learning with flashcards
+        {{ $t('flashcards.empty.desc') }}
       </p>
       <div class="flex gap-3">
         <Button variant="outline" @click="showImportModal = true">
@@ -298,7 +298,7 @@
           <div class="bg-card border-border w-full max-w-lg rounded-3xl border p-6 shadow-xl lg:p-8">
             <div class="mb-6 flex items-center justify-between">
               <h2 class="text-foreground text-xl font-bold lg:text-2xl">
-                {{ editingDeck ? 'Edit Deck' : 'Create New Deck' }}
+                {{ editingDeck ? $t('flashcards.modal.editTitle') : $t('flashcards.modal.createTitle') }}
               </h2>
               <button
                 class="hover:bg-secondary rounded-lg p-2 transition-colors"
@@ -310,43 +310,43 @@
 
             <form @submit.prevent="saveDeck" class="space-y-5">
               <div>
-                <label class="text-foreground mb-2 block text-sm font-medium">Deck Title</label>
+                <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('flashcards.modal.deckTitle') }}</label>
                 <input
                   v-model="deckForm.title"
                   type="text"
-                  placeholder="e.g., Japanese Vocabulary N5"
+                  :placeholder="$t('flashcards.modal.deckTitlePlaceholder')"
                   required
                   class="bg-secondary text-foreground placeholder:text-muted-foreground h-12 w-full rounded-xl border-0 px-4 text-base focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
 
               <div>
-                <label class="text-foreground mb-2 block text-sm font-medium">Description</label>
+                <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('flashcards.modal.description') }}</label>
                 <textarea
                   v-model="deckForm.description"
-                  placeholder="What will you learn in this deck?"
+                  :placeholder="$t('flashcards.modal.descPlaceholder')"
                   rows="3"
                   class="bg-secondary text-foreground placeholder:text-muted-foreground w-full resize-none rounded-xl border-0 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-primary/20"
                 ></textarea>
               </div>
 
               <div>
-                <label class="text-foreground mb-2 block text-sm font-medium">Category</label>
+                <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('flashcards.modal.category') }}</label>
                 <select
                   v-model="deckForm.category"
                   class="bg-secondary text-foreground h-12 w-full rounded-xl border-0 px-4 text-base focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
-                  <option value="">Select a category</option>
+                  <option value="">{{ $t('flashcards.modal.selectCategory') }}</option>
                   <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
                 </select>
               </div>
 
               <div class="flex gap-3 pt-4">
                 <Button type="button" variant="outline" class="flex-1" @click="closeDeckModal">
-                  Cancel
+                  {{ $t('flashcards.modal.cancel') }}
                 </Button>
                 <Button type="submit" class="flex-1">
-                  {{ editingDeck ? 'Save Changes' : 'Create Deck' }}
+                  {{ editingDeck ? $t('flashcards.modal.saveChanges') : $t('flashcards.modal.createDeck') }}
                 </Button>
               </div>
             </form>
@@ -365,7 +365,7 @@
         >
           <div class="bg-card border-border w-full max-w-lg rounded-3xl border p-6 shadow-xl lg:p-8">
             <div class="mb-6 flex items-center justify-between">
-              <h2 class="text-foreground text-xl font-bold lg:text-2xl">Import Flashcards</h2>
+              <h2 class="text-foreground text-xl font-bold lg:text-2xl">{{ $t('flashcards.importModal.title') }}</h2>
               <button
                 class="hover:bg-secondary rounded-lg p-2 transition-colors"
                 @click="showImportModal = false"
@@ -395,9 +395,9 @@
                   <FileSpreadsheet class="text-muted-foreground h-8 w-8" />
                 </div>
                 <p class="text-foreground mb-1 text-base font-medium">
-                  Drop your file here or click to browse
+                  {{ $t('flashcards.importModal.dropzoneText') }}
                 </p>
-                <p class="text-muted-foreground text-sm">Supports CSV, Excel (.xlsx, .xls)</p>
+                <p class="text-muted-foreground text-sm">{{ $t('flashcards.importModal.supportedFormats') }}</p>
               </div>
 
               <!-- Selected File -->
@@ -418,24 +418,24 @@
               <!-- Import Options -->
               <div v-if="importFile" class="space-y-4">
                 <div>
-                  <label class="text-foreground mb-2 block text-sm font-medium">Deck Name</label>
+                  <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('flashcards.importModal.deckName') }}</label>
                   <input
                     v-model="importDeckName"
                     type="text"
-                    placeholder="Enter deck name"
+                    :placeholder="$t('flashcards.importModal.deckNamePlaceholder')"
                     class="bg-secondary text-foreground placeholder:text-muted-foreground h-12 w-full rounded-xl border-0 px-4 text-base focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
 
                 <div class="bg-secondary/50 rounded-xl p-4">
-                  <p class="text-muted-foreground mb-2 text-sm">Expected format:</p>
+                  <p class="text-muted-foreground mb-2 text-sm">{{ $t('flashcards.importModal.expectedFormat') }}</p>
                   <div class="bg-card overflow-hidden rounded-lg">
                     <table class="w-full text-sm">
                       <thead class="bg-secondary">
                         <tr>
-                          <th class="text-foreground px-3 py-2 text-left font-medium">Term</th>
-                          <th class="text-foreground px-3 py-2 text-left font-medium">Definition</th>
-                          <th class="text-foreground px-3 py-2 text-left font-medium">Image (optional)</th>
+                          <th class="text-foreground px-3 py-2 text-left font-medium">{{ $t('flashcards.importModal.term') }}</th>
+                          <th class="text-foreground px-3 py-2 text-left font-medium">{{ $t('flashcards.importModal.definition') }}</th>
+                          <th class="text-foreground px-3 py-2 text-left font-medium">{{ $t('flashcards.importModal.image') }}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -452,11 +452,11 @@
 
               <div class="flex gap-3 pt-4">
                 <Button type="button" variant="outline" class="flex-1" @click="showImportModal = false">
-                  Cancel
+                  {{ $t('flashcards.importModal.cancel') }}
                 </Button>
                 <Button class="flex-1" :disabled="!importFile || !importDeckName" @click="importCards">
                   <Upload class="mr-2 h-4 w-4" />
-                  Import
+                  {{ $t('flashcards.importModal.import') }}
                 </Button>
               </div>
             </div>
@@ -497,8 +497,8 @@
                   <thead class="bg-secondary">
                     <tr>
                       <th class="text-foreground px-4 py-3 text-left font-medium w-8">#</th>
-                      <th class="text-foreground px-4 py-3 text-left font-medium">Term</th>
-                      <th class="text-foreground px-4 py-3 text-left font-medium">Definition</th>
+                      <th class="text-foreground px-4 py-3 text-left font-medium">{{ $t('flashcards.previewModal.term') }}</th>
+                      <th class="text-foreground px-4 py-3 text-left font-medium">{{ $t('flashcards.previewModal.definition') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -518,10 +518,10 @@
 
             <!-- Footer -->
             <div class="flex gap-3 border-t border-border p-6">
-              <Button variant="outline" class="flex-1" @click="showPreviewModal = false">Close</Button>
+              <Button variant="outline" class="flex-1" @click="showPreviewModal = false">{{ $t('flashcards.previewModal.close') }}</Button>
               <Button class="flex-1" @click="startStudy(previewDeck.id); showPreviewModal = false">
                 <Play class="mr-2 h-4 w-4" />
-                Study Now
+                {{ $t('flashcards.previewModal.studyNow') }}
               </Button>
             </div>
           </div>
@@ -541,16 +541,16 @@
             <div class="bg-destructive/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
               <Trash2 class="text-destructive h-8 w-8" />
             </div>
-            <h2 class="text-foreground mb-2 text-xl font-bold">Delete Deck?</h2>
+            <h2 class="text-foreground mb-2 text-xl font-bold">{{ $t('flashcards.deleteModal.title') }}</h2>
             <p class="text-muted-foreground mb-6">
-              Are you sure you want to delete "{{ deckToDelete?.title }}"? This action cannot be undone.
+              {{ $t('flashcards.deleteModal.message', { title: deckToDelete?.title }) }}
             </p>
             <div class="flex gap-3">
               <Button variant="outline" class="flex-1" @click="showDeleteModal = false">
-                Cancel
+                {{ $t('flashcards.deleteModal.cancel') }}
               </Button>
               <Button variant="destructive" class="flex-1" @click="deleteDeck">
-                Delete
+                {{ $t('flashcards.deleteModal.confirm') }}
               </Button>
             </div>
           </div>
@@ -563,6 +563,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, type Component } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   Plus,
   Upload,
@@ -593,6 +594,7 @@ import Button from '@/components/ui/button/Button.vue'
 import { useProgressStore } from '@/stores/progress.store'
 import { useAuthStore } from '@/stores/auth.store'
 
+const { t } = useI18n()
 const router = useRouter()
 const progressStore = useProgressStore()
 const authStore = useAuthStore()

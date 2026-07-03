@@ -27,7 +27,7 @@
             <div class="space-y-1">
               <button v-for="book in cat.books" :key="book.title" @click="selectBook(book, cat.type)"
                 class="lib-item"
-                :class="selectedBook?.title === book.title ? 'border-blue-500/50 bg-blue-500/10' : 'lib-item-inactive'">
+                :class="selectedBook?.title === book.title ? 'lib-item-active-blue' : 'lib-item-inactive'">
                 <div class="flex items-start justify-between gap-2">
                   <span class="text-foreground text-sm font-medium leading-tight">{{ book.title }}</span>
                   <span class="mt-0.5 shrink-0" :class="levelBadge(book.level)">{{ book.level }}</span>
@@ -67,7 +67,7 @@
                 <span class="chip capitalize">{{ passage.type }}</span>
                 <span class="chip">~{{ passage.estimated_time }} min · {{ passage.word_count }} words</span>
               </div>
-              <button @click="toggleTTS" class="flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400 hover:bg-blue-500/20 transition-colors">
+              <button @click="toggleTTS" class="action-btn action-btn-blue">
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M12 6v12m-4.536-9.536a5 5 0 000 7.072" /></svg>
                 {{ isSpeaking ? 'Stop' : 'Listen' }}
               </button>
@@ -76,7 +76,7 @@
             <div class="mt-4 space-y-3">
               <p v-for="(para, i) in paragraphs" :key="i" class="text-foreground text-base leading-relaxed">{{ para }}</p>
             </div>
-            <div v-if="passage.summary" class="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm text-blue-300/80">
+            <div v-if="passage.summary" class="mt-4 rounded-xl border p-4 info-box-blue text-sm text-blue-300/80">
               <span class="font-semibold text-blue-400">Summary: </span>{{ passage.summary }}
             </div>
           </div>
@@ -117,7 +117,7 @@
               </div>
             </div>
 
-            <div v-if="submitted" class="mt-5 flex items-center justify-between rounded-xl border p-4" :class="isPassed ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-red-500/30 bg-red-500/10'">
+            <div v-if="submitted" class="mt-5 flex items-center justify-between rounded-xl border p-4" :class="isPassed ? 'answer-pass' : 'answer-fail'">
               <div>
                 <div class="font-bold" :class="isPassed ? 'text-emerald-400' : 'text-red-400'">
                   {{ correctCount }}/{{ passage.questions.length }} — {{ isPassed ? 'Passed ✓' : 'Try Again' }}
@@ -206,15 +206,10 @@ function levelBadge(l: string) {
 }
 function levelFilterClass(l: string) {
   const m: Record<string,string> = {
-    '':  'border-blue-500/50 bg-blue-500/15 text-blue-300',
-    A1:  'border-red-500/50 bg-red-500/15 text-red-300',
-    A2:  'border-orange-500/50 bg-orange-500/15 text-orange-300',
-    B1:  'border-amber-500/50 bg-amber-500/15 text-amber-300',
-    B2:  'border-yellow-500/50 bg-yellow-500/15 text-yellow-300',
-    C1:  'border-emerald-500/50 bg-emerald-500/15 text-emerald-300',
-    C2:  'border-blue-500/50 bg-blue-500/15 text-blue-300',
+    '': 'level-filter-all-blue', A1: 'level-filter-a1', A2: 'level-filter-a2',
+    B1: 'level-filter-b1', B2: 'level-filter-b2', C1: 'level-filter-c1', C2: 'level-filter-c2',
   }
-  return m[l] ?? 'border-blue-500/50 bg-blue-500/15 text-blue-300'
+  return m[l] ?? 'level-filter-all-blue'
 }
 
 async function selectBook(book: any, type: string) {
@@ -247,8 +242,8 @@ function optClass(qi: string | number, oi: string | number) {
   const q = Number(qi), o = Number(oi)
   if (!submitted.value) return answers.value[q] === o ? 'border-blue-500 bg-blue-500/15 text-blue-300' : 'border-border text-foreground hover:border-blue-500/40'
   const c = passage.value?.questions[q]?.correct
-  if (o === c) return 'border-emerald-500 bg-emerald-500/10 text-emerald-300'
-  if (o === answers.value[q]) return 'border-red-500 bg-red-500/10 text-red-300'
+  if (o === c) return 'answer-correct'
+  if (o === answers.value[q]) return 'answer-wrong'
   return 'border-border text-muted-foreground opacity-40'
 }
 function optBadge(qi: string | number, oi: string | number) {

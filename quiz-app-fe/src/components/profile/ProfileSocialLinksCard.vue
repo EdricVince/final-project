@@ -3,11 +3,11 @@
     <div class="mb-4 flex items-center justify-between">
       <h3 class="text-foreground flex items-center gap-2 font-semibold">
         <Link2 class="text-primary h-5 w-5" />
-        Social Links
+        {{ $t('profile.socialLinks.title') }}
       </h3>
       <Button variant="ghost" size="sm" @click="$emit('add')">
         <Plus class="mr-1 h-4 w-4" />
-        Add
+        {{ $t('profile.socialLinks.add') }}
       </Button>
     </div>
 
@@ -27,12 +27,14 @@
         <div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
           <button
             class="hover:bg-secondary rounded-lg p-1.5 transition-colors"
+            :aria-label="$t('profile.socialLinks.edit')"
             @click="$emit('edit', index)"
           >
             <Pencil class="text-muted-foreground h-3.5 w-3.5" />
           </button>
           <button
             class="hover:bg-destructive/10 rounded-lg p-1.5 transition-colors"
+            :aria-label="$t('profile.socialLinks.remove')"
             @click="$emit('remove', index)"
           >
             <Trash2 class="text-destructive h-3.5 w-3.5" />
@@ -44,13 +46,14 @@
         v-if="socialLinks.length === 0"
         class="text-muted-foreground py-4 text-center text-sm"
       >
-        No social links added yet
+        {{ $t('profile.socialLinks.noLinks') }}
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Component } from 'vue'
 import {
   Link2,
@@ -67,6 +70,8 @@ import {
 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import type { SocialLink } from '@/types/profile'
+
+const { t: $t } = useI18n()
 
 interface Props {
   socialLinks: SocialLink[]

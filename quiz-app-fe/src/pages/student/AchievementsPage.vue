@@ -4,8 +4,8 @@
     <div class="animate-fade-in-down mb-8">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Achievements</h1>
-          <p class="text-muted-foreground mt-1 text-base">Unlock badges and compete with other learners</p>
+          <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('achievements.title') }}</h1>
+          <p class="text-muted-foreground mt-1 text-base">{{ $t('achievements.unlockBadges') }}</p>
         </div>
         <div class="flex items-center gap-3">
           <button
@@ -13,11 +13,11 @@
             @click="handleShareAchievements"
           >
             <Share2 class="h-4 w-4" />
-            Share
+            {{ $t('achievements.share') }}
           </button>
           <div class="bg-linear-to-r from-primary/10 to-chart-1/10 rounded-xl px-4 py-2 text-center">
             <p class="text-foreground text-2xl font-bold">{{ earnedCount }}</p>
-            <p class="text-muted-foreground text-xs">of {{ achievementsData.achievements.length }} earned</p>
+            <p class="text-muted-foreground text-xs">{{ $t('achievements.ofEarned', { total: achievementsData.achievements.length }) }}</p>
           </div>
         </div>
       </div>
@@ -69,7 +69,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Share2 } from '@/components/icons'
+
+const { t } = useI18n()
 
 import AchievementStatsCards from '@/components/achievements/AchievementStatsCards.vue'
 import RarityLegend from '@/components/achievements/RarityLegend.vue'
@@ -102,7 +105,7 @@ const {
 } = useAchievements()
 
 const showShareToast = ref(false)
-const toastMessage = ref('Link copied to clipboard!')
+const toastMessage = ref('')
 
 const copyToClipboard = async (text: string) => {
   try {
@@ -116,13 +119,13 @@ const copyToClipboard = async (text: string) => {
 
 const handleShareAchievements = async () => {
   const text = `I've earned ${earnedCount.value} achievements (${totalPoints.value} pts) on StudySpark!`
-  toastMessage.value = 'Link copied to clipboard!'
+  toastMessage.value = t('achievements.linkCopied')
   await copyToClipboard(text)
 }
 
 const handleShareAchievement = async (achievement: EnhancedAchievement) => {
   const text = `I just earned "${achievement.name}" on StudySpark!`
-  toastMessage.value = 'Achievement shared!'
+  toastMessage.value = t('achievements.achievementShared')
   await copyToClipboard(text)
   closeModal()
 }
