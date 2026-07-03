@@ -1,0 +1,19 @@
+{
+  "name": "quiz-app",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n BE,FE -c cyan,magenta \"pnpm --filter quiz-app-be start:dev\" \"pnpm --filter quiz-app-fe dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bcrypt",
+      "esbuild",
+      "vue-demi",
+      "@tailwindcss/oxide",
+      "unrs-resolver"
+    ]
+  }
+}
