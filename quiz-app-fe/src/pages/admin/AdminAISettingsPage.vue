@@ -64,7 +64,7 @@
                 {{ status.provider }} · Key ending in
                 <code class="adm-hero-code">{{ status.key_preview?.slice(-8) }}</code>
               </template>
-              <template v-else>No API key configured — all features use static fallback content</template>
+              <template v-else>No API key configured — AI-powered features are disabled until a key is added</template>
             </div>
           </div>
         </div>
@@ -396,7 +396,7 @@ async function handleSave() {
 }
 
 async function handleRemove() {
-  if (!confirm('Deactivate AI? The app will use static fallback content.')) return
+  if (!confirm('Deactivate AI? AI-powered features (battle questions, exams, skills, schedule, word of the day) will be disabled until a key is added again.')) return
   saving.value = true
   saveError.value = ''
   saveSuccess.value = ''
