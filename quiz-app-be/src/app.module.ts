@@ -15,6 +15,7 @@ import { EntranceExamModule } from './modules/entrance-exam/entrance-exam.module
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { SkillsModule } from './modules/skills/skills.module';
 import { LessonsModule } from './modules/lessons/lessons.module';
+import { BattleModule } from './modules/battle/battle.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { LessonsModule } from './modules/lessons/lessons.module';
     ScheduleModule,
     SkillsModule,
     LessonsModule,
+    BattleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
