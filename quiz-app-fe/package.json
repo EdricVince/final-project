@@ -25,6 +25,7 @@
     "lucide-vue-next": "^0.562.0",
     "pinia": "^2.0.35",
     "reka-ui": "^2.7.0",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "vee-validate": "^4.15.1",
