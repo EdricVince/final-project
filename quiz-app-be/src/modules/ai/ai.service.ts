@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 
 export interface ImportedContent {
@@ -20,12 +20,6 @@ export interface WordOfTheDay {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   tip: string;
 }
-
-const FALLBACK_WORDS: WordOfTheDay[] = [
-  { word: 'Persevere', phonetic: '/ˌpɜːrsɪˈvɪər/', partOfSpeech: 'verb', definition: 'To continue doing something despite difficulty or delay in achieving success.', example: 'She persevered with her studies even when it was difficult.', synonyms: ['persist', 'endure', 'continue'], difficulty: 'intermediate', tip: 'Remember: per + severe = through severity!' },
-  { word: 'Eloquent', phonetic: '/ˈɛləkwənt/', partOfSpeech: 'adjective', definition: 'Fluent or persuasive in speaking or writing.', example: 'He gave an eloquent speech that moved the audience.', synonyms: ['articulate', 'fluent', 'expressive'], difficulty: 'intermediate', tip: 'From Latin "eloqui" = to speak out' },
-  { word: 'Serendipity', phonetic: '/ˌsɛrənˈdɪpɪti/', partOfSpeech: 'noun', definition: 'The occurrence of events by chance in a happy or beneficial way.', example: 'Finding that café was pure serendipity.', synonyms: ['luck', 'chance', 'fortune'], difficulty: 'advanced', tip: 'Coined from a Persian fairy tale about three princes of Serendip' },
-];
 
 @Injectable()
 export class AiService {
@@ -131,8 +125,7 @@ ${rawText}`
     if (this.cache?.date === today) return this.cache.word;
 
     if (!this.client) {
-      const word = FALLBACK_WORDS[new Date().getDate() % FALLBACK_WORDS.length];
-      return word;
+      throw new ServiceUnavailableException('AI service not configured. Please add your Anthropic API key in admin settings.');
     }
 
     try {
@@ -162,8 +155,8 @@ Pick an interesting, useful English word. Not too common, not too obscure.`,
       this.cache = { date: today, word };
       return word;
     } catch (err) {
-      this.logger.error('Claude API error, using fallback', err);
-      return FALLBACK_WORDS[new Date().getDate() % FALLBACK_WORDS.length];
+      this.logger.error('Word of the day generation failed', err);
+      throw new ServiceUnavailableException('AI failed to generate the word of the day. Please try again.');
     }
   }
 }
