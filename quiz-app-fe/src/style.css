@@ -1,0 +1,1049 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './styles/animations.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* ════════════════════════════════════════════════════════
+     Light mode — "Spectrum"
+     Vivid indigo-violet primary on a cool near-white base.
+     Five-color chart arc gives each metric its own identity.
+     Warm amber accent creates contrast without clashing.
+  ════════════════════════════════════════════════════════ */
+
+  --background:           oklch(0.985 0.008 268);   /* cool near-white    */
+  --foreground:           oklch(0.12  0.024 268);   /* deep navy-indigo   */
+  --card:                 oklch(1     0     0);      /* pure white         */
+  --card-foreground:      oklch(0.12  0.024 268);
+  --popover:              oklch(1     0     0);
+  --popover-foreground:   oklch(0.12  0.024 268);
+
+  --primary:              oklch(0.55  0.245 278);   /* vivid violet-indigo */
+  --primary-foreground:   oklch(0.99  0.004 280);   /* near-white          */
+
+  --secondary:            oklch(0.94  0.022 278);   /* soft lavender wash  */
+  --secondary-foreground: oklch(0.34  0.120 278);   /* mid violet          */
+
+  --muted:                oklch(0.95  0.006 265);   /* cool neutral gray   */
+  --muted-foreground:     oklch(0.52  0.042 268);   /* slate lavender      */
+
+  --accent:               oklch(0.74  0.16   52);   /* warm amber glow     */
+  --accent-foreground:    oklch(0.24  0.13   48);   /* dark amber          */
+
+  --destructive:          oklch(0.58  0.22   25);   /* vivid red           */
+
+  --border:               oklch(0.90  0.016 265);   /* lavender-gray line  */
+  --input:                oklch(0.93  0.010 265);
+  --ring:                 oklch(0.55  0.245 278);
+
+  /* ── Five-color chart arc: violet · emerald · amber · rose · sky ── */
+  --chart-1: oklch(0.58 0.240 278);   /* vivid violet     */
+  --chart-2: oklch(0.60 0.200 152);   /* emerald green    */
+  --chart-3: oklch(0.72 0.170  52);   /* warm amber       */
+  --chart-4: oklch(0.60 0.220 348);   /* vivid rose       */
+  --chart-5: oklch(0.62 0.180 212);   /* sky blue         */
+
+  --sidebar:                    oklch(0.960 0.020 272);
+  --sidebar-foreground:         oklch(0.12  0.024 268);
+  --sidebar-primary:            oklch(0.55  0.245 278);
+  --sidebar-primary-foreground: oklch(0.99  0.004 280);
+  --sidebar-accent:             oklch(0.93  0.018 278);
+  --sidebar-accent-foreground:  oklch(0.34  0.120 278);
+  --sidebar-border:             oklch(0.88  0.016 268);
+  --sidebar-ring:               oklch(0.55  0.245 278);
+}
+
+.dark {
+  /* ════════════════════════════════════════════════════════
+     Dark mode — "Deep Space"
+     Rich deep purple-navy base — not flat black, has depth.
+     Primary lifts to L 0.72 so violet stays vivid and crisp.
+     Chart colors are brightened versions of the light set.
+  ════════════════════════════════════════════════════════ */
+
+  --background:           oklch(0.13  0.030 278);   /* deep purple-navy   */
+  --foreground:           oklch(0.94  0.012 272);   /* soft lavender-white */
+  --card:                 oklch(0.17  0.028 278);   /* raised surface      */
+  --card-foreground:      oklch(0.94  0.012 272);
+  --popover:              oklch(0.19  0.026 278);
+  --popover-foreground:   oklch(0.94  0.012 272);
+
+  --primary:              oklch(0.72  0.220 278);   /* bright neon violet   */
+  --primary-foreground:   oklch(0.11  0.022 280);   /* very dark bg-match   */
+
+  --secondary:            oklch(0.22  0.036 278);   /* deep lifted surface  */
+  --secondary-foreground: oklch(0.88  0.024 272);
+
+  --muted:                oklch(0.20  0.026 278);
+  --muted-foreground:     oklch(0.60  0.060 272);   /* medium lavender      */
+
+  --accent:               oklch(0.70  0.160  52);   /* amber warm glow      */
+  --accent-foreground:    oklch(0.96  0.070  50);
+
+  --destructive:          oklch(0.65  0.200  25);
+
+  --border:               oklch(1    0       0 / 10%);
+  --input:                oklch(1    0       0 / 13%);
+  --ring:                 oklch(0.72  0.220 278);
+
+  /* ── Dark chart arc: brighter so they pop on deep surface ── */
+  --chart-1: oklch(0.74 0.200 278);   /* neon violet     */
+  --chart-2: oklch(0.72 0.190 152);   /* vivid emerald   */
+  --chart-3: oklch(0.80 0.160  52);   /* bright amber    */
+  --chart-4: oklch(0.73 0.210 348);   /* vivid rose      */
+  --chart-5: oklch(0.74 0.170 212);   /* bright sky      */
+
+  --sidebar:                    oklch(0.10  0.028 278);
+  --sidebar-foreground:         oklch(0.94  0.012 272);
+  --sidebar-primary:            oklch(0.72  0.220 278);
+  --sidebar-primary-foreground: oklch(0.11  0.022 280);
+  --sidebar-accent:             oklch(0.20  0.032 278);
+  --sidebar-accent-foreground:  oklch(0.88  0.024 272);
+  --sidebar-border:             oklch(1     0       0 / 8%);
+  --sidebar-ring:               oklch(0.72  0.220 278);
+}
+
+/* ── Floating card animations (auth panel illustration) ── */
+@keyframes float-a {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50%       { transform: translateY(-10px) rotate(1deg); }
+}
+@keyframes float-b {
+  0%, 100% { transform: translateY(0px) rotate(2deg); }
+  50%       { transform: translateY(-8px) rotate(-2deg); }
+}
+@keyframes float-c {
+  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+  50%       { transform: translateY(-13px) rotate(2.5deg); }
+}
+@keyframes float-d {
+  0%, 100% { transform: translateY(0px) rotate(3deg); }
+  50%       { transform: translateY(-9px) rotate(-1deg); }
+}
+
+.animate-float-a { animation: float-a 3.2s ease-in-out infinite; }
+.animate-float-b { animation: float-b 3.8s ease-in-out 0.6s infinite; }
+.animate-float-c { animation: float-c 4.2s ease-in-out 1.1s infinite; }
+.animate-float-d { animation: float-d 3.5s ease-in-out 1.8s infinite; }
+
+/* ════════════════════════════════════════════════════════
+   COMPONENT LAYER — reusable design-system classes
+   Only @apply Tailwind utilities here (no custom classes).
+   Hover/focus states use native CSS variables directly.
+   ════════════════════════════════════════════════════════ */
+@layer components {
+
+  /* ── Layout ── */
+  .page-header {
+    @apply bg-card border-border sticky top-0 z-10 border-b px-6 py-3;
+  }
+
+  /* ── Navigation ── */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    background: rgba(99, 102, 241, 0.08);
+    padding: 0.375rem 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgb(129, 140, 248);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .back-btn:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    background: rgba(99, 102, 241, 0.15);
+  }
+  .back-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* ── Cards ── */
+  .sk-card {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+  }
+  .sk-card-p {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.25rem;
+  }
+  .sk-card-p6 {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+  }
+  .glass-card {
+    background: color-mix(in oklch, var(--card) 82%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+  }
+
+  /* ── Form controls ── */
+  .sk-input {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    transition: box-shadow 0.15s;
+    outline: none;
+  }
+  .sk-input:focus {
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 30%, transparent);
+  }
+  .sk-select {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .sk-textarea {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    font-size: 1rem;
+    line-height: 1.75;
+    resize: none;
+    outline: none;
+    transition: box-shadow 0.15s;
+    width: 100%;
+  }
+  .sk-textarea:focus {
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 30%, transparent);
+  }
+  .sk-textarea::placeholder {
+    color: color-mix(in oklch, var(--muted-foreground) 40%, transparent);
+  }
+
+  /* ── Buttons — each variant is self-contained, no @apply to custom classes ── */
+  .btn-rose, .btn-blue, .btn-amber, .btn-indigo, .btn-emerald {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    transition: transform 0.15s, opacity 0.15s;
+    cursor: pointer;
+  }
+  .btn-rose:hover,    .btn-blue:hover,
+  .btn-amber:hover,   .btn-indigo:hover,
+  .btn-emerald:hover  { transform: scale(1.01); }
+  .btn-rose:active,   .btn-blue:active,
+  .btn-amber:active,  .btn-indigo:active,
+  .btn-emerald:active { transform: scale(0.98); }
+  .btn-rose:disabled,    .btn-blue:disabled,
+  .btn-amber:disabled,   .btn-indigo:disabled,
+  .btn-emerald:disabled  { opacity: 0.5; pointer-events: none; }
+
+  .btn-rose    { @apply bg-linear-to-r from-rose-600    to-pink-600    shadow-lg shadow-rose-500/20; }
+  .btn-blue    { @apply bg-linear-to-r from-blue-600    to-cyan-600    shadow-lg shadow-blue-500/20; }
+  .btn-amber   { @apply bg-linear-to-r from-amber-600   to-orange-600  shadow-lg shadow-amber-500/20; }
+  .btn-indigo  { @apply bg-linear-to-r from-indigo-600  to-violet-600  shadow-lg shadow-indigo-500/20; }
+  .btn-emerald { @apply bg-linear-to-r from-emerald-600 to-teal-600    shadow-lg shadow-emerald-500/20; }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    transition: background-color 0.15s, color 0.15s;
+    cursor: pointer;
+  }
+  .btn-outline:hover {
+    background-color: color-mix(in oklch, var(--muted) 30%, transparent);
+    color: var(--foreground);
+  }
+
+  /* ── Typography ── */
+  .section-label {
+    @apply text-muted-foreground text-xs font-semibold uppercase tracking-wider;
+  }
+  .page-title { @apply text-foreground text-base font-bold; }
+
+  /* ── Tags / chips ── */
+  .chip {
+    @apply rounded-full bg-muted/20 px-2.5 py-0.5 text-xs text-muted-foreground;
+  }
+  .chip-border {
+    @apply rounded-full border border-border bg-muted/10 px-2.5 py-0.5 text-xs text-muted-foreground;
+  }
+
+  /* ── CEFR level badges ── */
+  .badge-a1 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-red-500/20     text-red-400; }
+  .badge-a2 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-orange-500/20  text-orange-400; }
+  .badge-b1 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-amber-500/20   text-amber-400; }
+  .badge-b2 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-yellow-500/20  text-yellow-400; }
+  .badge-c1 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-emerald-500/20 text-emerald-400; }
+  .badge-c2 { @apply rounded-full px-2.5 py-0.5 text-xs font-bold bg-blue-500/20    text-blue-400; }
+
+  /* ── Spinners ── */
+  .sk-spinner-rose    { @apply h-10 w-10 animate-spin text-rose-400; }
+  .sk-spinner-blue    { @apply h-10 w-10 animate-spin text-blue-400; }
+  .sk-spinner-amber   { @apply h-10 w-10 animate-spin text-amber-400; }
+  .sk-spinner-emerald { @apply h-10 w-10 animate-spin text-emerald-400; }
+  .sk-spinner-indigo  { @apply h-10 w-10 animate-spin text-indigo-400; }
+
+  /* ── Score bar ── */
+  .score-track { @apply h-1.5 overflow-hidden rounded-full bg-muted/30; }
+  .score-fill  { @apply h-full rounded-full transition-all duration-700; }
+
+  /* ── Empty state ── */
+  .empty-state { @apply flex flex-col items-center justify-center py-20 text-center px-6; }
+
+  /* ── Real-time indicators ── */
+  .live-dot   { @apply h-2 w-2 rounded-full bg-emerald-400 animate-pulse; }
+  .live-clock { @apply font-mono text-sm font-semibold tabular-nums text-foreground; }
+
+  /* ── Library sidebar (Reading/Listening) ── */
+  .lib-sidebar       { @apply border-border w-72 shrink-0 border-r; }
+  .lib-sidebar-inner { @apply sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto p-4; }
+  .lib-cat-label     { @apply text-muted-foreground mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider; }
+  .lib-item          { @apply w-full rounded-xl border px-3 py-2.5 text-left transition-all; }
+  .lib-item-inactive { @apply border-transparent hover:border-border hover:bg-muted/20; }
+
+  /* ── Result panels ── */
+  .result-strength   { @apply bg-card rounded-2xl border border-emerald-500/20 p-4; }
+  .result-improve    { @apply bg-card rounded-2xl border border-rose-500/20 p-4; }
+  .result-improve-am { @apply bg-card rounded-2xl border border-amber-500/20 p-4; }
+  .result-error      { @apply rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm; }
+
+  /* ── Speech / recording ── */
+  .speech-box { @apply w-full rounded-xl border border-border bg-muted/10 p-3 text-sm; }
+  .rec-dot    { @apply h-1.5 w-1.5 animate-pulse rounded-full bg-white; }
+
+  /* ══════════════════════════════════════════════════════════
+     SKILL HUB & ENTRANCE EXAM — light/dark mode aware classes
+     ══════════════════════════════════════════════════════════ */
+
+  /* Card gradient fills — light: soft pastel tint, dark: deep color shadow */
+  .card-tint-indigo { background: linear-gradient(135deg, oklch(0.93 0.022 278) 0%, var(--card) 55%); border-color: oklch(0.55 0.245 278 / 22%); }
+  .dark .card-tint-indigo { background: linear-gradient(135deg, oklch(0.16 0.038 278 / 65%) 0%, var(--card) 65%); border-color: oklch(0.55 0.245 278 / 30%); }
+
+  .card-tint-blue { background: linear-gradient(135deg, oklch(0.93 0.026 220) 0%, var(--card) 55%); border-color: oklch(0.58 0.175 220 / 22%); }
+  .dark .card-tint-blue { background: linear-gradient(135deg, oklch(0.15 0.038 220 / 65%) 0%, var(--card) 65%); border-color: oklch(0.58 0.175 220 / 30%); }
+
+  .card-tint-emerald { background: linear-gradient(135deg, oklch(0.94 0.028 152) 0%, var(--card) 55%); border-color: oklch(0.60 0.195 152 / 22%); }
+  .dark .card-tint-emerald { background: linear-gradient(135deg, oklch(0.15 0.036 152 / 65%) 0%, var(--card) 65%); border-color: oklch(0.60 0.195 152 / 30%); }
+
+  .card-tint-amber { background: linear-gradient(135deg, oklch(0.96 0.038 70) 0%, var(--card) 55%); border-color: oklch(0.70 0.158 70 / 22%); }
+  .dark .card-tint-amber { background: linear-gradient(135deg, oklch(0.19 0.034 68 / 50%) 0%, var(--card) 65%); border-color: oklch(0.70 0.158 68 / 30%); }
+
+  .card-tint-rose { background: linear-gradient(135deg, oklch(0.95 0.024 345) 0%, var(--card) 55%); border-color: oklch(0.60 0.215 348 / 22%); }
+  .dark .card-tint-rose { background: linear-gradient(135deg, oklch(0.17 0.034 355 / 50%) 0%, var(--card) 65%); border-color: oklch(0.60 0.215 348 / 30%); }
+
+  .card-tint-teal { background: linear-gradient(135deg, oklch(0.93 0.030 186) 0%, var(--card) 55%); border-color: oklch(0.58 0.195 186 / 22%); }
+  .dark .card-tint-teal { background: linear-gradient(135deg, oklch(0.15 0.038 186 / 65%) 0%, var(--card) 65%); border-color: oklch(0.58 0.195 186 / 30%); }
+
+  /* Mode-aware colored text (replaces hardcoded *-300 variants) */
+  .ct-indigo  { color: oklch(0.46 0.228 278); } .dark .ct-indigo  { color: oklch(0.72 0.218 278); }
+  .ct-blue    { color: oklch(0.46 0.175 220); } .dark .ct-blue    { color: oklch(0.74 0.168 212); }
+  .ct-emerald { color: oklch(0.44 0.178 152); } .dark .ct-emerald { color: oklch(0.72 0.188 152); }
+  .ct-amber   { color: oklch(0.50 0.152 60);  } .dark .ct-amber   { color: oklch(0.80 0.158 52);  }
+  .ct-rose    { color: oklch(0.48 0.210 348); } .dark .ct-rose    { color: oklch(0.73 0.208 348); }
+  .ct-violet  { color: oklch(0.46 0.228 300); } .dark .ct-violet  { color: oklch(0.74 0.198 300); }
+  .ct-green   { color: oklch(0.44 0.178 140); } .dark .ct-green   { color: oklch(0.72 0.188 140); }
+  .ct-teal    { color: oklch(0.44 0.178 186); } .dark .ct-teal    { color: oklch(0.72 0.188 186); }
+
+  /* Mode-aware colored badges */
+  .cbadge-indigo  { background: oklch(0.55 0.245 278 / 10%); color: oklch(0.42 0.228 278); border: 1px solid oklch(0.55 0.245 278 / 24%); }
+  .dark .cbadge-indigo  { background: oklch(0.55 0.245 278 / 18%); color: oklch(0.72 0.218 278); border-color: oklch(0.55 0.245 278 / 28%); }
+  .cbadge-blue    { background: oklch(0.58 0.175 220 / 10%); color: oklch(0.42 0.175 220); border: 1px solid oklch(0.58 0.175 220 / 24%); }
+  .dark .cbadge-blue    { background: oklch(0.58 0.175 212 / 18%); color: oklch(0.74 0.168 212); border-color: oklch(0.58 0.175 212 / 28%); }
+  .cbadge-emerald { background: oklch(0.60 0.195 152 / 10%); color: oklch(0.40 0.178 152); border: 1px solid oklch(0.60 0.195 152 / 24%); }
+  .dark .cbadge-emerald { background: oklch(0.60 0.195 152 / 18%); color: oklch(0.72 0.188 152); border-color: oklch(0.60 0.195 152 / 28%); }
+  .cbadge-amber   { background: oklch(0.70 0.158 70 / 10%);  color: oklch(0.48 0.152 60);  border: 1px solid oklch(0.70 0.158 70 / 24%); }
+  .dark .cbadge-amber   { background: oklch(0.70 0.158 52 / 18%);  color: oklch(0.80 0.158 52);  border-color: oklch(0.70 0.158 52 / 28%); }
+  .cbadge-rose    { background: oklch(0.60 0.215 348 / 10%); color: oklch(0.44 0.210 348); border: 1px solid oklch(0.60 0.215 348 / 24%); }
+  .dark .cbadge-rose    { background: oklch(0.60 0.215 348 / 18%); color: oklch(0.73 0.208 348); border-color: oklch(0.60 0.215 348 / 28%); }
+  .cbadge-teal    { background: oklch(0.58 0.195 186 / 10%); color: oklch(0.40 0.178 186); border: 1px solid oklch(0.58 0.195 186 / 24%); }
+  .dark .cbadge-teal    { background: oklch(0.58 0.195 186 / 18%); color: oklch(0.72 0.188 186); border-color: oklch(0.58 0.195 186 / 28%); }
+
+  /* Exam section pills */
+  .cpill-indigo { border: 1px solid oklch(0.55 0.245 278 / 26%); color: oklch(0.44 0.228 278); }
+  .dark .cpill-indigo   { color: oklch(0.72 0.218 278); }
+  .cpill-amber  { border: 1px solid oklch(0.70 0.158 70 / 26%);  color: oklch(0.48 0.152 60);  }
+  .dark .cpill-amber    { color: oklch(0.80 0.158 52); }
+  .cpill-teal   { border: 1px solid oklch(0.58 0.195 186 / 26%); color: oklch(0.42 0.178 186); }
+  .dark .cpill-teal     { color: oklch(0.72 0.188 186); }
+
+  /* Stat boxes inside exam cards */
+  .cstat-indigo { background: oklch(0.55 0.245 278 / 6%); border: 1px solid oklch(0.55 0.245 278 / 12%); }
+  .dark .cstat-indigo   { background: oklch(0.55 0.245 278 / 8%); }
+  .cstat-amber  { background: oklch(0.70 0.158 70 / 6%);  border: 1px solid oklch(0.70 0.158 70 / 12%); }
+  .dark .cstat-amber    { background: oklch(0.70 0.158 70 / 8%); }
+  .cstat-teal   { background: oklch(0.58 0.195 186 / 6%); border: 1px solid oklch(0.58 0.195 186 / 12%); }
+  .dark .cstat-teal     { background: oklch(0.58 0.195 186 / 8%); }
+
+  /* Range footer boxes */
+  .crange-indigo { background: oklch(0.55 0.245 278 / 5%); border: 1px solid oklch(0.55 0.245 278 / 16%); }
+  .dark .crange-indigo   { background: oklch(0.55 0.245 278 / 8%); }
+  .crange-amber  { background: oklch(0.70 0.158 70 / 5%);  border: 1px solid oklch(0.70 0.158 70 / 16%); }
+  .dark .crange-amber    { background: oklch(0.70 0.158 70 / 8%); }
+  .crange-teal   { background: oklch(0.58 0.195 186 / 5%); border: 1px solid oklch(0.58 0.195 186 / 16%); }
+  .dark .crange-teal     { background: oklch(0.58 0.195 186 / 8%); }
+
+  /* How-it-works step circles */
+  .cstep-indigo  { background: oklch(0.55 0.245 278 / 12%); color: oklch(0.44 0.228 278); }
+  .dark .cstep-indigo  { background: oklch(0.55 0.245 278 / 20%); color: oklch(0.72 0.218 278); }
+  .cstep-violet  { background: oklch(0.58 0.238 300 / 12%); color: oklch(0.44 0.228 300); }
+  .dark .cstep-violet  { background: oklch(0.58 0.238 300 / 20%); color: oklch(0.74 0.198 300); }
+  .cstep-emerald { background: oklch(0.60 0.195 152 / 12%); color: oklch(0.42 0.178 152); }
+  .dark .cstep-emerald { background: oklch(0.60 0.195 152 / 20%); color: oklch(0.72 0.188 152); }
+
+  /* Hero section AI-Powered pill badge */
+  .hero-pill-indigo { border: 1px solid oklch(0.55 0.245 278 / 26%); background: oklch(0.55 0.245 278 / 8%); color: oklch(0.44 0.228 278); }
+  .dark .hero-pill-indigo { color: oklch(0.72 0.218 278); }
+  .hero-pill-violet { border: 1px solid oklch(0.58 0.238 300 / 26%); background: oklch(0.58 0.238 300 / 8%); color: oklch(0.44 0.228 300); }
+  .dark .hero-pill-violet { color: oklch(0.74 0.198 300); }
+
+  /* Target Band Panel (Entrance Exam right panel) */
+  .target-panel     { border: 1px solid oklch(0.55 0.245 278 / 20%); background: oklch(0.55 0.245 278 / 5%); }
+  .target-lbl       { color: oklch(0.46 0.220 278); } .dark .target-lbl       { color: oklch(0.65 0.178 278); }
+  .target-band-tag  { border: 1px solid oklch(0.55 0.245 278 / 26%); background: oklch(0.55 0.245 278 / 10%); color: oklch(0.44 0.228 278); }
+  .dark .target-band-tag  { color: oklch(0.72 0.218 278); }
+  .target-score-num { color: oklch(0.44 0.230 278); } .dark .target-score-num { color: oklch(0.72 0.218 278); }
+  .target-sub-txt   { color: oklch(0.55 0.175 278 / 68%); } .dark .target-sub-txt   { color: oklch(0.55 0.138 278 / 70%); }
+  .target-track     { background: oklch(0.55 0.245 278 / 16%); } .dark .target-track     { background: oklch(0.20 0.04 278 / 50%); }
+  .target-marks     { color: oklch(0.58 0.180 278 / 52%); } .dark .target-marks     { color: oklch(0.50 0.118 278 / 50%); }
+  .target-cefr-box  { border: 1px solid oklch(0.55 0.245 278 / 14%); background: oklch(0.55 0.245 278 / 5%); }
+  .dark .target-cefr-box  { background: oklch(0.20 0.04 278 / 20%); border-color: oklch(0.55 0.245 278 / 14%); }
+  .target-cefr-lbl  { color: oklch(0.55 0.198 278 / 62%); } .dark .target-cefr-lbl  { color: oklch(0.55 0.178 278 / 60%); }
+  .target-cefr-val  { color: oklch(0.44 0.228 278); } .dark .target-cefr-val  { color: oklch(0.72 0.218 278); }
+
+  /* Info / note box (Entrance Exam bottom) */
+  .note-box-indigo       { border: 1px solid oklch(0.55 0.245 278 / 18%); background: oklch(0.55 0.245 278 / 4%); }
+  .note-box-indigo-icon  { background: oklch(0.55 0.245 278 / 12%); color: oklch(0.46 0.228 278); }
+  .dark .note-box-indigo-icon  { color: oklch(0.72 0.218 278); }
+  .note-box-indigo-title { color: oklch(0.42 0.238 278); } .dark .note-box-indigo-title { color: oklch(0.72 0.218 278); }
+  .note-box-indigo-text  { color: oklch(0.50 0.188 278 / 82%); } .dark .note-box-indigo-text  { color: oklch(0.72 0.218 278 / 70%); }
+
+  /* ══════════════════════════════════════════════════════════
+     EXAM LISTENING PLAYER — fully light/dark aware
+     ══════════════════════════════════════════════════════════ */
+
+  /* Outer card */
+  .listen-card { border-radius: 1rem; overflow: hidden; border: 1px solid oklch(0.58 0.175 220 / 25%); background: linear-gradient(160deg, #eff6ff 0%, #dbeafe 100%); }
+  .dark .listen-card { background: linear-gradient(160deg, #0d1b35 0%, #0a1628 100%); border-color: oklch(0.58 0.175 220 / 20%); }
+
+  /* Header row */
+  .listen-card-header { @apply flex items-center justify-between px-5 py-3.5; border-bottom: 1px solid oklch(0.58 0.175 220 / 12%); }
+
+  /* Icon box */
+  .listen-icon-box { @apply flex h-9 w-9 items-center justify-center rounded-xl text-lg select-none; background: oklch(0.58 0.175 220 / 18%); }
+  .dark .listen-icon-box { background: oklch(0.58 0.175 220 / 15%); }
+
+  /* Title & sub-label */
+  .listen-title { @apply text-sm font-bold leading-tight; color: oklch(0.30 0.160 220); }
+  .dark .listen-title { color: oklch(0.92 0.050 220); }
+  .listen-sub { @apply text-[10px] uppercase tracking-widest mt-0.5; color: oklch(0.48 0.145 220 / 65%); }
+  .dark .listen-sub { color: oklch(0.60 0.115 220 / 55%); }
+
+  /* Status badge — 3 states */
+  .listen-badge { display: flex; align-items: center; gap: 0.375rem; border-radius: 9999px; padding: 0.25rem 0.625rem; font-size: 0.625rem; line-height: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.15s, background-color 0.15s; }
+  .listen-badge-playing { background: oklch(0.58 0.175 220 / 14%); color: oklch(0.38 0.165 220); }
+  .dark .listen-badge-playing { background: oklch(0.58 0.175 220 / 20%); color: oklch(0.74 0.168 212); }
+  .listen-badge-done { background: oklch(0.60 0.195 152 / 10%); color: oklch(0.40 0.178 152); }
+  .dark .listen-badge-done { background: oklch(0.60 0.195 152 / 15%); color: oklch(0.72 0.188 152); }
+  .listen-badge-idle { background: oklch(0.50 0.015 220 / 7%); color: oklch(0.46 0.018 220); }
+  .dark .listen-badge-idle { background: oklch(0.28 0.015 220 / 30%); color: oklch(0.62 0.012 220); }
+
+  /* Status dot */
+  .listen-dot { @apply h-1.5 w-1.5 rounded-full transition-colors; }
+  .listen-dot-playing { background: oklch(0.52 0.185 220); animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+  .dark .listen-dot-playing { background: oklch(0.70 0.165 212); }
+  .listen-dot-done { background: oklch(0.52 0.185 152); }
+  .dark .listen-dot-done { background: oklch(0.72 0.188 152); }
+  .listen-dot-idle { background: oklch(0.52 0.015 220); }
+  .dark .listen-dot-idle { background: oklch(0.50 0.012 220); }
+
+  /* Waveform container */
+  .listen-wave-bg { @apply relative flex items-center justify-center h-16 rounded-xl overflow-hidden; background: oklch(0.58 0.175 220 / 7%); border: 1px solid oklch(0.58 0.175 220 / 14%); }
+  .dark .listen-wave-bg { background: rgba(30, 58, 138, 0.18); border-color: oklch(0.58 0.175 220 / 10%); }
+
+  /* Sweep animation overlay */
+  .listen-sweep { @apply absolute inset-0 opacity-60; background: linear-gradient(90deg, transparent 0%, oklch(0.58 0.175 220 / 7%) 50%, transparent 100%); animation: listen-bg-sweep 2s ease-in-out infinite; }
+  .dark .listen-sweep { background: linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.06) 50%, transparent 100%); }
+
+  /* Waveform bar colours */
+  .listen-bar-playing { background: oklch(0.52 0.185 220); }
+  .dark .listen-bar-playing { background: oklch(0.68 0.165 212); }
+  .listen-bar-done { background: oklch(0.55 0.160 220 / 35%); }
+  .dark .listen-bar-done { background: oklch(0.38 0.130 220 / 60%); }
+  .listen-bar-idle { background: oklch(0.55 0.015 220 / 22%); }
+  .dark .listen-bar-idle { background: oklch(0.42 0.012 220 / 40%); }
+
+  /* Native-style player control bar — colors only (layout is inline in template) */
+  .listen-controls { background: oklch(0.58 0.175 220 / 6%); border: 1px solid oklch(0.58 0.175 220 / 14%); }
+  .dark .listen-controls { background: rgba(30, 58, 138, 0.18); border-color: oklch(0.58 0.175 220 / 10%); }
+
+  .listen-play-btn { background: linear-gradient(135deg, oklch(0.50 0.238 264), oklch(0.48 0.218 290)); color: #fff; }
+  .listen-play-btn:hover { background: linear-gradient(135deg, oklch(0.55 0.235 264), oklch(0.53 0.215 290)); }
+
+  .listen-time { color: oklch(0.42 0.09 235); }
+  .dark .listen-time { color: oklch(0.80 0.09 225); }
+
+  .listen-seek { background: oklch(0.55 0.05 235 / 22%); }
+  .dark .listen-seek { background: oklch(0.65 0.05 230 / 28%); }
+  .listen-seek-fill { background: oklch(0.52 0.185 220); transition: width 0.2s linear; }
+  .dark .listen-seek-fill { background: oklch(0.68 0.165 212); }
+  .listen-seek-knob { background: #fff; border: 2px solid oklch(0.52 0.185 220); transition: left 0.2s linear; }
+  .dark .listen-seek-knob { border-color: oklch(0.68 0.165 212); }
+
+  .listen-vol { color: oklch(0.45 0.06 235); }
+  .dark .listen-vol { color: oklch(0.74 0.07 228); }
+
+  /* ── Hero page background gradients ── */
+  .hero-bg-indigo  { @apply absolute inset-0 bg-linear-to-br from-indigo-600/20 via-violet-600/10 to-transparent; }
+  .hero-bg-violet  { @apply absolute inset-0 bg-linear-to-br from-violet-600/20 via-purple-600/10 to-transparent; }
+  .hero-bg-blue    { @apply absolute inset-0 bg-linear-to-br from-blue-600/20 via-cyan-600/10 to-transparent; }
+  .hero-bg-emerald { @apply absolute inset-0 bg-linear-to-br from-emerald-600/15 via-teal-600/8 to-transparent; }
+  .hero-bg-rose    { @apply absolute inset-0 bg-linear-to-br from-rose-600/15 via-pink-600/8 to-transparent; }
+  .hero-bg-amber   { @apply absolute inset-0 bg-linear-to-br from-amber-600/15 via-orange-600/8 to-transparent; }
+
+  /* ── Info / alert boxes ── */
+  .info-box    { @apply rounded-xl border px-4 py-3; }
+  .info-box-sm { @apply rounded-xl border p-3; }
+  .info-box-lg { @apply rounded-2xl border p-5; }
+  .info-box-amber        { @apply border-amber-500/20 bg-amber-500/5; }
+  .info-box-amber-strong { @apply border-amber-500/30 bg-amber-500/10; }
+  .info-box-blue         { @apply border-blue-500/20 bg-blue-500/5; }
+  .info-box-indigo       { @apply border-indigo-500/20 bg-indigo-500/5; }
+  .info-box-emerald      { @apply border-emerald-500/20 bg-emerald-500/5; }
+  .info-box-rose         { @apply border-rose-500/20 bg-rose-500/5; }
+  .info-box-red          { @apply border-red-500/30 bg-red-500/5; }
+
+  /* ── Small inline action buttons (TTS, Listen, Camera, Replay) ── */
+  .action-btn         { @apply flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors; }
+  .action-btn-blue    { @apply border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20; }
+  .action-btn-emerald { @apply border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20; }
+  .action-btn-rose    { @apply border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20; }
+  .action-btn-indigo  { @apply border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20; }
+  .action-btn-amber   { @apply border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20; }
+
+  /* ── Skill tab toggle (active selected state) ── */
+  .skill-tab-rose    { @apply border-rose-500/50 bg-rose-500/15 text-rose-300; }
+  .skill-tab-blue    { @apply border-blue-500/50 bg-blue-500/15 text-blue-300; }
+  .skill-tab-emerald { @apply border-emerald-500/50 bg-emerald-500/15 text-emerald-300; }
+  .skill-tab-indigo  { @apply border-indigo-500/50 bg-indigo-500/15 text-indigo-300; }
+  .skill-tab-amber   { @apply border-amber-500/50 bg-amber-500/15 text-amber-300; }
+
+  /* ── CEFR level filter buttons (active state, stronger opacity) ── */
+  .level-filter-a1  { @apply border-red-500/50 bg-red-500/15 text-red-300; }
+  .level-filter-a2  { @apply border-orange-500/50 bg-orange-500/15 text-orange-300; }
+  .level-filter-b1  { @apply border-amber-500/50 bg-amber-500/15 text-amber-300; }
+  .level-filter-b2  { @apply border-yellow-500/50 bg-yellow-500/15 text-yellow-300; }
+  .level-filter-c1  { @apply border-emerald-500/50 bg-emerald-500/15 text-emerald-300; }
+  .level-filter-c2  { @apply border-blue-500/50 bg-blue-500/15 text-blue-300; }
+  .level-filter-all-blue    { @apply border-blue-500/50 bg-blue-500/15 text-blue-300; }
+  .level-filter-all-emerald { @apply border-emerald-500/50 bg-emerald-500/15 text-emerald-300; }
+  .level-filter-all-rose    { @apply border-rose-500/50 bg-rose-500/15 text-rose-300; }
+
+  /* ── Library sidebar item active states ── */
+  .lib-item-active-blue    { @apply border-blue-500/50 bg-blue-500/10; }
+  .lib-item-active-emerald { @apply border-emerald-500/50 bg-emerald-500/10; }
+  .lib-item-active-rose    { @apply border-rose-500/50 bg-rose-500/10; }
+
+  /* ── Audio player / waveform container ── */
+  .audio-player         { @apply rounded-2xl border p-5; }
+  .audio-player-emerald { @apply border-emerald-500/20 bg-emerald-500/5; }
+  .audio-player-blue    { @apply border-blue-500/20 bg-blue-500/5; }
+  .audio-player-rose    { @apply border-rose-500/20 bg-rose-500/5; }
+
+  /* ── Quiz answer feedback states ── */
+  .answer-correct { @apply border-emerald-500 bg-emerald-500/10 text-emerald-300; }
+  .answer-wrong   { @apply border-red-500 bg-red-500/10 text-red-300; }
+  .answer-pass    { @apply border-emerald-500/30 bg-emerald-500/10; }
+  .answer-fail    { @apply border-red-500/30 bg-red-500/10; }
+
+  /* ── Icon wrapper squares ── */
+  .icon-box-sm { @apply flex h-8 w-8 items-center justify-center rounded-lg text-lg; }
+  .icon-box-blue    { @apply bg-blue-500/15; }
+  .icon-box-emerald { @apply bg-emerald-500/15; }
+  .icon-box-rose    { @apply bg-rose-500/15; }
+  .icon-box-amber   { @apply bg-amber-500/15; }
+  .icon-box-indigo  { @apply bg-indigo-500/15; }
+
+  /* ══════════════════════════════════════════════════════════
+     ADMIN PORTAL — light/dark-mode semantic classes  (prefix: adm-)
+     ══════════════════════════════════════════════════════════ */
+
+  /* ── Surfaces ── */
+  .adm-card        { @apply bg-card border border-border rounded-xl overflow-hidden; }
+  .adm-card-2xl    { @apply bg-card border border-border rounded-2xl overflow-hidden; }
+  .adm-card-header { @apply px-5 py-4 border-b border-border flex items-center justify-between; }
+  .adm-divider     { @apply border-b border-border; }
+
+  /* ── Skeleton loaders ── */
+  .adm-skel   { @apply bg-muted/40 animate-pulse rounded; }
+  .adm-skel-c { @apply bg-muted/40 animate-pulse rounded-full; }
+
+  /* ── Typography ── */
+  .adm-h1       { @apply text-xl font-bold text-foreground; }
+  .adm-h2       { @apply text-lg font-bold text-foreground; }
+  .adm-h3       { @apply text-sm font-semibold text-foreground; }
+  .adm-label    { @apply text-xs font-medium text-muted-foreground; }
+  .adm-text     { @apply text-sm text-muted-foreground; }
+  .adm-meta     { @apply text-xs text-muted-foreground/70; }
+  .adm-link     { @apply text-indigo-600 font-medium hover:underline transition-colors; }
+  .dark .adm-link { @apply text-indigo-400; }
+  .adm-required { @apply text-red-400; }
+
+  /* ── Role & status badges ── */
+  .adm-badge          { @apply inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full; }
+  .adm-badge-teacher  { @apply bg-violet-100 text-violet-700; }
+  .dark .adm-badge-teacher  { @apply bg-violet-500/20 text-violet-400; }
+  .adm-badge-student  { @apply bg-blue-100 text-blue-700; }
+  .dark .adm-badge-student  { @apply bg-blue-500/20 text-blue-400; }
+  .adm-badge-active   { @apply bg-emerald-100 text-emerald-700; }
+  .dark .adm-badge-active   { @apply bg-emerald-500/20 text-emerald-400; }
+  .adm-badge-inactive { @apply bg-slate-100 text-slate-500; }
+  .dark .adm-badge-inactive { @apply bg-muted/40 text-muted-foreground; }
+  .adm-badge-warning  { @apply bg-amber-100 text-amber-700; }
+  .dark .adm-badge-warning  { @apply bg-amber-500/20 text-amber-400; }
+  .adm-badge-error    { @apply bg-red-100 text-red-600; }
+  .dark .adm-badge-error    { @apply bg-red-500/20 text-red-400; }
+
+  /* ── Stat/icon container tints ── */
+  .adm-icon-indigo  { @apply bg-indigo-50  text-indigo-600; }
+  .dark .adm-icon-indigo  { @apply bg-indigo-500/15  text-indigo-400; }
+  .adm-icon-blue    { @apply bg-blue-50    text-blue-600; }
+  .dark .adm-icon-blue    { @apply bg-blue-500/15    text-blue-400; }
+  .adm-icon-violet  { @apply bg-violet-50  text-violet-600; }
+  .dark .adm-icon-violet  { @apply bg-violet-500/15  text-violet-400; }
+  .adm-icon-emerald { @apply bg-emerald-50 text-emerald-600; }
+  .dark .adm-icon-emerald { @apply bg-emerald-500/15 text-emerald-400; }
+  .adm-icon-amber   { @apply bg-amber-50   text-amber-600; }
+  .dark .adm-icon-amber   { @apply bg-amber-500/15   text-amber-400; }
+  .adm-icon-rose    { @apply bg-rose-50    text-rose-600; }
+  .dark .adm-icon-rose    { @apply bg-rose-500/15    text-rose-400; }
+  .adm-icon-red     { @apply bg-red-50     text-red-500; }
+  .dark .adm-icon-red     { @apply bg-red-500/15     text-red-400; }
+
+  /* ── Avatar initials ── */
+  .adm-avatar         { @apply w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0; }
+  .adm-avatar-teacher { @apply bg-violet-100 text-violet-700; }
+  .dark .adm-avatar-teacher { @apply bg-violet-500/20 text-violet-400; }
+  .adm-avatar-student { @apply bg-blue-100  text-blue-700; }
+  .dark .adm-avatar-student { @apply bg-blue-500/20  text-blue-400; }
+
+  /* ── Toggle switch ── */
+  .adm-toggle-on  { @apply bg-emerald-500; }
+  .adm-toggle-off { @apply bg-slate-300; }
+  .dark .adm-toggle-off { @apply bg-muted/60; }
+
+  /* ── Buttons ── */
+  .adm-btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
+           bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-sm transition-colors;
+  }
+  .adm-btn-primary:disabled { @apply opacity-50 cursor-not-allowed pointer-events-none; }
+
+  .adm-btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium
+           bg-card border border-border text-foreground rounded-lg hover:bg-muted/20 transition;
+  }
+  .adm-btn-ghost:disabled { @apply opacity-50 cursor-not-allowed pointer-events-none; }
+
+  .adm-btn-soft-primary {
+    @apply flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg
+           bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition;
+  }
+  .dark .adm-btn-soft-primary { @apply bg-indigo-500/15 hover:bg-indigo-500/20 text-indigo-400; }
+
+  .adm-btn-soft-neutral {
+    @apply flex items-center gap-3 w-full px-4 py-3 text-sm font-medium rounded-lg
+           bg-slate-50 hover:bg-slate-100 text-slate-700 transition;
+  }
+  .dark .adm-btn-soft-neutral { @apply bg-muted/20 hover:bg-muted/30 text-foreground; }
+
+  .adm-btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
+           bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors;
+  }
+
+  /* ── Icon-only action buttons ── */
+  .adm-icon-btn       { @apply p-1.5 rounded-lg text-muted-foreground transition cursor-pointer bg-transparent; }
+  .adm-icon-btn-warn  { @apply hover:bg-amber-50 hover:text-amber-600; }
+  .dark .adm-icon-btn-warn  { @apply hover:bg-amber-500/15 hover:text-amber-400; }
+  .adm-icon-btn-del   { @apply hover:bg-red-50   hover:text-red-600; }
+  .dark .adm-icon-btn-del   { @apply hover:bg-red-500/15   hover:text-red-400; }
+  .adm-icon-btn-close { @apply hover:bg-slate-100 hover:text-slate-600; }
+  .dark .adm-icon-btn-close { @apply hover:bg-muted/30 hover:text-foreground; }
+
+  /* ── Tab groups ── */
+  .adm-tabs   { @apply flex bg-muted/20 border border-border rounded-lg p-1 gap-1; }
+  .adm-tab    { @apply px-3 py-1.5 text-xs font-semibold rounded-md transition text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer; }
+  .adm-tab-on { @apply bg-card text-foreground shadow-sm; }
+
+  /* ── Form controls ── */
+  .adm-input {
+    @apply w-full bg-card border border-border rounded-lg px-3 py-2.5 text-sm
+           text-foreground placeholder:text-muted-foreground/60
+           focus:outline-none focus:ring-2 focus:ring-indigo-400/60 focus:border-indigo-400 transition;
+  }
+  .adm-search {
+    @apply w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2 text-sm
+           text-foreground placeholder:text-muted-foreground/60
+           focus:outline-none focus:ring-2 focus:ring-indigo-400/60 focus:border-indigo-400 transition;
+  }
+  .adm-form-label { @apply block text-xs font-medium text-muted-foreground mb-1.5; }
+
+  /* ── Data table ── */
+  .adm-thead  { @apply bg-muted/10 border-b border-border; }
+  .adm-th     { @apply px-5 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wide; }
+  .adm-tr     { @apply hover:bg-muted/10 transition-colors; }
+  .adm-td     { @apply px-5 py-3.5; }
+  .adm-divide { @apply divide-y divide-border/50; }
+
+  /* ── Toast / flash notifications ── */
+  .adm-toast {
+    @apply fixed top-4 right-4 z-[100] flex items-center gap-3 text-white
+           text-sm font-medium px-4 py-3 rounded-xl shadow-lg max-w-sm;
+  }
+  .adm-toast-error   { @apply bg-red-600; }
+  .adm-toast-success { @apply bg-emerald-600; }
+
+  /* ── Progress distribution bars ── */
+  .adm-bar-track   { @apply h-2 bg-muted/30 rounded-full overflow-hidden; }
+  .adm-bar-blue    { @apply h-full bg-blue-500    rounded-full transition-all; }
+  .adm-bar-violet  { @apply h-full bg-violet-600  rounded-full transition-all; }
+  .adm-bar-emerald { @apply h-full bg-emerald-500 rounded-full transition-all; }
+  .adm-bar-amber   { @apply h-full bg-amber-500   rounded-full transition-all; }
+
+  /* ── Admin login page (dark standalone screen) ── */
+  .adm-login-card { @apply bg-slate-800 rounded-2xl p-6 border border-white/10 shadow-2xl; }
+  .adm-login-input {
+    background: oklch(0.09 0.02 278);
+    border: 1px solid rgb(255 255 255 / 0.10);
+    color: #fff;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem 0.75rem 1rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: box-shadow 0.15s;
+    width: 100%;
+    padding-right: 2.5rem;
+  }
+  .adm-login-input:focus { box-shadow: 0 0 0 2px oklch(0.55 0.245 278 / 50%); }
+  .adm-login-input::placeholder { color: oklch(0.44 0.044 265); }
+  .adm-login-input-err { border-color: oklch(0.58 0.22 25 / 60%); }
+  .adm-login-input-err:focus { box-shadow: 0 0 0 2px oklch(0.58 0.22 25 / 20%); }
+  .adm-login-btn {
+    @apply w-full flex items-center justify-center gap-2
+           bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed
+           text-white font-semibold text-sm rounded-xl py-3 transition-all border-none cursor-pointer;
+  }
+
+  /* ── Teacher / Student portal icon-bg helpers (dark-mode palette, use with ct-* text) ── */
+  .sk-icon-indigo  { @apply bg-indigo-500/10  rounded-xl p-2.5; }
+  .sk-icon-blue    { @apply bg-blue-500/10    rounded-xl p-2.5; }
+  .sk-icon-emerald { @apply bg-emerald-500/10 rounded-xl p-2.5; }
+  .sk-icon-amber   { @apply bg-amber-500/10   rounded-xl p-2.5; }
+  .sk-icon-rose    { @apply bg-rose-500/10    rounded-xl p-2.5; }
+  .sk-icon-violet  { @apply bg-violet-500/10  rounded-xl p-2.5; }
+
+  /* ══════════════════════════════════════════════════════════
+     SECTION / SKILL ACCENT BADGES — light + dark aware  (prefix: sec-)
+     One class per colour role. Used by exam & skill pages so the palette
+     lives here, not scattered inline. Each = soft bg + coloured text + border.
+     ══════════════════════════════════════════════════════════ */
+  .sec-blue    { @apply border border-blue-200    bg-blue-50    text-blue-700; }
+  .dark .sec-blue    { @apply border-blue-500/30    bg-blue-500/10    text-blue-300; }
+  .sec-cyan    { @apply border border-cyan-200    bg-cyan-50    text-cyan-700; }
+  .dark .sec-cyan    { @apply border-cyan-500/30    bg-cyan-500/10    text-cyan-300; }
+  .sec-sky     { @apply border border-sky-200     bg-sky-50     text-sky-700; }
+  .dark .sec-sky     { @apply border-sky-500/30     bg-sky-500/10     text-sky-300; }
+  .sec-teal    { @apply border border-teal-200    bg-teal-50    text-teal-700; }
+  .dark .sec-teal    { @apply border-teal-500/30    bg-teal-500/10    text-teal-300; }
+  .sec-green   { @apply border border-green-200   bg-green-50   text-green-700; }
+  .dark .sec-green   { @apply border-green-500/30   bg-green-500/10   text-green-300; }
+  .sec-emerald { @apply border border-emerald-200 bg-emerald-50 text-emerald-700; }
+  .dark .sec-emerald { @apply border-emerald-500/30 bg-emerald-500/10 text-emerald-300; }
+  .sec-violet  { @apply border border-violet-200  bg-violet-50  text-violet-700; }
+  .dark .sec-violet  { @apply border-violet-500/30  bg-violet-500/10  text-violet-300; }
+  .sec-purple  { @apply border border-purple-200  bg-purple-50  text-purple-700; }
+  .dark .sec-purple  { @apply border-purple-500/30  bg-purple-500/10  text-purple-300; }
+  .sec-indigo  { @apply border border-indigo-200  bg-indigo-50  text-indigo-700; }
+  .dark .sec-indigo  { @apply border-indigo-500/30  bg-indigo-500/10  text-indigo-300; }
+  .sec-amber   { @apply border border-amber-200   bg-amber-50   text-amber-700; }
+  .dark .sec-amber   { @apply border-amber-500/30   bg-amber-500/10   text-amber-300; }
+  .sec-yellow  { @apply border border-yellow-200  bg-yellow-50  text-yellow-700; }
+  .dark .sec-yellow  { @apply border-yellow-500/30  bg-yellow-500/10  text-yellow-300; }
+  .sec-orange  { @apply border border-orange-200  bg-orange-50  text-orange-700; }
+  .dark .sec-orange  { @apply border-orange-500/30  bg-orange-500/10  text-orange-300; }
+  .sec-pink    { @apply border border-pink-200    bg-pink-50    text-pink-700; }
+  .dark .sec-pink    { @apply border-pink-500/30    bg-pink-500/10    text-pink-300; }
+  .sec-rose    { @apply border border-rose-200    bg-rose-50    text-rose-700; }
+  .dark .sec-rose    { @apply border-rose-500/30    bg-rose-500/10    text-rose-300; }
+  .sec-red     { @apply border border-red-200     bg-red-50     text-red-700; }
+  .dark .sec-red     { @apply border-red-500/30     bg-red-500/10     text-red-300; }
+
+  /* ══════════════════════════════════════════════════════════
+     AI SETTINGS PAGE — admin portal specific (prefix: adm-)
+     ══════════════════════════════════════════════════════════ */
+
+  /* Page background wrapper */
+  .adm-page { @apply min-h-full bg-background; }
+
+  /* Model pill in page header */
+  .adm-model-pill { @apply flex items-center gap-1.5 rounded-full bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground; }
+
+  /* Status badge pills */
+  .adm-status-on  { @apply border-emerald-200 bg-emerald-50 text-emerald-700; }
+  .dark .adm-status-on  { @apply border-emerald-500/30 bg-emerald-500/15 text-emerald-400; }
+  .adm-status-off { @apply border-amber-200   bg-amber-50   text-amber-700; }
+  .dark .adm-status-off { @apply border-amber-500/30   bg-amber-500/15   text-amber-400; }
+  .adm-ping-on    { @apply bg-emerald-400; }
+  .adm-ping-off   { @apply bg-amber-400; }
+  .adm-dot-on     { @apply bg-emerald-500; }
+  .adm-dot-off    { @apply bg-amber-500; }
+  .adm-dot-dim    { @apply bg-slate-300; }
+  .dark .adm-dot-dim    { @apply bg-muted/60; }
+
+  /* Hero banner */
+  .adm-hero-on        { @apply bg-linear-to-br from-violet-600 via-indigo-600 to-indigo-700; }
+  .adm-hero-off       { @apply bg-linear-to-br from-slate-600 via-slate-700 to-slate-800; }
+  .adm-hero-orb       { @apply absolute rounded-full bg-white/5; }
+  .adm-hero-icon-box  { @apply flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm; }
+  .adm-hero-icon-on   { @apply text-white; }
+  .adm-hero-icon-off  { @apply text-white/70; }
+  .adm-hero-sublabel  { @apply text-white/60 text-xs font-semibold uppercase tracking-widest mb-1; }
+  .adm-hero-title     { @apply text-white text-2xl font-bold leading-tight; }
+  .adm-hero-desc      { @apply text-white/65 text-sm mt-1.5; }
+  .adm-hero-code      { @apply font-mono bg-white/10 px-1.5 py-0.5 rounded text-white/90 text-xs; }
+
+  /* Hero stat bubbles */
+  .adm-stat-bubble     { @apply flex flex-col items-center justify-center rounded-2xl px-6 py-4 text-center min-w-20; }
+  .adm-stat-bubble-off { @apply bg-white/10; }
+  .adm-stat-bubble-on  { @apply bg-emerald-500/25; }
+  .adm-stat-num        { @apply text-white text-3xl font-black; }
+  .adm-stat-num-sm     { @apply text-white text-lg font-black leading-tight; }
+  .adm-stat-label      { @apply text-white/60 text-xs font-semibold mt-0.5 leading-tight; }
+
+  /* Alert / message boxes */
+  .adm-alert             { @apply flex items-start gap-2.5 rounded-xl border px-4 py-3; }
+  .adm-alert-error       { @apply bg-red-50     border-red-200; }
+  .dark .adm-alert-error   { @apply bg-red-500/10   border-red-500/30; }
+  .adm-alert-success     { @apply bg-emerald-50 border-emerald-200; }
+  .dark .adm-alert-success { @apply bg-emerald-500/10 border-emerald-500/30; }
+  .adm-alert-info        { @apply bg-blue-50    border-blue-100; }
+  .dark .adm-alert-info    { @apply bg-blue-500/10   border-blue-500/20; }
+  .adm-alert-icon-error  { @apply h-4 w-4 text-red-500 mt-0.5 shrink-0; }
+  .adm-alert-icon-ok     { @apply h-4 w-4 text-emerald-500 mt-0.5 shrink-0; }
+  .adm-alert-icon-info   { @apply h-4 w-4 text-blue-500 shrink-0 mt-0.5; }
+  .adm-alert-text-error  { @apply text-xs text-red-700; }
+  .dark .adm-alert-text-error  { @apply text-red-400; }
+  .adm-alert-text-ok     { @apply text-xs text-emerald-700; }
+  .dark .adm-alert-text-ok     { @apply text-emerald-400; }
+  .adm-alert-text-info   { @apply text-xs text-blue-700 leading-relaxed; }
+  .dark .adm-alert-text-info   { @apply text-blue-400; }
+
+  /* API key text input */
+  .adm-api-input {
+    @apply w-full pl-4 pr-12 py-3 text-sm rounded-xl border border-border bg-card
+           font-mono text-foreground placeholder:text-muted-foreground/50
+           focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400
+           transition-all;
+  }
+
+  /* Inline code snippet */
+  .adm-code { @apply bg-muted/40 text-muted-foreground px-1 py-0.5 rounded font-mono text-[11px]; }
+
+  /* Save & deactivate buttons */
+  .adm-ai-save-btn     { @apply flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white shadow-sm transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50; }
+  .adm-ai-save-btn-on  { @apply bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/25; }
+  .adm-ai-save-btn-off { @apply bg-indigo-400; }
+  .adm-btn-deactivate  { @apply flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 active:scale-[0.98] disabled:opacity-50; }
+  .dark .adm-btn-deactivate { @apply border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/15; }
+
+  /* Sidebar stat counter numbers */
+  .adm-count-on  { @apply text-2xl font-black text-indigo-600; }
+  .dark .adm-count-on  { @apply text-indigo-400; }
+  .adm-count-ok  { @apply text-2xl font-black text-emerald-600; }
+  .dark .adm-count-ok  { @apply text-emerald-400; }
+  .adm-count-off { @apply text-2xl font-black text-slate-300; }
+  .dark .adm-count-off { @apply text-muted-foreground/40; }
+
+  /* Model name mono label */
+  .adm-model-name { @apply text-xs font-bold text-muted-foreground font-mono; }
+
+  /* Sub-heading inside cards (smaller than adm-h3) */
+  .adm-h4 { @apply text-xs font-semibold text-foreground; }
+
+  /* AI features grid layout */
+  .adm-feat-grid { @apply gap-px bg-border/50; }
+  .adm-feat-cell { @apply bg-card p-5 transition-all hover:bg-muted/10; }
+  .adm-skel-cell { @apply bg-card p-5; }
+
+  /* Feature active/fallback badge */
+  .adm-feat-status-on  { @apply bg-emerald-100 text-emerald-700; }
+  .dark .adm-feat-status-on  { @apply bg-emerald-500/20 text-emerald-400; }
+  .adm-feat-status-off { @apply bg-slate-100 text-slate-400; }
+  .dark .adm-feat-status-off { @apply bg-muted/30 text-muted-foreground/60; }
+
+  /* Feature icon background tints (emoji containers) */
+  .adm-feat-bg-off    { @apply bg-muted/30; }
+  .adm-feat-bg-slate  { @apply bg-muted/20; }
+  .adm-feat-bg-indigo { @apply bg-indigo-50; }
+  .dark .adm-feat-bg-indigo { @apply bg-indigo-500/15; }
+  .adm-feat-bg-violet { @apply bg-violet-50; }
+  .dark .adm-feat-bg-violet { @apply bg-violet-500/15; }
+  .adm-feat-bg-blue   { @apply bg-blue-50; }
+  .dark .adm-feat-bg-blue   { @apply bg-blue-500/15; }
+  .adm-feat-bg-purple { @apply bg-purple-50; }
+  .dark .adm-feat-bg-purple { @apply bg-purple-500/15; }
+  .adm-feat-bg-pink   { @apply bg-pink-50; }
+  .dark .adm-feat-bg-pink   { @apply bg-pink-500/15; }
+  .adm-feat-bg-amber  { @apply bg-amber-50; }
+  .dark .adm-feat-bg-amber  { @apply bg-amber-500/15; }
+  .adm-feat-bg-teal   { @apply bg-teal-50; }
+  .dark .adm-feat-bg-teal   { @apply bg-teal-500/15; }
+  .adm-feat-bg-rose   { @apply bg-rose-50; }
+  .dark .adm-feat-bg-rose   { @apply bg-rose-500/15; }
+  .adm-feat-bg-cyan   { @apply bg-cyan-50; }
+  .dark .adm-feat-bg-cyan   { @apply bg-cyan-500/15; }
+  .adm-feat-bg-lime   { @apply bg-lime-50; }
+  .dark .adm-feat-bg-lime   { @apply bg-lime-500/15; }
+
+  /* ── Target band slider ── */
+  .target-slider {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 9999px;
+    background: oklch(0.35 0.12 278 / 50%);
+    outline: none;
+    cursor: pointer;
+  }
+  .target-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: oklch(0.65 0.20 278);
+    border: 2px solid oklch(0.80 0.15 278);
+    box-shadow: 0 0 8px oklch(0.65 0.20 278 / 60%);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .target-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 14px oklch(0.65 0.20 278 / 80%);
+  }
+  .target-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: oklch(0.65 0.20 278);
+    border: 2px solid oklch(0.80 0.15 278);
+    cursor: pointer;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  svg {
+    stroke-width: 1.75;
+  }
+
+  /* ── Text selection — uses primary color ── */
+  ::selection {
+    background-color: oklch(0.55 0.245 278 / 22%);
+    color: inherit;
+  }
+  .dark ::selection {
+    background-color: oklch(0.72 0.220 278 / 28%);
+  }
+
+  /* ── Custom scrollbar (Webkit) ── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.70 0.08 278 / 40%);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.55 0.245 278 / 65%);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: oklch(0.50 0.10 278 / 35%);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.72 0.220 278 / 60%);
+  }
+}

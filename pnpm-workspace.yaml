@@ -1,0 +1,3 @@
+packages:
+  - 'quiz-app-be'
+  - 'quiz-app-fe'
