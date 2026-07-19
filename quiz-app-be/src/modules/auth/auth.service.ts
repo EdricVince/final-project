@@ -1,5 +1,6 @@
 import {
   Injectable,
+  BadRequestException,
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
@@ -8,6 +9,7 @@ import {
 import { ROLE_STUDENT, ROLE_TEACHER } from '../roles/entities/role.entity';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
+import { MailService } from '../../core/mail/mail.service';
 import { RegisterDto, LoginDto, UserOutDto, LoginResponseDto, ProfileDto, UpdateProfileDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
@@ -17,6 +19,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private configService: ConfigService,
+    private mailService: MailService,
   ) {}
 
   private async hashPassword(password: string): Promise<string> {
@@ -182,6 +185,40 @@ export class AuthService {
         role_id: user.role_id,
       },
     };
+  }
+
+  // ── Password reset ──────────────────────────────────────────────────────────
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
+  /** Generate a reset token, store its hash, and email the reset link. Silent if the email is unknown. */
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) return; // never reveal whether an account exists
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const hash = this.hashToken(token);
+    const expires = Date.now() + 30 * 60 * 1000; // 30 minutes
+    await this.usersService.setResetToken(user.id, hash, expires);
+
+    const appUrl = (this.configService.get<string>('APP_URL') ?? 'http://localhost:5173').replace(/\/$/, '');
+    const resetUrl = `${appUrl}/reset-password?token=${token}`;
+    await this.mailService.sendPasswordReset(user.email, resetUrl);
+  }
+
+  /** Verify a reset token and set the new password (single-use). */
+  async resetPasswordWithToken(token: string, newPassword: string): Promise<void> {
+    if (!token || !newPassword || newPassword.length < 8) {
+      throw new BadRequestException('A valid token and a password of at least 8 characters are required.');
+    }
+    const hash = this.hashToken(token);
+    const user = await this.usersService.findByResetTokenHash(hash);
+    if (!user || !user.reset_token_expires || Number(user.reset_token_expires) < Date.now()) {
+      throw new BadRequestException('This password reset link is invalid or has expired. Please request a new one.');
+    }
+    const hashedPassword = await this.hashPassword(newPassword);
+    await this.usersService.resetPassword(user.id, hashedPassword);
   }
 
   refreshFromToken(token: string): { access_token: string } {

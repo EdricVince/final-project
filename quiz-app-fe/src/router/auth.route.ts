@@ -30,6 +30,12 @@ export const AUTH_ROUTES = [
         component: () => import('@/pages/auth/ForgotPasswordPage.vue'),
         meta: { requiresGuest: true },
       },
+      {
+        path: 'reset-password',
+        name: 'ResetPassword',
+        component: () => import('@/pages/auth/ResetPasswordPage.vue'),
+        meta: { requiresGuest: true },
+      },
     ],
   },
 ]

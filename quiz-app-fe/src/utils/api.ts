@@ -138,6 +138,13 @@ export const api = {
       body: JSON.stringify({ email }),
     }),
 
+  confirmResetPassword: (token: string, newPassword: string): Promise<SuccessResponse> =>
+    apiRequest<SuccessResponse>('/auth/reset-password/confirm', {
+      method: 'POST',
+      requiresAuth: false,
+      body: JSON.stringify({ token, new_password: newPassword }),
+    }),
+
   refreshToken: (refreshToken: string): Promise<RefreshTokenResponseData> =>
     apiRequest<RefreshTokenResponseData>('/auth/refresh', {
       method: 'POST',
