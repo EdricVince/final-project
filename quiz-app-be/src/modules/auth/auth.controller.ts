@@ -93,8 +93,22 @@ export class AuthController {
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  resetPassword(@Body() body: { email: string }): ApiResponse<null> {
-    if (!body.email) throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
-    return { code: HttpStatus.OK, message: 'If the email exists, a reset link has been sent', data: null };
+  async resetPassword(@Body() body: { email: string }): Promise<ApiResponse<null>> {
+    if (!body?.email) throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
+    await this.authService.requestPasswordReset(body.email.trim().toLowerCase());
+    // Always the same response so we never reveal whether an account exists.
+    return { code: HttpStatus.OK, message: 'If an account exists for that email, a reset link has been sent.', data: null };
+  }
+
+  @Post('reset-password/confirm')
+  @HttpCode(HttpStatus.OK)
+  async confirmResetPassword(
+    @Body() body: { token: string; new_password: string },
+  ): Promise<ApiResponse<null>> {
+    if (!body?.token || !body?.new_password) {
+      throw new HttpException('Token and new password are required', HttpStatus.BAD_REQUEST);
+    }
+    await this.authService.resetPasswordWithToken(body.token, body.new_password);
+    return { code: HttpStatus.OK, message: 'Password reset successfully. You can now sign in.', data: null };
   }
 }
