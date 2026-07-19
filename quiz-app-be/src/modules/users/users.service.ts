@@ -30,4 +30,24 @@ export class UsersService {
   async update(id: number, data: Partial<Pick<User, 'name' | 'avatar'>>): Promise<void> {
     await this.usersRepository.update(id, data);
   }
+
+  // ── Password reset ──────────────────────────────────────────────────────────
+  async setResetToken(id: number, hash: string, expiresEpochMs: number): Promise<void> {
+    await this.usersRepository.update(id, {
+      reset_token_hash: hash,
+      reset_token_expires: String(expiresEpochMs),
+    });
+  }
+
+  async findByResetTokenHash(hash: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { reset_token_hash: hash } });
+  }
+
+  async resetPassword(id: number, hashedPassword: string): Promise<void> {
+    await this.usersRepository.update(id, {
+      password: hashedPassword,
+      reset_token_hash: null,
+      reset_token_expires: null,
+    });
+  }
 }
