@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lesson } from './entities/lesson.entity';
 import type { LessonContent } from './entities/lesson.entity';
 import { ClassEnrollment } from '../classes/entities/class-enrollment.entity';
 import { IsString, IsOptional, IsInt, IsBoolean, IsObject } from 'class-validator';
-import { ROLE_TEACHER } from '../roles/entities/role.entity';
+import { ROLE_TEACHER, ROLE_ADMIN } from '../roles/entities/role.entity';
 
 export class CreateLessonDto {
   @IsString() title: string;
@@ -55,6 +55,8 @@ export class LessonsService {
         where: { teacher_id: userId },
         order: { created_at: 'DESC' },
       });
+    } else if (roleId === ROLE_ADMIN) {
+      lessons = await this.lessonRepo.find({ order: { created_at: 'DESC' } });
     } else {
       // Student: get lessons for enrolled classes + public lessons (class_id IS NULL)
       const enrollments = await this.enrollRepo.find({ where: { student_id: userId } });
@@ -80,8 +82,10 @@ export class LessonsService {
     const lesson = await this.lessonRepo.findOne({ where: { id } });
     if (!lesson) throw new NotFoundException('Lesson not found');
 
+    if (roleId === ROLE_ADMIN) return lesson;
+
     if (roleId === ROLE_TEACHER) {
-      if (lesson.teacher_id !== userId) throw new BadRequestException('Not your lesson');
+      if (lesson.teacher_id !== userId) throw new ForbiddenException('Not your lesson');
       return lesson;
     }
 
@@ -92,7 +96,7 @@ export class LessonsService {
       const enrolled = await this.enrollRepo.findOne({
         where: { class_id: lesson.class_id, student_id: userId },
       });
-      if (!enrolled) throw new BadRequestException('Not enrolled in this class');
+      if (!enrolled) throw new ForbiddenException('You are not enrolled in this class');
     }
 
     return lesson;
@@ -101,7 +105,7 @@ export class LessonsService {
   async update(id: number, teacherId: number, dto: UpdateLessonDto): Promise<Lesson> {
     const lesson = await this.lessonRepo.findOne({ where: { id } });
     if (!lesson) throw new NotFoundException('Lesson not found');
-    if (lesson.teacher_id !== teacherId) throw new BadRequestException('Not your lesson');
+    if (lesson.teacher_id !== teacherId) throw new ForbiddenException('Not your lesson');
     Object.assign(lesson, dto);
     return this.lessonRepo.save(lesson);
   }
@@ -109,7 +113,7 @@ export class LessonsService {
   async remove(id: number, teacherId: number): Promise<void> {
     const lesson = await this.lessonRepo.findOne({ where: { id } });
     if (!lesson) throw new NotFoundException('Lesson not found');
-    if (lesson.teacher_id !== teacherId) throw new BadRequestException('Not your lesson');
+    if (lesson.teacher_id !== teacherId) throw new ForbiddenException('Not your lesson');
     await this.lessonRepo.delete(id);
   }
 }

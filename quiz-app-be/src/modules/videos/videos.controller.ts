@@ -21,21 +21,21 @@ export class VideosController {
     return { code: 201, message: 'Video created', data: video };
   }
 
-  /** All: list videos (student filters by class_id, teacher filters by own) */
+  /** All: list videos scoped to the requester (teacher own / student enrolled / admin any) */
   @Get()
   async findAll(@Req() req: any, @Query('class_id') classId?: string) {
-    const isTeacher = req.user.role_id === ROLE_TEACHER;
-    const videos = await this.videosService.findAll(
+    const videos = await this.videosService.findForUser(
+      req.user.id,
+      req.user.role_id,
       classId ? Number(classId) : undefined,
-      isTeacher ? req.user.id : undefined,
     );
     return { code: 200, message: 'OK', data: videos };
   }
 
-  /** All: get one video */
+  /** All: get one video (teacher own / student enrolled / admin any) */
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    const video = await this.videosService.findOne(id);
+  async findOne(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
+    const video = await this.videosService.findOneForUser(id, req.user.id, req.user.role_id);
     return { code: 200, message: 'OK', data: video };
   }
 
