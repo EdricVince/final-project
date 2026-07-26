@@ -1,8 +1,16 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { UserProgress } from '../progress/entities/user-progress.entity';
+import { DailyActivity } from '../progress/entities/daily-activity.entity';
+import { Class } from '../classes/entities/class.entity';
+import { ClassEnrollment } from '../classes/entities/class-enrollment.entity';
+import { Video } from '../videos/entities/video.entity';
+import { Lesson } from '../lessons/entities/lesson.entity';
+import { LiveSession } from '../live-quiz/entities/live-session.entity';
+import { UserGoalSettings } from '../goals/entities/user-goal-settings.entity';
+import { UserCustomGoal } from '../goals/entities/user-custom-goal.entity';
 import { ROLE_STUDENT, ROLE_TEACHER } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcrypt';
 
@@ -118,11 +126,40 @@ export class AdminService {
     await this.userRepo.update(userId, { password: hashed });
   }
 
+  /**
+   * Permanently delete a user AND every record tied to them, atomically.
+   * There are no DB-level foreign keys, so this cascade is enforced here:
+   * nothing this account owns or produced may survive its deletion.
+   */
   async deleteUser(userId: number): Promise<void> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
-    // Delete related records first to avoid FK constraint violations
-    await this.progressRepo.delete({ user_id: userId });
-    await this.userRepo.delete(userId);
+
+    await this.userRepo.manager.transaction(async (m) => {
+      // Classes this teacher owns → drop their enrollments, then the classes.
+      const owned = await m.find(Class, { where: { teacher_id: userId }, select: ['id'] });
+      const classIds = owned.map(c => c.id);
+      if (classIds.length) {
+        await m.delete(ClassEnrollment, { class_id: In(classIds) });
+        await m.delete(Class, { id: In(classIds) });
+      }
+
+      // This user's own enrollments (when they are a student).
+      await m.delete(ClassEnrollment, { student_id: userId });
+
+      // Content authored by this teacher.
+      await m.delete(Video, { teacher_id: userId });
+      await m.delete(Lesson, { teacher_id: userId });
+      await m.delete(LiveSession, { teacher_id: userId });
+
+      // Personal learning data.
+      await m.delete(UserProgress, { user_id: userId });
+      await m.delete(DailyActivity, { user_id: userId });
+      await m.delete(UserGoalSettings, { user_id: userId });
+      await m.delete(UserCustomGoal, { user_id: userId });
+
+      // Finally the account itself.
+      await m.delete(User, { id: userId });
+    });
   }
 }
