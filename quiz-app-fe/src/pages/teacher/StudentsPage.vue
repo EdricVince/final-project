@@ -177,9 +177,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { Search, Users, BookOpen, CheckSquare, ChevronRight, Download, X } from '@/components/icons'
 import { api } from '@/utils/api'
+import { usePolling } from '@/composables/usePolling'
 import type { Class, ClassStudent } from '@/types/class'
 
 const searchQuery = ref('')
@@ -244,7 +245,7 @@ const exportCSV = () => {
   a.download = 'students.csv'; a.click()
 }
 
-onMounted(async () => {
+async function load() {
   try {
     const cls = (await api.getClasses()) as Class[]
     classes.value = cls
@@ -273,7 +274,10 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+// Live roster: refresh every 15s so new joins / removals appear without reload.
+usePolling(load, 15000)
 </script>
 
 <style scoped>

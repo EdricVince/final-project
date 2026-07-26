@@ -187,10 +187,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { BookOpen, Play, PlayCircle, Plus, X } from '@/components/icons'
 import { formatDuration } from '@/types/video'
 import { useToast } from '@/composables/useToast'
+import { usePolling } from '@/composables/usePolling'
 import { api } from '@/utils/api'
 import type { Class } from '@/types/class'
 
@@ -268,14 +269,18 @@ const joinClass = async () => {
   }
 }
 
-onMounted(async () => {
+async function refresh() {
   try {
     classes.value = (await api.getClasses()) as Class[]
-    await loadVideos()
+    await loadVideos(selectedClassId.value ?? undefined)
   } finally {
     loading.value = false
   }
-})
+}
+
+// Live classroom: new classes/videos from teachers appear without reload.
+// Skip while joining or watching a video so it doesn't disrupt the user.
+usePolling(() => { if (!showJoinModal.value && !activeVideo.value) return refresh() }, 15000)
 </script>
 
 <style scoped>

@@ -132,6 +132,7 @@ import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Minus, Zap } from '@/co
 import { useAuthStore } from '@/stores/auth.store'
 import { useProgressStore } from '@/stores/progress.store'
 import type { LeaderboardItem } from '@/stores/progress.store'
+import { usePolling } from '@/composables/usePolling'
 
 const { t } = useI18n()
 
@@ -197,4 +198,8 @@ const getRankClass = (index: number) => {
 const viewAll = () => {
   router.push('/achievements')
 }
+
+// Keep the leaderboard live for everyone: refresh every 15s (pauses when the
+// tab is hidden, stops on unmount).
+usePolling(() => progressStore.fetchLeaderboard(), 15000)
 </script>

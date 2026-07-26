@@ -261,13 +261,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Plus, Search, BookOpen, Users, GraduationCap, FileText,
   Copy, Check, Pencil, Trash2, X,
 } from '@/components/icons'
 import { useToast } from '@/composables/useToast'
+import { usePolling } from '@/composables/usePolling'
 import { api } from '@/utils/api'
 import type { Class } from '@/types/class'
 
@@ -318,7 +319,7 @@ const filteredClasses = computed(() => {
 
 const form = ref({ name: '', subject: 'English', description: '', student_limit: 30 })
 
-onMounted(async () => {
+async function load() {
   try {
     classes.value = (await api.getClasses()) as Class[]
   } catch {
@@ -326,7 +327,11 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+// Live class list + student counts: refresh every 15s (skips while a modal is
+// open so it doesn't disrupt editing).
+usePolling(() => { if (!showModal.value) return load() }, 15000)
 
 const openCreateModal = () => {
   editingClass.value = null
