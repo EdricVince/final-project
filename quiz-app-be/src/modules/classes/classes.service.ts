@@ -1,12 +1,12 @@
 import {
-  Injectable, NotFoundException, BadRequestException, ConflictException,
+  Injectable, NotFoundException, BadRequestException, ConflictException, ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Class } from './entities/class.entity';
 import { ClassEnrollment } from './entities/class-enrollment.entity';
 import { User } from '../users/entities/user.entity';
-import { ROLE_TEACHER } from '../roles/entities/role.entity';
+import { ROLE_TEACHER, ROLE_ADMIN } from '../roles/entities/role.entity';
 import { IsString, IsOptional, IsInt, IsBoolean, Min, Max, MinLength } from 'class-validator';
 
 export class CreateClassDto {
@@ -108,6 +108,7 @@ export class ClassesService {
     return classes.map(cls => ({ ...cls, student_count: countMap.get(cls.id) ?? 0 }));
   }
 
+  /** Internal: fetch a class with its student count, no access control. */
   async findOne(id: number): Promise<Class & { student_count: number }> {
     const cls = await this.classRepo.findOne({ where: { id } });
     if (!cls) throw new NotFoundException('Class not found');
@@ -115,10 +116,33 @@ export class ClassesService {
     return { ...cls, student_count: countMap.get(id) ?? 0 };
   }
 
+  /**
+   * Access-controlled read for GET /classes/:id.
+   * A teacher may only see their own class; a student only a class they are
+   * enrolled in; an admin may see any. This prevents unrelated users from
+   * reading a class by guessing its id.
+   */
+  async findOneForUser(id: number, userId: number, roleId: number): Promise<Class & { student_count: number }> {
+    const cls = await this.classRepo.findOne({ where: { id } });
+    if (!cls) throw new NotFoundException('Class not found');
+
+    if (roleId === ROLE_ADMIN) {
+      // full access
+    } else if (roleId === ROLE_TEACHER) {
+      if (cls.teacher_id !== userId) throw new ForbiddenException('Not your class');
+    } else {
+      const enrolled = await this.enrollRepo.findOne({ where: { class_id: id, student_id: userId } });
+      if (!enrolled) throw new ForbiddenException('You are not enrolled in this class');
+    }
+
+    const countMap = await this.getStudentCounts([id]);
+    return { ...cls, student_count: countMap.get(id) ?? 0 };
+  }
+
   async update(id: number, teacherId: number, dto: UpdateClassDto): Promise<Class & { student_count: number }> {
     const cls = await this.classRepo.findOne({ where: { id } });
     if (!cls) throw new NotFoundException('Class not found');
-    if (cls.teacher_id !== teacherId) throw new BadRequestException('Not your class');
+    if (cls.teacher_id !== teacherId) throw new ForbiddenException('Not your class');
     Object.assign(cls, dto);
     await this.classRepo.save(cls);
     return this.findOne(id);
@@ -127,7 +151,7 @@ export class ClassesService {
   async delete(id: number, teacherId: number): Promise<void> {
     const cls = await this.classRepo.findOne({ where: { id } });
     if (!cls) throw new NotFoundException('Class not found');
-    if (cls.teacher_id !== teacherId) throw new BadRequestException('Not your class');
+    if (cls.teacher_id !== teacherId) throw new ForbiddenException('Not your class');
     await this.enrollRepo.delete({ class_id: id });
     await this.classRepo.delete(id);
   }
@@ -135,7 +159,7 @@ export class ClassesService {
   async getStudents(classId: number, teacherId: number) {
     const cls = await this.classRepo.findOne({ where: { id: classId } });
     if (!cls) throw new NotFoundException('Class not found');
-    if (cls.teacher_id !== teacherId) throw new BadRequestException('Not your class');
+    if (cls.teacher_id !== teacherId) throw new ForbiddenException('Not your class');
 
     return this.enrollRepo
       .createQueryBuilder('e')
@@ -155,7 +179,7 @@ export class ClassesService {
   async removeStudent(classId: number, studentId: number, teacherId: number): Promise<void> {
     const cls = await this.classRepo.findOne({ where: { id: classId } });
     if (!cls) throw new NotFoundException('Class not found');
-    if (cls.teacher_id !== teacherId) throw new BadRequestException('Not your class');
+    if (cls.teacher_id !== teacherId) throw new ForbiddenException('Not your class');
     const enrollment = await this.enrollRepo.findOne({ where: { class_id: classId, student_id: studentId } });
     if (!enrollment) throw new NotFoundException('Student not in class');
     await this.enrollRepo.delete({ class_id: classId, student_id: studentId });

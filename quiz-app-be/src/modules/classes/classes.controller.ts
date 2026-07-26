@@ -47,10 +47,10 @@ export class ClassesController {
     return { code: 200, message: 'Joined class', data: cls };
   }
 
-  /** GET /classes/:id */
+  /** GET /classes/:id — teacher: own class; student: enrolled class; admin: any */
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    const cls = await this.classesService.findOne(id);
+  async findOne(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
+    const cls = await this.classesService.findOneForUser(id, req.user.id, req.user.role_id);
     return { code: 200, message: 'OK', data: cls };
   }
 
