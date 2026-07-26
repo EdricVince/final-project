@@ -150,8 +150,10 @@ Pick an interesting, useful English word. Not too common, not too obscure.`,
         }],
       });
 
-      const text = (response.content[0] as { type: string; text: string }).text.trim();
-      const word: WordOfTheDay = JSON.parse(text);
+      const raw = (response.content[0] as { type: string; text: string }).text;
+      // Robustly extract the JSON object (Claude may wrap it in prose / markdown fences)
+      const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+      const word: WordOfTheDay = JSON.parse(json);
       this.cache = { date: today, word };
       return word;
     } catch (err) {

@@ -15,8 +15,9 @@ export class AiController {
   constructor(private readonly aiService: AiService) {}
 
   @Get('word-of-the-day')
-  getWordOfTheDay(): Promise<WordOfTheDay> {
-    return this.aiService.getWordOfTheDay();
+  async getWordOfTheDay(): Promise<{ code: number; message: string; data: WordOfTheDay }> {
+    const data = await this.aiService.getWordOfTheDay();
+    return { code: 200, message: 'Word of the day', data };
   }
 
   @Post('import/scan')
