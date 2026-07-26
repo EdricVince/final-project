@@ -159,23 +159,6 @@ export const api = {
 
   logout: (): Promise<SuccessResponse> => apiRequest<SuccessResponse>('/auth/logout', { method: 'POST' }),
 
-  // ── Quizzes ───────────────────────────────────────────────────
-  getQuizzes: (params?: Record<string, string | number>): Promise<unknown[]> => {
-    const q = params ? '?' + new URLSearchParams(params as Record<string, string>).toString() : ''
-    return apiRequest<unknown[]>(`/quizzes${q}`)
-  },
-
-  getQuiz: (id: string): Promise<unknown> => apiRequest<unknown>(`/quizzes/${id}`),
-
-  createQuiz: (data: unknown): Promise<unknown> =>
-    apiRequest<unknown>('/quizzes', { method: 'POST', body: JSON.stringify(data) }),
-
-  updateQuiz: (id: string, data: unknown): Promise<unknown> =>
-    apiRequest<unknown>(`/quizzes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-
-  deleteQuiz: (id: string): Promise<SuccessResponse> =>
-    apiRequest<SuccessResponse>(`/quizzes/${id}`, { method: 'DELETE' }),
-
   // ── Classes ───────────────────────────────────────────────────
   getClasses: (): Promise<unknown[]> => apiRequest<unknown[]>('/classes'),
 
@@ -239,44 +222,6 @@ export const api = {
 
   deleteLiveSession: (id: number): Promise<void> =>
     apiRequest<void>(`/live-quiz/${id}`, { method: 'DELETE' }),
-
-  // ── Tests ─────────────────────────────────────────────────────
-  getTests: (): Promise<unknown[]> => apiRequest<unknown[]>('/tests'),
-
-  getTest: (id: number): Promise<unknown> => apiRequest<unknown>(`/tests/${id}`),
-
-  createTest: (data: unknown): Promise<unknown> =>
-    apiRequest<unknown>('/tests', { method: 'POST', body: JSON.stringify(data) }),
-
-  updateTest: (id: number, data: unknown): Promise<unknown> =>
-    apiRequest<unknown>(`/tests/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-
-  deleteTest: (id: number): Promise<SuccessResponse> =>
-    apiRequest<SuccessResponse>(`/tests/${id}`, { method: 'DELETE' }),
-
-  addQuestion: (testId: number, data: unknown): Promise<unknown> =>
-    apiRequest<unknown>(`/tests/${testId}/questions`, { method: 'POST', body: JSON.stringify(data) }),
-
-  updateQuestion: (id: number, data: unknown): Promise<unknown> =>
-    apiRequest<unknown>(`/questions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-
-  deleteQuestion: (id: number): Promise<SuccessResponse> =>
-    apiRequest<SuccessResponse>(`/questions/${id}`, { method: 'DELETE' }),
-
-  assignTest: (testId: number, data: unknown): Promise<unknown> =>
-    apiRequest<unknown>(`/tests/${testId}/assign`, { method: 'POST', body: JSON.stringify(data) }),
-
-  getTestResults: (testId: number): Promise<unknown[]> => apiRequest<unknown[]>(`/tests/${testId}/results`),
-
-  // ── Student Tests ─────────────────────────────────────────────
-  getStudentTests: (): Promise<unknown[]> => apiRequest<unknown[]>('/student/tests'),
-
-  getStudentTest: (id: number): Promise<unknown> => apiRequest<unknown>(`/student/tests/${id}`),
-
-  submitTest: (testId: number, answers: Record<number, number | string>): Promise<unknown> =>
-    apiRequest<unknown>(`/student/tests/${testId}/submit`, { method: 'POST', body: JSON.stringify({ answers }) }),
-
-  getStudentResults: (): Promise<unknown[]> => apiRequest<unknown[]>('/student/results'),
 
   // ── Progress ──────────────────────────────────────────────────
   getMyProgress: (): Promise<unknown> => apiRequest<unknown>('/progress/me'),

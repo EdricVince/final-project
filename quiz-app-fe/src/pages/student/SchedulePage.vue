@@ -598,11 +598,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { api } from '@/utils/api'
 import { usePageBack } from '@/composables/usePageBack'
 
-const { t } = useI18n({ useScope: 'global' })
 const { setBack, clearBack } = usePageBack()
 
 // ── View state ──────────────────────────────────────────────────────────────
@@ -656,7 +654,6 @@ async function confirmAddMonth() {
       })
       activePlan.value.plan.monthly_plan.push(newMonth)
     } else {
-      const weekHours = Math.round(customMonth.value.total_hours / 4)
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
       const skills = ['Vocabulary', 'Grammar', 'Reading', 'Listening', 'Writing', 'Speaking', 'Rest']
       const newMonth = {

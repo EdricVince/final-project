@@ -24,11 +24,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { Target, CheckCircle } from '@/components/icons'
 import Progress from '@/components/ui/progress/Progress.vue'
-
-const { t } = useI18n()
 
 interface Props {
   progress: number

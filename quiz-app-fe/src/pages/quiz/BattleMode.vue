@@ -350,7 +350,7 @@ function connectSocket(): Socket {
     finishBattle({
       result: 'win', forfeit: true,
       you: { score: playerScore.value, correctCount: correctCount.value, total: questions.value.length },
-      opponent: { name: opponent.value.name, avatar: opponent.value.avatar, score: opponentScore.value, correctCount: 0 },
+      opponent: { score: opponentScore.value, correctCount: 0 },
     })
   })
 

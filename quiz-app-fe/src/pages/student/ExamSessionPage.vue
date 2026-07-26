@@ -207,8 +207,10 @@ const sectionSummary = computed(() => {
       lastSection = q.section
     }
     const sec = sections[sections.length - 1]
-    sec.total++
-    if (isAnswered(i)) sec.answered++
+    if (sec) {
+      sec.total++
+      if (isAnswered(i)) sec.answered++
+    }
   })
   return sections
 })

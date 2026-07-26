@@ -230,7 +230,6 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
-  Radio,
   BarChart2,
 } from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
@@ -255,7 +254,6 @@ const contentNavItems = [
   { path: '/teacher/lessons', label: 'Lessons', icon: GraduationCap },
   { path: '/teacher/vocabulary', label: 'Vocabulary', icon: Languages },
   { path: '/teacher/tests', label: 'Tests', icon: FileText },
-  { path: '/teacher/live', label: 'Live Quiz', icon: Radio },
   { path: '/teacher/videos', label: 'Videos', icon: Video },
   { path: '/teacher/import', label: 'AI Import', icon: Upload },
 ]
@@ -268,7 +266,6 @@ const pageTitles: Record<string, string> = {
   '/teacher/lessons': 'Lessons',
   '/teacher/vocabulary': 'Vocabulary',
   '/teacher/tests': 'Tests',
-  '/teacher/live': 'Live Quiz',
   '/teacher/videos': 'Videos',
   '/teacher/import': 'AI Import',
 }

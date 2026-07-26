@@ -148,10 +148,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { Target, Calendar, Flag, Bell, Plus, Clock, RefreshCw } from '@/components/icons'
-
-const { t } = useI18n()
 
 import TodaysProgressCard from '@/components/goals/TodaysProgressCard.vue'
 import DailyGoalItem from '@/components/goals/DailyGoalItem.vue'

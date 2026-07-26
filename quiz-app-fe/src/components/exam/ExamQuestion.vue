@@ -461,8 +461,8 @@ const discussionParts = computed<DiscussionPart[] | null>(() => {
     // Match "Name: text" pattern — name has no newlines before colon
     const m = chunk.match(/^([^\n:]{1,40}):\s*([\s\S]+)$/)
     if (m) {
-      const name = m[1].trim()
-      const text = m[2].trim()
+      const name = (m[1] ?? '').trim()
+      const text = (m[2] ?? '').trim()
       const isProf = /professor|prof\.|dr\./i.test(name)
       parts.push({ role: isProf ? 'professor' : 'student', name, text })
     } else {

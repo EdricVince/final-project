@@ -301,7 +301,6 @@
 <script setup lang="ts">
 import { ref, computed, type Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import {
   Flame,
   Zap,
@@ -327,7 +326,6 @@ import { useProgressStore } from '@/stores/progress.store'
 import { useQuizStore } from '@/stores/quiz.store'
 import { useAuthStore } from '@/stores/auth.store'
 
-const { t } = useI18n()
 const router = useRouter()
 const progressStore = useProgressStore()
 const quizStore = useQuizStore()

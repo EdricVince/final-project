@@ -134,11 +134,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { User, Lock, GraduationCap } from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
-
-const { t } = useI18n()
 
 export interface AccountData {
   fullName: string

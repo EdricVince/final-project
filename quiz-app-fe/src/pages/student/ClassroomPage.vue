@@ -188,7 +188,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { BookOpen, Play, PlayCircle, Plus, X } from '@/components/icons'
 import { formatDuration } from '@/types/video'
 import { useToast } from '@/composables/useToast'
@@ -205,7 +204,6 @@ interface VideoItem {
   video_url: string
 }
 
-const { t } = useI18n()
 const toast = useToast()
 const loading = ref(true)
 const videosLoading = ref(false)

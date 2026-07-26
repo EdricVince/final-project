@@ -145,7 +145,7 @@ const showExitModal = ref(false)
 const xpFloat = ref<InstanceType<typeof XPFloat> | null>(null)
 const startTime = ref(Date.now())
 
-const q = computed(() => questions.value[currentIdx.value])
+const q = computed(() => questions.value[currentIdx.value]!)
 const isLastQuestion = computed(() => currentIdx.value >= questions.value.length - 1)
 const isCorrect = computed(() => selected.value === q.value.meaning)
 
@@ -203,7 +203,7 @@ function selectAnswer(option: string) {
     score.value += pts
     correctCount.value++
     sfx.correct()
-    xpFloat.value?.show(pts)
+    xpFloat.value?.trigger(pts)
   } else {
     streak.value = 0
     sfx.wrong()
@@ -224,14 +224,19 @@ function finish() {
   status.value = 'finished'
 }
 
-const quizResult = computed(() => ({
-  totalQuestions: questions.value.length,
-  correctAnswers: correctCount.value,
-  wrongAnswers: questions.value.length - correctCount.value,
-  score: score.value,
-  timeSpent: Math.floor((Date.now() - startTime.value) / 1000),
-  xpEarned: score.value,
-}))
+const quizResult = computed(() => {
+  const total = questions.value.length
+  return {
+    totalQuestions: total,
+    correctAnswers: correctCount.value,
+    wrongAnswers: total - correctCount.value,
+    score: score.value,
+    timeSpent: Math.floor((Date.now() - startTime.value) / 1000),
+    xpEarned: score.value,
+    accuracy: total ? Math.round((correctCount.value / total) * 100) : 0,
+    streakBonus: Math.max(0, score.value - correctCount.value * 10),
+  }
+})
 
 function restart() {
   questions.value = generateIdiomQuestions(count, difficulty)

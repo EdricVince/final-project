@@ -30,10 +30,6 @@
         >
           <component :is="item.icon" class="w-4.5 h-4.5 shrink-0" />
           {{ item.label }}
-          <span
-            v-if="item.badge"
-            class="ml-auto text-[10px] font-bold bg-indigo-500/30 text-indigo-300 rounded-full px-1.5 py-0.5"
-          >{{ item.badge }}</span>
         </RouterLink>
 
         <div class="pt-4">

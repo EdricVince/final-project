@@ -294,10 +294,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { api } from '@/utils/api'
-
-const router = useRouter()
 
 const levelMeta = [
   { code: 'A1', label: 'Beginner',    time: '~0:35', activeClass: 'level-filter-a1' },

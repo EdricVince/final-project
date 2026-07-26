@@ -563,7 +563,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, type Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import {
   Plus,
   Upload,
@@ -594,7 +593,6 @@ import Button from '@/components/ui/button/Button.vue'
 import { useProgressStore } from '@/stores/progress.store'
 import { useAuthStore } from '@/stores/auth.store'
 
-const { t } = useI18n()
 const router = useRouter()
 const progressStore = useProgressStore()
 const authStore = useAuthStore()

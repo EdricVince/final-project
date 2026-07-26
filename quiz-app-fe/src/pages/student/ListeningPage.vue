@@ -146,10 +146,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { api } from '@/utils/api'
 
-const router = useRouter()
 const levels = ['A1','A2','B1','B2','C1','C2']
 const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2]
 const filterLevel = ref('')

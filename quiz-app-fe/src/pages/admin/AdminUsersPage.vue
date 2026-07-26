@@ -406,7 +406,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAdminStore, type AdminUser, ROLE_TEACHER } from '@/stores/admin.store'
+import { useAdminStore, type AdminUser } from '@/stores/admin.store'
 
 const route = useRoute()
 const adminStore = useAdminStore()
@@ -435,7 +435,7 @@ const pageTitle = computed(() => {
   return 'All Users'
 })
 
-const tabs = computed(() => [
+const tabs = computed((): { value: 'all' | 'student' | 'teacher'; label: string; count: number }[] => [
   { value: 'all', label: 'All', count: adminStore.users.length },
   { value: 'student', label: 'Students', count: adminStore.students.length },
   { value: 'teacher', label: 'Teachers', count: adminStore.teachers.length },
