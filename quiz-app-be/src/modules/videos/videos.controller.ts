@@ -4,15 +4,18 @@ import {
 } from '@nestjs/common';
 import { VideosService, CreateVideoDto } from './videos.service';
 import { JwtGuard } from '../../core/guards/jwt.guard';
+import { RolesGuard } from '../../core/guards/roles.guard';
+import { Roles } from '../../core/decorators/roles.decorator';
 import { ROLE_TEACHER } from '../roles/entities/role.entity';
 
 @Controller('api/v1/videos')
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, RolesGuard)
 export class VideosController {
   constructor(private videosService: VideosService) {}
 
   /** Teacher: create video */
   @Post()
+  @Roles(ROLE_TEACHER)
   async create(@Req() req: any, @Body() dto: CreateVideoDto) {
     const video = await this.videosService.create(req.user.id, dto);
     return { code: 201, message: 'Video created', data: video };
@@ -20,7 +23,7 @@ export class VideosController {
 
   /** All: list videos (student filters by class_id, teacher filters by own) */
   @Get()
-  async findAll(@Req() req: any, @Query('class_id') classId?: string, @Query('teacher_id') teacherId?: string) {
+  async findAll(@Req() req: any, @Query('class_id') classId?: string) {
     const isTeacher = req.user.role_id === ROLE_TEACHER;
     const videos = await this.videosService.findAll(
       classId ? Number(classId) : undefined,
@@ -38,6 +41,7 @@ export class VideosController {
 
   /** Teacher: update video */
   @Patch(':id')
+  @Roles(ROLE_TEACHER)
   async update(
     @Req() req: any,
     @Param('id', ParseIntPipe) id: number,
@@ -49,6 +53,7 @@ export class VideosController {
 
   /** Teacher: delete video */
   @Delete(':id')
+  @Roles(ROLE_TEACHER)
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
     await this.videosService.remove(id, req.user.id);

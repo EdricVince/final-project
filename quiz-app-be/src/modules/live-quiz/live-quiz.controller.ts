@@ -4,14 +4,18 @@ import {
 } from '@nestjs/common';
 import { LiveQuizService, QuestionDto } from './live-quiz.service';
 import { JwtGuard } from '../../core/guards/jwt.guard';
+import { RolesGuard } from '../../core/guards/roles.guard';
+import { Roles } from '../../core/decorators/roles.decorator';
+import { ROLE_TEACHER } from '../roles/entities/role.entity';
 
 @Controller('api/v1/live-quiz')
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, RolesGuard)
 export class LiveQuizController {
   constructor(private liveQuizService: LiveQuizService) {}
 
   /** Teacher: create session */
   @Post()
+  @Roles(ROLE_TEACHER)
   async create(
     @Req() req: any,
     @Body() body: { title: string; class_id?: number; questions?: QuestionDto[] },
@@ -24,6 +28,7 @@ export class LiveQuizController {
 
   /** Teacher: list my sessions */
   @Get('my')
+  @Roles(ROLE_TEACHER)
   async mysessions(@Req() req: any) {
     const sessions = await this.liveQuizService.findByTeacher(req.user.id);
     return { code: 200, message: 'OK', data: sessions };
@@ -54,6 +59,7 @@ export class LiveQuizController {
 
   /** Teacher: update questions */
   @Patch(':id/questions')
+  @Roles(ROLE_TEACHER)
   async updateQuestions(
     @Req() req: any,
     @Param('id', ParseIntPipe) id: number,
@@ -65,6 +71,7 @@ export class LiveQuizController {
 
   /** Teacher: start / finish session */
   @Patch(':id/status')
+  @Roles(ROLE_TEACHER)
   async updateStatus(
     @Req() req: any,
     @Param('id', ParseIntPipe) id: number,
@@ -76,6 +83,7 @@ export class LiveQuizController {
 
   /** Teacher: next question */
   @Patch(':id/next')
+  @Roles(ROLE_TEACHER)
   async nextQuestion(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
     const session = await this.liveQuizService.nextQuestion(id, req.user.id);
     return { code: 200, message: 'OK', data: session };
@@ -83,6 +91,7 @@ export class LiveQuizController {
 
   /** Teacher: delete session */
   @Delete(':id')
+  @Roles(ROLE_TEACHER)
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
     await this.liveQuizService.delete(id, req.user.id);
