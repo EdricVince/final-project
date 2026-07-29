@@ -20,6 +20,9 @@ export class User {
   @Column({ default: true })
   is_active: boolean;
 
+  // role_id references roles(id) at the app level; roles are static reference
+  // data (never deleted) so no DB FK is enforced here — see the 13 FKs on
+  // user-generated data instead.
   @Column({ default: 1 })
   role_id: number;
 

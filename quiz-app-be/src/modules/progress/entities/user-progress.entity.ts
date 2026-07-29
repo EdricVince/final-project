@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('user_progress')
 export class UserProgress {
@@ -13,6 +16,10 @@ export class UserProgress {
 
   @Column({ unique: true })
   user_id: number;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user?: User;
 
   @Column({ default: 0 })
   xp: number;

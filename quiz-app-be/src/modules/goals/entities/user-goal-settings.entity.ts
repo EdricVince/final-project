@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('user_goal_settings')
 export class UserGoalSettings {
@@ -7,6 +8,10 @@ export class UserGoalSettings {
 
   @Column({ unique: true })
   user_id: number;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user?: User;
 
   @Column({ default: 50 })
   target_cards: number;

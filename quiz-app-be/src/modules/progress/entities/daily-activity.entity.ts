@@ -3,7 +3,10 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('daily_activities')
 export class DailyActivity {
@@ -12,6 +15,10 @@ export class DailyActivity {
 
   @Column()
   user_id: number;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user?: User;
 
   @Column({ type: 'varchar' })
   activity_date: string;
