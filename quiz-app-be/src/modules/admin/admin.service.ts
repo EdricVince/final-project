@@ -8,6 +8,7 @@ import { Class } from '../classes/entities/class.entity';
 import { ClassEnrollment } from '../classes/entities/class-enrollment.entity';
 import { Video } from '../videos/entities/video.entity';
 import { Lesson } from '../lessons/entities/lesson.entity';
+import { VocabSet } from '../vocab-sets/entities/vocab-set.entity';
 import { LiveSession } from '../live-quiz/entities/live-session.entity';
 import { UserGoalSettings } from '../goals/entities/user-goal-settings.entity';
 import { UserCustomGoal } from '../goals/entities/user-custom-goal.entity';
@@ -150,6 +151,7 @@ export class AdminService {
       // Content authored by this teacher.
       await m.delete(Video, { teacher_id: userId });
       await m.delete(Lesson, { teacher_id: userId });
+      await m.delete(VocabSet, { teacher_id: userId });
       await m.delete(LiveSession, { teacher_id: userId });
 
       // Personal learning data.

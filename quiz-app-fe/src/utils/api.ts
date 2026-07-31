@@ -11,6 +11,14 @@ import type {
   SuccessResponse,
   UserOut,
 } from '@/types/api'
+import type {
+  LessonData,
+  VocabSetData,
+  VocabWordData,
+  LessonContentData,
+  GeneratedLessonData,
+  GeneratedVocabSetData,
+} from '@/types/content'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1'
 
@@ -324,14 +332,40 @@ export const api = {
   }): Promise<{ term: string; meaning: string; explanation: string; example: string }[]> =>
     apiRequest('/ai/vocabulary', { method: 'POST', body: JSON.stringify(body) }),
 
+  generateLesson: (body: { skill: string; level: string; language?: string; meaningLanguage?: string; topic?: string }): Promise<GeneratedLessonData> =>
+    apiRequest('/ai/lesson', { method: 'POST', body: JSON.stringify(body) }),
+
+  generateVocabSet: (body: { topic: string; level: string; language?: string; meaningLanguage?: string; count?: number }): Promise<GeneratedVocabSetData> =>
+    apiRequest('/ai/vocab-set', { method: 'POST', body: JSON.stringify(body) }),
+
   // ── Lessons ───────────────────────────────────────────────────
-  getLessons: (): Promise<unknown> => apiRequest('/lessons'),
-  getLessonById: (id: number): Promise<unknown> => apiRequest(`/lessons/${id}`),
+  getLessons: (): Promise<LessonData[]> => apiRequest('/lessons'),
+  getLessonById: (id: number): Promise<LessonData> => apiRequest(`/lessons/${id}`),
   createLesson: (body: {
     title: string; description?: string; category?: string; difficulty?: string
-    class_id?: number; content: unknown
-  }): Promise<unknown> =>
+    class_id?: number; content: LessonContentData
+  }): Promise<LessonData> =>
     apiRequest('/lessons', { method: 'POST', body: JSON.stringify(body) }),
+  updateLesson: (id: number, body: {
+    title?: string; description?: string; category?: string; difficulty?: string
+    class_id?: number; is_published?: boolean; content?: LessonContentData
+  }): Promise<LessonData> =>
+    apiRequest(`/lessons/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteLesson: (id: number): Promise<void> =>
     apiRequest(`/lessons/${id}`, { method: 'DELETE' }),
+
+  // ── Vocabulary sets ───────────────────────────────────────────
+  getVocabSets: (): Promise<VocabSetData[]> => apiRequest('/vocab-sets'),
+  getVocabSet: (id: number): Promise<VocabSetData> => apiRequest(`/vocab-sets/${id}`),
+  createVocabSet: (body: {
+    name: string; language?: string; level?: string; class_id?: number
+    is_published?: boolean; words?: VocabWordData[]
+  }): Promise<VocabSetData> =>
+    apiRequest('/vocab-sets', { method: 'POST', body: JSON.stringify(body) }),
+  updateVocabSet: (id: number, body: {
+    name?: string; language?: string; level?: string; is_published?: boolean; words?: VocabWordData[]
+  }): Promise<VocabSetData> =>
+    apiRequest(`/vocab-sets/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteVocabSet: (id: number): Promise<void> =>
+    apiRequest(`/vocab-sets/${id}`, { method: 'DELETE' }),
 }
