@@ -1,0 +1,87 @@
+# ── Render Blueprint — one-click deploy of StudySpark ────────────────────────
+# NestJS API (Docker) + Vue 3 SPA (static site). Docs: https://render.com/docs/blueprint-spec
+#
+# The database is EXTERNAL (Supabase PostgreSQL), so there is no `databases:` block —
+# supply DB_* and the other secrets as environment variables. Anything marked
+# `sync: false` must be filled in from the Render dashboard (never committed);
+# `generateValue: true` lets Render mint a strong random value on first deploy.
+#
+# Deploy:  push this file, then Render Dashboard → New → Blueprint → pick this repo.
+
+services:
+  # ── Backend API (NestJS, built from quiz-app-be/Dockerfile) ────────────────
+  - type: web
+    name: studyspark-api
+    runtime: docker
+    dockerfilePath: ./quiz-app-be/Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      # App-issued JWT signing + admin guard secrets — generated once, then reused.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SECRET
+        generateValue: true
+      # External Supabase PostgreSQL connection.
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      # Supabase Auth (OAuth token verification) + AI + email.
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      # Public URL of the SPA (used in password-reset links). Set to the web URL below.
+      - key: APP_URL
+        sync: false
+
+  # ── Frontend SPA (Vue 3 + Vite → static bundle on Render's CDN) ────────────
+  - type: web
+    name: studyspark-web
+    runtime: static
+    buildCommand: corepack enable && corepack prepare pnpm@10 --activate && pnpm install --frozen-lockfile && pnpm --filter quiz-app-fe build
+    staticPublishPath: ./quiz-app-fe/dist
+    autoDeploy: true
+    pullRequestPreviewsEnabled: true
+    envVars:
+      # Point this at the deployed API, e.g. https://studyspark-api.onrender.com/api/v1
+      - key: VITE_API_BASE_URL
+        sync: false
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+    routes:
+      # SPA history-mode fallback — every unknown path serves index.html.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      # Long-cache the content-hashed build assets.
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
