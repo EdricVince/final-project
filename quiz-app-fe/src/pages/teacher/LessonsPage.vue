@@ -4,11 +4,11 @@
     <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h2 class="text-foreground text-2xl font-bold">Lessons</h2>
-        <p class="text-muted-foreground mt-1 text-sm">Create and assign lessons to your classes</p>
+        <p class="text-muted-foreground mt-1 text-sm">Create lessons manually or generate them with AI, then assign to your classes</p>
       </div>
       <button
         class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-colors"
-        @click="openCreateModal"
+        @click="openCreate"
       >
         <Plus class="h-4 w-4" />
         Create Lesson
@@ -39,13 +39,6 @@
           class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
       </div>
-      <select
-        v-model="classFilter"
-        class="border-border bg-background text-foreground rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-      >
-        <option value="">All Classes</option>
-        <option v-for="c in classOptions" :key="c" :value="c">{{ c }}</option>
-      </select>
       <div class="flex gap-2">
         <button
           v-for="f in statusFilters"
@@ -59,67 +52,66 @@
       </div>
     </div>
 
+    <!-- Loading -->
+    <div v-if="loading" class="flex items-center justify-center py-20">
+      <Loader2 class="text-primary h-8 w-8 animate-spin" />
+    </div>
+
+    <!-- Load error -->
+    <div v-else-if="loadError" class="bg-destructive/10 text-destructive rounded-2xl p-6 text-center text-sm">
+      {{ loadError }}
+      <button class="ml-2 underline" @click="load">Retry</button>
+    </div>
+
     <!-- Lessons List -->
-    <div v-if="filteredLessons.length > 0" class="space-y-4">
+    <div v-else-if="filteredLessons.length > 0" class="space-y-4">
       <div
         v-for="lesson in filteredLessons"
         :key="lesson.id"
         class="bg-card border-border rounded-2xl border p-6 transition-all hover:shadow-md"
       >
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
-          <!-- Thumbnail -->
-          <div
-            class="flex h-16 w-24 shrink-0 items-center justify-center rounded-xl text-2xl"
-            :class="lesson.bgColor"
-          >
-            {{ lesson.emoji }}
+          <div class="bg-primary/10 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-2xl">
+            {{ skillEmoji(lesson.category) }}
           </div>
 
-          <!-- Info -->
-          <div class="flex-1 min-w-0">
+          <div class="min-w-0 flex-1">
             <div class="mb-2 flex flex-wrap items-center gap-2">
               <h3 class="text-foreground font-semibold">{{ lesson.title }}</h3>
-              <span
-                class="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                :class="statusClass(lesson.status)"
-              >
-                {{ lesson.status }}
+              <span class="rounded-full px-2.5 py-0.5 text-xs font-medium" :class="lesson.is_published ? 'bg-chart-2/10 text-chart-2' : 'bg-secondary text-muted-foreground'">
+                {{ lesson.is_published ? 'Published' : 'Draft' }}
               </span>
             </div>
             <p class="text-muted-foreground mb-3 line-clamp-2 text-sm">{{ lesson.description }}</p>
             <div class="flex flex-wrap items-center gap-3 text-xs">
-              <span class="text-muted-foreground flex items-center gap-1">
-                <BookOpen class="h-3.5 w-3.5" />
-                {{ lesson.class }}
+              <span class="bg-secondary text-muted-foreground flex items-center gap-1 rounded-full px-2 py-0.5 capitalize">
+                <BookOpen class="h-3 w-3" />
+                {{ lesson.category }}
+              </span>
+              <span class="bg-primary/10 text-primary flex items-center gap-1 rounded-full px-2 py-0.5">
+                <GraduationCap class="h-3 w-3" />
+                {{ lesson.difficulty }}
               </span>
               <span class="text-muted-foreground flex items-center gap-1">
-                <Clock class="h-3.5 w-3.5" />
-                {{ lesson.duration }} min
-              </span>
-              <span class="text-muted-foreground flex items-center gap-1">
-                <Users class="h-3.5 w-3.5" />
-                {{ lesson.viewCount }} viewed
-              </span>
-              <span v-if="lesson.vocabSet" class="bg-primary/10 text-primary flex items-center gap-1 rounded-full px-2 py-0.5">
-                <Languages class="h-3 w-3" />
-                {{ lesson.vocabSet }}
+                {{ className(lesson.class_id) }}
               </span>
             </div>
           </div>
 
-          <!-- Actions -->
           <div class="flex shrink-0 gap-2">
             <button
               class="bg-secondary hover:bg-secondary/80 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors"
-              @click="openEditModal(lesson)"
+              title="Preview content"
+              @click="openView(lesson)"
             >
-              <Pencil class="h-4 w-4" />
+              <Eye class="h-4 w-4" />
             </button>
             <button
-              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors"
-              @click="viewLesson(lesson)"
+              class="rounded-xl px-4 py-2.5 text-sm font-medium transition-colors"
+              :class="lesson.is_published ? 'bg-chart-2/15 text-chart-2 hover:bg-chart-2/25' : 'bg-primary text-primary-foreground hover:bg-primary/90'"
+              @click="togglePublish(lesson)"
             >
-              View
+              {{ lesson.is_published ? 'Unpublish' : 'Publish' }}
             </button>
             <button
               class="hover:bg-destructive/10 rounded-xl p-2.5 transition-colors"
@@ -137,129 +129,256 @@
       <div class="bg-secondary mb-4 flex h-20 w-20 items-center justify-center rounded-2xl">
         <GraduationCap class="text-muted-foreground h-10 w-10" />
       </div>
-      <h3 class="text-foreground mb-2 text-lg font-semibold">No lessons found</h3>
-      <p class="text-muted-foreground mb-6 max-w-sm text-sm">
-        Create your first lesson and assign it to a class.
-      </p>
+      <h3 class="text-foreground mb-2 text-lg font-semibold">No lessons yet</h3>
+      <p class="text-muted-foreground mb-6 max-w-sm text-sm">Create one manually, or let AI generate a full lesson by topic and level.</p>
       <button
         class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-colors"
-        @click="openCreateModal"
+        @click="openCreate"
       >
         <Plus class="h-4 w-4" />
         Create First Lesson
       </button>
     </div>
 
-    <!-- Create/Edit Modal -->
+    <!-- Create Modal (Manual | AI) -->
     <Teleport to="body">
       <Transition name="modal">
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showModal = false" />
-          <div class="bg-card border-border relative z-10 w-full max-w-lg rounded-2xl border shadow-xl">
+          <div class="bg-card border-border relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl border shadow-xl">
             <div class="border-border flex items-center justify-between border-b p-6">
-              <h3 class="text-foreground text-lg font-semibold">
-                {{ editingLesson ? 'Edit Lesson' : 'Create Lesson' }}
-              </h3>
+              <h3 class="text-foreground text-lg font-semibold">Create Lesson</h3>
               <button class="text-muted-foreground hover:text-foreground" @click="showModal = false">
                 <X class="h-5 w-5" />
               </button>
             </div>
 
-            <div class="max-h-[60vh] space-y-4 overflow-y-auto p-6">
-              <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">Title *</label>
-                <input
-                  v-model="form.title"
-                  type="text"
-                  placeholder="e.g. Introduction to Past Tense"
-                  class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-              </div>
-              <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">Assign to Class *</label>
-                <select
-                  v-model="form.class"
-                  class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                >
-                  <option value="">Select a class</option>
-                  <option v-for="c in classOptions" :key="c" :value="c">{{ c }}</option>
-                </select>
-              </div>
-              <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">Description</label>
-                <textarea
-                  v-model="form.description"
-                  rows="3"
-                  placeholder="What will students learn in this lesson?"
-                  class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full resize-none rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-              </div>
-              <div class="grid grid-cols-2 gap-4">
+            <!-- Mode tabs -->
+            <div class="border-border flex gap-2 border-b px-6 py-3">
+              <button
+                class="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+                :class="mode === 'ai' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'"
+                @click="mode = 'ai'"
+              >
+                <Sparkles class="h-4 w-4" />
+                Generate with AI
+              </button>
+              <button
+                class="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+                :class="mode === 'manual' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'"
+                @click="mode = 'manual'"
+              >
+                <Pencil class="h-4 w-4" />
+                Manual
+              </button>
+            </div>
+
+            <div class="flex-1 space-y-4 overflow-y-auto p-6">
+              <!-- AI MODE -->
+              <template v-if="mode === 'ai'">
+                <div v-if="!generated" class="space-y-4">
+                  <div>
+                    <label class="text-foreground mb-1.5 block text-sm font-medium">Skill / Topic *</label>
+                    <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      <button
+                        v-for="s in LESSON_SKILLS"
+                        :key="s.value"
+                        class="flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-medium transition-colors"
+                        :class="aiForm.skill === s.value ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:bg-secondary'"
+                        @click="aiForm.skill = s.value"
+                      >
+                        <span class="text-lg">{{ s.emoji }}</span>
+                        {{ s.label }}
+                      </button>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="text-foreground mb-1.5 block text-sm font-medium">Level / Band *</label>
+                      <select v-model="aiForm.level" class="border-border bg-background text-foreground w-full rounded-xl border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                        <optgroup v-for="g in LEVEL_GROUPS" :key="g.label" :label="g.label">
+                          <option v-for="lv in g.options" :key="lv" :value="lv">{{ lv }}</option>
+                        </optgroup>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="text-foreground mb-1.5 block text-sm font-medium">Language</label>
+                      <select v-model="aiForm.language" class="border-border bg-background text-foreground w-full rounded-xl border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                        <option v-for="l in CONTENT_LANGUAGES" :key="l.value" :value="l.value">{{ l.label }}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-foreground mb-1.5 block text-sm font-medium">Topic detail (optional)</label>
+                    <input
+                      v-model="aiForm.topic"
+                      type="text"
+                      placeholder="e.g. Past simple vs present perfect"
+                      class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                  <button
+                    class="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
+                    :disabled="generating"
+                    @click="generate"
+                  >
+                    <Loader2 v-if="generating" class="h-4 w-4 animate-spin" />
+                    <Sparkles v-else class="h-4 w-4" />
+                    {{ generating ? 'Generating…' : 'Generate Lesson' }}
+                  </button>
+                </div>
+
+                <!-- AI preview (editable) -->
+                <div v-else class="space-y-4">
+                  <div class="bg-primary/5 border-primary/20 flex items-center gap-2 rounded-xl border p-3 text-sm text-primary">
+                    <Sparkles class="h-4 w-4 shrink-0" />
+                    Generated {{ generated.content.vocabulary.length }} vocab · {{ generated.content.quiz.length }} quiz · {{ generated.content.comprehension.length }} comprehension. Review and save.
+                  </div>
+                  <div>
+                    <label class="text-foreground mb-1.5 block text-sm font-medium">Title</label>
+                    <input v-model="generated.title" type="text" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  </div>
+                  <div>
+                    <label class="text-foreground mb-1.5 block text-sm font-medium">Description</label>
+                    <textarea v-model="generated.description" rows="2" class="border-border bg-background text-foreground w-full resize-none rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  </div>
+                  <div>
+                    <label class="text-foreground mb-1.5 block text-sm font-medium">Assign to Class</label>
+                    <select v-model="aiForm.class_id" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                      <option :value="null">No class (public)</option>
+                      <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
+                    </select>
+                  </div>
+                  <!-- Content preview -->
+                  <div class="border-border max-h-40 space-y-1.5 overflow-y-auto rounded-xl border p-3 text-sm">
+                    <p v-for="(w, i) in generated.content.vocabulary" :key="'v'+i" class="text-muted-foreground">
+                      <span class="text-foreground font-medium">{{ w.term }}</span> — {{ w.definition }}
+                    </p>
+                  </div>
+                  <button class="text-muted-foreground text-sm underline" @click="generated = null">← Generate again</button>
+                </div>
+              </template>
+
+              <!-- MANUAL MODE -->
+              <template v-else>
                 <div>
-                  <label class="text-foreground mb-1.5 block text-sm font-medium">Duration (min)</label>
-                  <input
-                    v-model.number="form.duration"
-                    type="number" min="1" max="180"
-                    class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
+                  <label class="text-foreground mb-1.5 block text-sm font-medium">Title *</label>
+                  <input v-model="manualForm.title" type="text" placeholder="e.g. Introduction to Past Tense" class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-foreground mb-1.5 block text-sm font-medium">Skill</label>
+                    <select v-model="manualForm.category" class="border-border bg-background text-foreground w-full rounded-xl border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                      <option v-for="s in LESSON_SKILLS" :key="s.value" :value="s.value">{{ s.label }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-foreground mb-1.5 block text-sm font-medium">Level</label>
+                    <select v-model="manualForm.difficulty" class="border-border bg-background text-foreground w-full rounded-xl border px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                      <optgroup v-for="g in LEVEL_GROUPS" :key="g.label" :label="g.label">
+                        <option v-for="lv in g.options" :key="lv" :value="lv">{{ lv }}</option>
+                      </optgroup>
+                    </select>
+                  </div>
                 </div>
                 <div>
-                  <label class="text-foreground mb-1.5 block text-sm font-medium">Status</label>
-                  <select
-                    v-model="form.status"
-                    class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  >
-                    <option>Draft</option>
-                    <option>Published</option>
-                    <option>Archived</option>
+                  <label class="text-foreground mb-1.5 block text-sm font-medium">Assign to Class</label>
+                  <select v-model="manualForm.class_id" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <option :value="null">No class (public)</option>
+                    <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
                   </select>
                 </div>
-              </div>
-              <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">Video URL</label>
-                <input
-                  v-model="form.videoUrl"
-                  type="url"
-                  placeholder="YouTube or Vimeo URL"
-                  class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-              </div>
-              <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">Lesson Content</label>
-                <textarea
-                  v-model="form.content"
-                  rows="4"
-                  placeholder="Write lesson content, notes, grammar rules..."
-                  class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full resize-none rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-              </div>
-              <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">Attach Vocabulary Set</label>
-                <select
-                  v-model="form.vocabSet"
-                  class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                >
-                  <option value="">None</option>
-                  <option>Animals</option>
-                  <option>Business Terms</option>
-                </select>
-              </div>
+                <div>
+                  <label class="text-foreground mb-1.5 block text-sm font-medium">Description</label>
+                  <textarea v-model="manualForm.description" rows="2" placeholder="What will students learn?" class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full resize-none rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                </div>
+                <div>
+                  <div class="mb-1.5 flex items-center justify-between">
+                    <label class="text-foreground block text-sm font-medium">Vocabulary</label>
+                    <button class="text-primary flex items-center gap-1 text-xs font-medium" @click="addManualWord">
+                      <Plus class="h-3.5 w-3.5" /> Add word
+                    </button>
+                  </div>
+                  <div v-if="manualForm.vocabulary.length" class="space-y-2">
+                    <div v-for="(w, i) in manualForm.vocabulary" :key="i" class="flex items-center gap-2">
+                      <input v-model="w.term" placeholder="Term" class="border-border bg-background text-foreground min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                      <input v-model="w.definition" placeholder="Definition" class="border-border bg-background text-foreground min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                      <button class="text-muted-foreground hover:text-destructive shrink-0 p-1" @click="removeManualWord(i)"><X class="h-4 w-4" /></button>
+                    </div>
+                  </div>
+                  <p v-else class="text-muted-foreground text-xs">No words yet — add some, or use AI generate for a full lesson.</p>
+                </div>
+              </template>
             </div>
 
             <div class="border-border flex gap-3 border-t p-6">
+              <button class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium transition-colors" @click="showModal = false">Cancel</button>
               <button
-                class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium transition-colors"
-                @click="showModal = false"
-              >
-                Cancel
-              </button>
-              <button
+                v-if="mode === 'ai'"
                 class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
-                :disabled="!form.title.trim() || !form.class"
-                @click="saveLesson"
+                :disabled="!generated || saving"
+                @click="saveAiLesson"
               >
-                {{ editingLesson ? 'Save Changes' : 'Create Lesson' }}
+                {{ saving ? 'Saving…' : 'Save Lesson' }}
               </button>
+              <button
+                v-else
+                class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50"
+                :disabled="!manualForm.title.trim() || saving"
+                @click="saveManual"
+              >
+                {{ saving ? 'Saving…' : 'Create Lesson' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- View Modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showView && viewing" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showView = false" />
+          <div class="bg-card border-border relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl border shadow-xl">
+            <div class="border-border flex items-center justify-between border-b p-6">
+              <div>
+                <h3 class="text-foreground text-lg font-semibold">{{ viewing.title }}</h3>
+                <p class="text-muted-foreground text-xs capitalize">{{ viewing.category }} · {{ viewing.difficulty }}</p>
+              </div>
+              <button class="text-muted-foreground hover:text-foreground" @click="showView = false"><X class="h-5 w-5" /></button>
+            </div>
+            <div class="flex-1 space-y-5 overflow-y-auto p-6 text-sm">
+              <p v-if="viewing.description" class="text-muted-foreground">{{ viewing.description }}</p>
+              <div v-if="viewing.content?.vocabulary?.length">
+                <h4 class="text-foreground mb-2 font-semibold">Vocabulary</h4>
+                <div class="space-y-1.5">
+                  <p v-for="(w, i) in viewing.content.vocabulary" :key="i" class="text-muted-foreground">
+                    <span class="text-foreground font-medium">{{ w.term }}</span> — {{ w.definition }}
+                    <span v-if="w.example" class="block text-xs italic">"{{ w.example }}"</span>
+                  </p>
+                </div>
+              </div>
+              <div v-if="viewing.content?.quiz?.length">
+                <h4 class="text-foreground mb-2 font-semibold">Quiz</h4>
+                <div class="space-y-2">
+                  <div v-for="(q, i) in viewing.content.quiz" :key="i" class="border-border rounded-lg border p-3">
+                    <p class="text-foreground font-medium">{{ i + 1 }}. {{ q.question }}</p>
+                    <p v-for="(o, oi) in q.options" :key="oi" :class="oi === q.correct ? 'text-chart-2 font-medium' : 'text-muted-foreground'">
+                      {{ String.fromCharCode(65 + oi) }}. {{ o }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div v-if="viewing.content?.comprehension?.length">
+                <h4 class="text-foreground mb-2 font-semibold">Comprehension</h4>
+                <div class="space-y-1.5">
+                  <p v-for="(c, i) in viewing.content.comprehension" :key="i" class="text-muted-foreground">
+                    <span class="text-foreground font-medium">Q:</span> {{ c.question }}<br />
+                    <span class="text-foreground font-medium">A:</span> {{ c.answer }}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -289,102 +408,196 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Plus, Search, BookOpen, Clock, Users, Languages, GraduationCap, FileText, Pencil, Trash2, X } from '@/components/icons'
+import { ref, computed, onMounted } from 'vue'
+import { api, ApiError } from '@/utils/api'
+import { useToast } from '@/composables/useToast'
+import { useLocale } from '@/composables/useLocale'
+import { LESSON_SKILLS, LEVEL_GROUPS, CONTENT_LANGUAGES } from '@/data/teachingOptions'
+import type { LessonData, LessonContentData, GeneratedLessonData, TeacherClassData } from '@/types/content'
+import { Plus, Search, BookOpen, GraduationCap, FileText, Pencil, Trash2, X, Sparkles, Loader2Icon as Loader2, Eye } from '@/components/icons'
 
-interface Lesson {
-  id: number
-  title: string
-  description: string
-  class: string
-  duration: number
-  status: string
-  videoUrl: string
-  content: string
-  vocabSet: string
-  viewCount: number
-  emoji: string
-  bgColor: string
-}
+const toast = useToast()
+const { locale } = useLocale()
 
-// Lessons — empty until created by teacher
-const lessons = ref<Lesson[]>([])
+const lessons = ref<LessonData[]>([])
+const classes = ref<TeacherClassData[]>([])
+const loading = ref(true)
+const loadError = ref('')
 
 const searchQuery = ref('')
-const classFilter = ref('')
-const statusFilter = ref('all')
-const showModal = ref(false)
-const showDeleteModal = ref(false)
-const editingLesson = ref<Lesson | null>(null)
-const deletingLesson = ref<Lesson | null>(null)
-
-const classOptions: string[] = []
+const statusFilter = ref<'all' | 'published' | 'draft'>('all')
 const statusFilters = [
-  { value: 'all', label: 'All' },
-  { value: 'Published', label: 'Published' },
-  { value: 'Draft', label: 'Draft' },
+  { value: 'all' as const, label: 'All' },
+  { value: 'published' as const, label: 'Published' },
+  { value: 'draft' as const, label: 'Draft' },
 ]
+
+const showModal = ref(false)
+const mode = ref<'manual' | 'ai'>('ai')
+const saving = ref(false)
+const generating = ref(false)
+const generated = ref<GeneratedLessonData | null>(null)
+
+const manualForm = ref({
+  title: '', class_id: null as number | null, category: 'vocabulary',
+  difficulty: 'Intermediate (B1)', description: '',
+  vocabulary: [] as { term: string; definition: string; example: string }[],
+})
+const aiForm = ref({ skill: 'vocabulary', level: 'Intermediate (B1)', language: 'en', topic: '', class_id: null as number | null })
+
+const showView = ref(false)
+const viewing = ref<LessonData | null>(null)
+const showDeleteModal = ref(false)
+const deletingLesson = ref<LessonData | null>(null)
 
 const stats = computed(() => [
   { label: 'Total Lessons', value: lessons.value.length, icon: GraduationCap, color: 'text-primary', bg: 'bg-primary/10' },
-  { label: 'Published', value: lessons.value.filter(l => l.status === 'Published').length, icon: FileText, color: 'text-chart-2', bg: 'bg-chart-2/10' },
-  { label: 'Total Views', value: lessons.value.reduce((s, l) => s + l.viewCount, 0), icon: Users, color: 'text-chart-3', bg: 'bg-chart-3/10' },
-  { label: 'Avg Duration', value: lessons.value.length ? Math.round(lessons.value.reduce((s, l) => s + l.duration, 0) / lessons.value.length) + 'm' : '0m', icon: Clock, color: 'text-chart-1', bg: 'bg-chart-1/10' },
+  { label: 'Published', value: lessons.value.filter(l => l.is_published).length, icon: FileText, color: 'text-chart-2', bg: 'bg-chart-2/10' },
+  { label: 'Drafts', value: lessons.value.filter(l => !l.is_published).length, icon: Pencil, color: 'text-chart-3', bg: 'bg-chart-3/10' },
+  { label: 'Classes', value: classes.value.length, icon: BookOpen, color: 'text-chart-1', bg: 'bg-chart-1/10' },
 ])
 
 const filteredLessons = computed(() => {
   let list = lessons.value
-  if (classFilter.value) list = list.filter(l => l.class === classFilter.value)
-  if (statusFilter.value !== 'all') list = list.filter(l => l.status === statusFilter.value)
+  if (statusFilter.value === 'published') list = list.filter(l => l.is_published)
+  if (statusFilter.value === 'draft') list = list.filter(l => !l.is_published)
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    list = list.filter(l => l.title.toLowerCase().includes(q) || l.description.toLowerCase().includes(q))
+    list = list.filter(l => l.title.toLowerCase().includes(q) || (l.description ?? '').toLowerCase().includes(q))
   }
   return list
 })
 
-const statusClass = (status: string) => {
-  if (status === 'Published') return 'bg-chart-2/10 text-chart-2'
-  if (status === 'Draft') return 'bg-secondary text-muted-foreground'
-  return 'bg-chart-1/10 text-chart-1'
-}
+const skillEmoji = (skill: string) => LESSON_SKILLS.find(s => s.value === skill)?.emoji ?? '📖'
+const className = (classId: number | null) => classId == null ? 'Public' : (classes.value.find(c => c.id === classId)?.name ?? 'Class')
 
-const form = ref({ title: '', class: '', description: '', duration: 45, status: 'Draft', videoUrl: '', content: '', vocabSet: '' })
+const errMsg = (e: unknown, fallback: string) => e instanceof ApiError ? e.errorMessage : fallback
 
-const openCreateModal = () => {
-  editingLesson.value = null
-  form.value = { title: '', class: '', description: '', duration: 45, status: 'Draft', videoUrl: '', content: '', vocabSet: '' }
-  showModal.value = true
-}
-
-const openEditModal = (lesson: Lesson) => {
-  editingLesson.value = lesson
-  form.value = { title: lesson.title, class: lesson.class, description: lesson.description, duration: lesson.duration, status: lesson.status, videoUrl: lesson.videoUrl, content: lesson.content, vocabSet: lesson.vocabSet }
-  showModal.value = true
-}
-
-const saveLesson = () => {
-  if (!form.value.title.trim() || !form.value.class) return
-  if (editingLesson.value) {
-    const idx = lessons.value.findIndex(l => l.id === editingLesson.value!.id)
-    if (idx !== -1) Object.assign(lessons.value[idx]!, form.value)
-  } else {
-    const emojis = ['📖', '✉️', '🎯', '💡', '📝', '🎓', '🔤', '📚']
-    const colors = ['bg-chart-2/10', 'bg-chart-4/10', 'bg-chart-3/10', 'bg-chart-5/10', 'bg-chart-1/10']
-    lessons.value.push({
-      id: Date.now(), ...form.value, viewCount: 0,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)] ?? '📖',
-      bgColor: colors[Math.floor(Math.random() * colors.length)] ?? 'bg-chart-1/10',
-    })
+const load = async () => {
+  loading.value = true
+  loadError.value = ''
+  try {
+    const [ls, cs] = await Promise.all([api.getLessons(), api.getClasses()])
+    lessons.value = ls
+    classes.value = cs as TeacherClassData[]
+  } catch (e) {
+    loadError.value = errMsg(e, 'Failed to load lessons')
+  } finally {
+    loading.value = false
   }
-  showModal.value = false
+}
+onMounted(load)
+
+const openCreate = () => {
+  mode.value = 'ai'
+  generated.value = null
+  manualForm.value = { title: '', class_id: null, category: 'vocabulary', difficulty: 'Intermediate (B1)', description: '', vocabulary: [] }
+  aiForm.value = { skill: 'vocabulary', level: 'Intermediate (B1)', language: 'en', topic: '', class_id: null }
+  showModal.value = true
 }
 
-const viewLesson = (_lesson: Lesson) => { /* navigate to lesson detail */ }
-const confirmDelete = (lesson: Lesson) => { deletingLesson.value = lesson; showDeleteModal.value = true }
-const deleteLesson = () => {
-  if (deletingLesson.value) lessons.value = lessons.value.filter(l => l.id !== deletingLesson.value!.id)
+const generate = async () => {
+  generating.value = true
+  try {
+    generated.value = await api.generateLesson({
+      skill: aiForm.value.skill,
+      level: aiForm.value.level,
+      language: aiForm.value.language,
+      meaningLanguage: locale.value as string,
+      topic: aiForm.value.topic || undefined,
+    })
+  } catch (e) {
+    toast.error(errMsg(e, 'AI generation failed. Try again.'))
+  } finally {
+    generating.value = false
+  }
+}
+
+const saveAiLesson = async () => {
+  if (!generated.value) return
+  saving.value = true
+  try {
+    const created = await api.createLesson({
+      title: generated.value.title,
+      description: generated.value.description,
+      category: generated.value.category,
+      difficulty: generated.value.difficulty,
+      class_id: aiForm.value.class_id ?? undefined,
+      content: generated.value.content,
+    })
+    lessons.value.unshift(created)
+    toast.success('Lesson created')
+    showModal.value = false
+  } catch (e) {
+    toast.error(errMsg(e, 'Failed to save lesson'))
+  } finally {
+    saving.value = false
+  }
+}
+
+const addManualWord = () => manualForm.value.vocabulary.push({ term: '', definition: '', example: '' })
+const removeManualWord = (i: number) => manualForm.value.vocabulary.splice(i, 1)
+
+const saveManual = async () => {
+  if (!manualForm.value.title.trim() || saving.value) return
+  saving.value = true
+  try {
+    const content: LessonContentData = {
+      vocabulary: manualForm.value.vocabulary.filter(w => w.term.trim()),
+      quiz: [],
+      comprehension: [],
+    }
+    const created = await api.createLesson({
+      title: manualForm.value.title.trim(),
+      description: manualForm.value.description || undefined,
+      category: manualForm.value.category,
+      difficulty: manualForm.value.difficulty,
+      class_id: manualForm.value.class_id ?? undefined,
+      content,
+    })
+    lessons.value.unshift(created)
+    toast.success('Lesson created')
+    showModal.value = false
+  } catch (e) {
+    toast.error(errMsg(e, 'Failed to create lesson'))
+  } finally {
+    saving.value = false
+  }
+}
+
+const togglePublish = async (lesson: LessonData) => {
+  try {
+    const updated = await api.updateLesson(lesson.id, { is_published: !lesson.is_published })
+    lesson.is_published = updated.is_published
+    toast.success(updated.is_published ? 'Published to students' : 'Unpublished')
+  } catch (e) {
+    toast.error(errMsg(e, 'Failed to update'))
+  }
+}
+
+const openView = async (lesson: LessonData) => {
+  viewing.value = lesson
+  showView.value = true
+  if (!lesson.content) {
+    try {
+      viewing.value = await api.getLessonById(lesson.id)
+    } catch { /* keep the summary if content fetch fails */ }
+  }
+}
+
+const confirmDelete = (lesson: LessonData) => { deletingLesson.value = lesson; showDeleteModal.value = true }
+const deleteLesson = async () => {
+  if (!deletingLesson.value) return
+  const id = deletingLesson.value.id
+  try {
+    await api.deleteLesson(id)
+    lessons.value = lessons.value.filter(l => l.id !== id)
+    toast.success('Lesson deleted')
+  } catch (e) {
+    toast.error(errMsg(e, 'Failed to delete'))
+  }
   showDeleteModal.value = false
+  deletingLesson.value = null
 }
 </script>
 

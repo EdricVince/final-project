@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { JwtGuard } from '../../core/guards/jwt.guard';
-import { AiService, WordOfTheDay, ImportedContent, VocabularyItem } from './ai.service';
+import { AiService, WordOfTheDay, ImportedContent, VocabularyItem, GeneratedLesson, GeneratedVocabSet } from './ai.service';
 import { IsOptional, IsString, IsInt, IsArray, Min, Max } from 'class-validator';
 
 class ScanContentDto {
@@ -14,6 +14,22 @@ class GenerateVocabDto {
   @IsString() uiLang!: string;
   @IsOptional() @IsInt() @Min(1) @Max(30) count?: number;
   @IsOptional() @IsArray() @IsString({ each: true }) exclude?: string[];
+}
+
+class GenerateLessonDto {
+  @IsString() skill!: string;
+  @IsString() level!: string;
+  @IsOptional() @IsString() language?: string;
+  @IsOptional() @IsString() meaningLanguage?: string;
+  @IsOptional() @IsString() topic?: string;
+}
+
+class GenerateVocabSetDto {
+  @IsString() topic!: string;
+  @IsString() level!: string;
+  @IsOptional() @IsString() language?: string;
+  @IsOptional() @IsString() meaningLanguage?: string;
+  @IsOptional() @IsInt() @Min(4) @Max(40) count?: number;
 }
 
 @Controller('api/v1/ai')
@@ -31,6 +47,18 @@ export class AiController {
   async generateVocabulary(@Body() dto: GenerateVocabDto): Promise<{ code: number; message: string; data: VocabularyItem[] }> {
     const data = await this.aiService.generateVocabulary(dto);
     return { code: 200, message: 'Vocabulary generated', data };
+  }
+
+  @Post('lesson')
+  async generateLesson(@Body() dto: GenerateLessonDto): Promise<{ code: number; message: string; data: GeneratedLesson }> {
+    const data = await this.aiService.generateLesson(dto);
+    return { code: 200, message: 'Lesson generated', data };
+  }
+
+  @Post('vocab-set')
+  async generateVocabSet(@Body() dto: GenerateVocabSetDto): Promise<{ code: number; message: string; data: GeneratedVocabSet }> {
+    const data = await this.aiService.generateVocabularySet(dto);
+    return { code: 200, message: 'Vocabulary set generated', data };
   }
 
   @Post('import/scan')

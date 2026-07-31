@@ -67,4 +67,60 @@ describe('AiService — AI generation paths (Anthropic mocked)', () => {
       expect(mockCreate).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('generateLesson', () => {
+    it('parses a generated lesson and passes the skill/level into the prompt', async () => {
+      mockCreate.mockResolvedValue(reply(JSON.stringify({
+        title: 'Past Simple vs Present Perfect', description: 'Compare the two tenses.',
+        category: 'grammar', difficulty: 'Intermediate (B1)',
+        content: {
+          vocabulary: [{ term: 'already', definition: 'before now', example: 'I have already eaten.' }],
+          quiz: [{ question: 'Pick the present perfect', options: ['a', 'b', 'c', 'd'], correct: 1, explanation: 'has+pp' }],
+          comprehension: [{ question: 'When to use?', answer: 'unfinished time' }],
+        },
+      })));
+      const lesson = await svc.generateLesson({ skill: 'grammar', level: 'Intermediate (B1)', language: 'en', topic: 'tenses' });
+      expect(lesson.title).toContain('Present Perfect');
+      expect(lesson.category).toBe('grammar');
+      expect(lesson.content.quiz[0].correct).toBe(1);
+      const prompt = mockCreate.mock.calls[0][0].messages[0].content as string;
+      expect(prompt).toContain('grammar');
+      expect(prompt).toContain('Intermediate (B1)');
+    });
+
+    it('backfills category/difficulty/content when the model omits them', async () => {
+      mockCreate.mockResolvedValue(reply(JSON.stringify({ title: 'T', description: 'D' })));
+      const lesson = await svc.generateLesson({ skill: 'writing', level: 'IELTS 6.5' });
+      expect(lesson.category).toBe('writing');
+      expect(lesson.difficulty).toBe('IELTS 6.5');
+      expect(lesson.content).toEqual({ vocabulary: [], quiz: [], comprehension: [] });
+    });
+
+    it('throws ServiceUnavailable when the model call fails', async () => {
+      mockCreate.mockRejectedValue(new Error('upstream down'));
+      await expect(svc.generateLesson({ skill: 'reading', level: 'B1' })).rejects.toBeInstanceOf(ServiceUnavailableException);
+    });
+  });
+
+  describe('generateVocabularySet', () => {
+    it('parses a generated set and drops words missing a term/definition', async () => {
+      mockCreate.mockResolvedValue(reply(JSON.stringify({
+        name: 'Business Meetings',
+        words: [
+          { term: 'agenda', definition: 'list of topics', example: 'The agenda is long.' },
+          { term: '', definition: 'x', example: 'y' },      // dropped (no term)
+          { term: 'adjourn', definition: '', example: 'z' }, // dropped (no definition)
+        ],
+      })));
+      const set = await svc.generateVocabularySet({ topic: 'Business meetings', level: 'IELTS 6.5', language: 'en', count: 3 });
+      expect(set.name).toBe('Business Meetings');
+      expect(set.words).toHaveLength(1);
+      expect(set.words[0].term).toBe('agenda');
+    });
+
+    it('throws ServiceUnavailable when the model call fails', async () => {
+      mockCreate.mockRejectedValue(new Error('upstream down'));
+      await expect(svc.generateVocabularySet({ topic: 'travel', level: 'A2' })).rejects.toBeInstanceOf(ServiceUnavailableException);
+    });
+  });
 });
