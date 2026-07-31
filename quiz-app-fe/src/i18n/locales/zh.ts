@@ -134,7 +134,7 @@ export default {
     modal: {
       createTitle: '创建新卡组', editTitle: '编辑卡组',
       deckTitle: '卡组名称', description: '描述', category: '分类',
-      deckTitlePlaceholder: '例如：日语词汇 N5',
+      deckTitlePlaceholder: '',
       descPlaceholder: '这个卡组你将学习什么？',
       selectCategory: '选择分类',
       saveChanges: '保存更改', createDeck: '创建卡组', cancel: '取消',

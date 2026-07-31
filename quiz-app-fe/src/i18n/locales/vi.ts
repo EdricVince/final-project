@@ -134,7 +134,7 @@ export default {
     modal: {
       createTitle: 'Tạo bộ thẻ mới', editTitle: 'Chỉnh sửa bộ thẻ',
       deckTitle: 'Tên bộ thẻ', description: 'Mô tả', category: 'Danh mục',
-      deckTitlePlaceholder: 'ví dụ: Từ vựng tiếng Nhật N5',
+      deckTitlePlaceholder: '',
       descPlaceholder: 'Bạn sẽ học gì trong bộ thẻ này?',
       selectCategory: 'Chọn danh mục',
       saveChanges: 'Lưu thay đổi', createDeck: 'Tạo bộ thẻ', cancel: 'Hủy',

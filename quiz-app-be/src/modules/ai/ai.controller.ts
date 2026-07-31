@@ -1,12 +1,19 @@
 import { Controller, Get, Post, Body, UseGuards, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { JwtGuard } from '../../core/guards/jwt.guard';
-import { AiService, WordOfTheDay, ImportedContent } from './ai.service';
-import { IsOptional, IsString } from 'class-validator';
+import { AiService, WordOfTheDay, ImportedContent, VocabularyItem } from './ai.service';
+import { IsOptional, IsString, IsInt, IsArray, Min, Max } from 'class-validator';
 
 class ScanContentDto {
   @IsOptional() @IsString() url?: string;
   @IsOptional() @IsString() text?: string;
   @IsOptional() @IsString() language?: string;
+}
+
+class GenerateVocabDto {
+  @IsString() learningLang!: string;
+  @IsString() uiLang!: string;
+  @IsOptional() @IsInt() @Min(1) @Max(30) count?: number;
+  @IsOptional() @IsArray() @IsString({ each: true }) exclude?: string[];
 }
 
 @Controller('api/v1/ai')
@@ -18,6 +25,12 @@ export class AiController {
   async getWordOfTheDay(): Promise<{ code: number; message: string; data: WordOfTheDay }> {
     const data = await this.aiService.getWordOfTheDay();
     return { code: 200, message: 'Word of the day', data };
+  }
+
+  @Post('vocabulary')
+  async generateVocabulary(@Body() dto: GenerateVocabDto): Promise<{ code: number; message: string; data: VocabularyItem[] }> {
+    const data = await this.aiService.generateVocabulary(dto);
+    return { code: 200, message: 'Vocabulary generated', data };
   }
 
   @Post('import/scan')

@@ -316,6 +316,14 @@ export const api = {
   importScan: (body: { url?: string; text?: string; language?: string }): Promise<unknown> =>
     apiRequest('/ai/import/scan', { method: 'POST', body: JSON.stringify(body) }),
 
+  generateVocabulary: (body: {
+    learningLang: string
+    uiLang: string
+    count?: number
+    exclude?: string[]
+  }): Promise<{ term: string; meaning: string; explanation: string; example: string }[]> =>
+    apiRequest('/ai/vocabulary', { method: 'POST', body: JSON.stringify(body) }),
+
   // ── Lessons ───────────────────────────────────────────────────
   getLessons: (): Promise<unknown> => apiRequest('/lessons'),
   getLessonById: (id: number): Promise<unknown> => apiRequest(`/lessons/${id}`),
