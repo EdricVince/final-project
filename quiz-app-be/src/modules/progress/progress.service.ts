@@ -122,6 +122,8 @@ export class ProgressService {
 
       const xpGained = calculateXpGained(dto);
 
+      // Capture the streak BEFORE any increment so milestone detection works.
+      const oldStreak = progress.streak_count;
       let streakUpdated = false;
       if (progress.last_activity_date !== today) {
         if (progress.last_activity_date === getYesterdayString()) {
@@ -137,7 +139,6 @@ export class ProgressService {
       }
 
       const oldLevel = progress.level;
-      const oldStreak = progress.streak_count;
       progress.xp += xpGained;
       progress.level = getLevel(progress.xp);
       const levelUp = progress.level > oldLevel;
