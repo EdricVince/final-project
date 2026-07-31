@@ -1,0 +1,31 @@
+# Containerised StudySpark. The database is remote Supabase PostgreSQL, so there is
+# NO local db service — the backend reads DB_* + secrets from quiz-app-be/.env.
+# Local dev still uses pnpm (`pnpm dev`); this is for containerised build/deploy.
+#
+#   docker compose up --build
+#   → API  http://localhost:3000/api/v1   ·   Web http://localhost:8080
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: quiz-app-be/Dockerfile
+    env_file:
+      - quiz-app-be/.env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: quiz-app-fe/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000/api/v1}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-https://placeholder.supabase.co}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:-placeholder-anon-key}
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
