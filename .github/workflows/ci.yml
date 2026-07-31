@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, 'feat/**']
+  pull_request:
+    branches: [develop]
+
+jobs:
+  backend:
+    name: Backend — build + unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Type-check + build (nest build → tsc)
+        run: pnpm --filter quiz-app-be build
+      - name: Unit tests (Jest — repositories/SDK mocked, no DB)
+        run: pnpm --filter quiz-app-be test
+      # Note: e2e (`pnpm --filter quiz-app-be test:e2e`) is intentionally NOT run
+      # here — it needs a live Supabase database + secrets, unavailable in CI.
+
+  frontend:
+    name: Frontend — build + unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Type-check + build (vue-tsc + vite)
+        run: pnpm --filter quiz-app-fe build
+      - name: Unit tests (Vitest)
+        run: pnpm --filter quiz-app-fe test
