@@ -24,6 +24,7 @@ import { Class } from '../modules/classes/entities/class.entity';
 import { ClassEnrollment } from '../modules/classes/entities/class-enrollment.entity';
 import { Video } from '../modules/videos/entities/video.entity';
 import { Lesson } from '../modules/lessons/entities/lesson.entity';
+import { VocabSet } from '../modules/vocab-sets/entities/vocab-set.entity';
 import { LiveSession } from '../modules/live-quiz/entities/live-session.entity';
 
 dotenv.config();
@@ -37,7 +38,7 @@ const dataSource = new DataSource({
   database: process.env.DB_NAME,
   entities: [
     User, Role, UserProgress, DailyActivity, UserGoalSettings, UserCustomGoal,
-    Class, ClassEnrollment, Video, Lesson, LiveSession,
+    Class, ClassEnrollment, Video, Lesson, VocabSet, LiveSession,
   ],
   synchronize: false,
   ssl: process.env.NODE_ENV === 'production'
@@ -58,6 +59,8 @@ const CLEANUP: string[] = [
   `UPDATE videos SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
   `DELETE FROM lessons WHERE teacher_id NOT IN (SELECT id FROM users)`,
   `UPDATE lessons SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
+  `DELETE FROM vocab_sets WHERE teacher_id NOT IN (SELECT id FROM users)`,
+  `UPDATE vocab_sets SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
   `DELETE FROM live_sessions WHERE teacher_id NOT IN (SELECT id FROM users)`,
   `UPDATE live_sessions SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
   `DELETE FROM user_progress WHERE user_id NOT IN (SELECT id FROM users)`,
@@ -81,6 +84,8 @@ const FKS: Array<{ table: string; column: string; ref: string; onDelete: 'CASCAD
   { table: 'videos', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
   { table: 'lessons', column: 'teacher_id', ref: 'users', onDelete: 'CASCADE' },
   { table: 'lessons', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
+  { table: 'vocab_sets', column: 'teacher_id', ref: 'users', onDelete: 'CASCADE' },
+  { table: 'vocab_sets', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
   { table: 'live_sessions', column: 'teacher_id', ref: 'users', onDelete: 'CASCADE' },
   { table: 'live_sessions', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
   // Note: users.role_id → roles is intentionally NOT a DB FK — roles are static

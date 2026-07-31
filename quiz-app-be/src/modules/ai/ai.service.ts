@@ -21,6 +21,30 @@ export interface WordOfTheDay {
   tip: string;
 }
 
+export interface VocabularyItem {
+  term: string;
+  meaning: string;
+  explanation: string;
+  example: string;
+}
+
+export interface GeneratedLesson {
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  content: {
+    vocabulary: { term: string; definition: string; example: string }[];
+    quiz: { question: string; options: string[]; correct: number; explanation: string }[];
+    comprehension: { question: string; answer: string }[];
+  };
+}
+
+export interface GeneratedVocabSet {
+  name: string;
+  words: { term: string; definition: string; example: string }[];
+}
+
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
@@ -117,6 +141,212 @@ ${rawText}`
     } catch (err) {
       this.logger.error('scanContent error', err)
       throw new Error('AI failed to parse content. Please try again.')
+    }
+  }
+
+  private langName(code: string): string {
+    const map: Record<string, string> = {
+      en: 'English',
+      vi: 'Vietnamese',
+      zh: 'Chinese (Simplified)',
+    };
+    return map[code] ?? 'English';
+  }
+
+  /**
+   * Generate a fresh, diverse batch of vocabulary for flashcard practice.
+   * `learningLang` is the language being studied; `uiLang` is the learner's own
+   * language used for the meaning + explanation. `exclude` lets the caller skip
+   * words already seen so each batch feels new.
+   */
+  async generateVocabulary(dto: {
+    learningLang: string;
+    uiLang: string;
+    count?: number;
+    exclude?: string[];
+  }): Promise<VocabularyItem[]> {
+    if (!this.client) {
+      throw new ServiceUnavailableException(
+        'AI service not configured. Please add your Anthropic API key in admin settings.',
+      );
+    }
+
+    const count = Math.min(Math.max(dto.count ?? 15, 1), 30);
+    const learn = this.langName(dto.learningLang);
+    const ui = this.langName(dto.uiLang);
+
+    // Rotate through themes so consecutive batches don't repeat the same words.
+    const themes = [
+      'everyday life', 'food and cooking', 'travel', 'work and office',
+      'technology', 'nature and weather', 'emotions and feelings',
+      'health and the body', 'shopping and money', 'education',
+      'hobbies and sports', 'family and relationships', 'the city and directions',
+      'time and dates', 'houses and furniture', 'arts and music',
+    ];
+    const pickedThemes = [...themes].sort(() => Math.random() - 0.5).slice(0, 4);
+    const exclude = (dto.exclude ?? []).filter(Boolean).slice(0, 60);
+    const excludeLine = exclude.length
+      ? `Do NOT include any of these already-seen words: ${exclude.join(', ')}.`
+      : '';
+
+    const pinyinHint =
+      dto.learningLang === 'zh'
+        ? ' with pinyin in parentheses, e.g. 苹果 (píngguǒ)'
+        : '';
+
+    const prompt = `You are a ${learn} vocabulary teacher for a ${ui}-speaking learner.
+Generate ${count} DIVERSE and USEFUL ${learn} vocabulary words. Spread them across varied topics (for example: ${pickedThemes.join(', ')}) and mix beginner to intermediate difficulty. Avoid the same predictable textbook words every time — make each batch feel fresh and varied.
+${excludeLine}
+Return ONLY a valid JSON array (no markdown, no code fences) of exactly ${count} objects with this structure:
+[
+  {
+    "term": "the word in ${learn}${pinyinHint}",
+    "meaning": "the short meaning in ${ui}",
+    "explanation": "one simple, easy sentence in ${ui} explaining what the word means or when to use it, so a learner clearly understands it",
+    "example": "a natural example sentence in ${learn}"
+  }
+]`;
+
+    try {
+      const response = await this.client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      const raw = (response.content[0] as { type: string; text: string }).text;
+      const json = raw.slice(raw.indexOf('['), raw.lastIndexOf(']') + 1);
+      const items = JSON.parse(json) as VocabularyItem[];
+      return items.filter((i) => i && i.term && i.meaning);
+    } catch (err) {
+      this.logger.error('generateVocabulary failed', err);
+      throw new ServiceUnavailableException(
+        'AI failed to generate vocabulary. Please try again.',
+      );
+    }
+  }
+
+  /**
+   * Generate a full teacher lesson for a chosen skill (writing/listening/vocabulary/
+   * grammar/speaking/reading/test-prep) at a chosen level/band. Returns content in the
+   * lesson jsonb shape (vocabulary + quiz + comprehension) so it can be saved directly.
+   */
+  async generateLesson(dto: {
+    skill: string;
+    level: string;
+    language?: string;
+    meaningLanguage?: string;
+    topic?: string;
+  }): Promise<GeneratedLesson> {
+    if (!this.client) {
+      throw new ServiceUnavailableException(
+        'AI service not configured. Please add your Anthropic API key in admin settings.',
+      );
+    }
+
+    const lang = this.langName(dto.language ?? 'en');
+    const meaningLang = this.langName(dto.meaningLanguage ?? dto.language ?? 'en');
+    const bilingual = meaningLang !== lang;
+    const skill = (dto.skill || 'vocabulary').trim();
+    const level = (dto.level || 'Intermediate (B1)').trim();
+    const topicLine = dto.topic?.trim()
+      ? `Focus the lesson on this topic: "${dto.topic.trim()}".`
+      : 'Pick a useful, engaging topic appropriate for the skill and level.';
+    const definitionHint = bilingual
+      ? `the meaning/translation of the term in ${meaningLang} (so a ${meaningLang}-speaking learner understands it)`
+      : 'clear meaning';
+
+    const prompt = `You are an expert ${lang} teacher creating a classroom lesson.
+Skill focus: ${skill}. Target level: ${level}. ${topicLine}
+Tailor the difficulty, vocabulary and questions precisely to the ${level} level, and shape the
+content to the "${skill}" skill (e.g. grammar → rule-focused; writing → useful phrases + model ideas;
+listening/speaking → a short dialogue/script in comprehension; reading → a passage; test-prep → exam-style items).
+${bilingual ? `IMPORTANT: keep each vocabulary "term" and "example" in ${lang}, but write each "definition" as the meaning in ${meaningLang} so learners understand it.` : ''}
+Return ONLY a valid JSON object (no markdown, no code fences) with exactly this structure:
+{
+  "title": "concise lesson title",
+  "description": "2-3 sentence overview of what students will learn",
+  "category": "${skill}",
+  "difficulty": "${level}",
+  "content": {
+    "vocabulary": [{"term": "word/phrase in ${lang}", "definition": "${definitionHint}", "example": "natural example sentence in ${lang}"}],
+    "quiz": [{"question": "question text", "options": ["A","B","C","D"], "correct": 0, "explanation": "why this is correct"}],
+    "comprehension": [{"question": "open-ended question", "answer": "ideal answer"}]
+  }
+}
+Generate 8-12 vocabulary items, 6 multiple-choice quiz questions (correct = index of the right option), and 3 comprehension questions.`;
+
+    try {
+      const response = await this.client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const raw = (response.content[0] as { type: string; text: string }).text;
+      const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+      const lesson = JSON.parse(json) as GeneratedLesson;
+      lesson.category ||= skill;
+      lesson.difficulty ||= level;
+      lesson.content ??= { vocabulary: [], quiz: [], comprehension: [] };
+      return lesson;
+    } catch (err) {
+      this.logger.error('generateLesson failed', err);
+      throw new ServiceUnavailableException('AI failed to generate the lesson. Please try again.');
+    }
+  }
+
+  /**
+   * Generate a vocabulary set (name + words) for a topic at a chosen level/band, in the
+   * target language. Each word carries a definition and an example sentence.
+   */
+  async generateVocabularySet(dto: {
+    topic: string;
+    level: string;
+    language?: string;
+    meaningLanguage?: string;
+    count?: number;
+  }): Promise<GeneratedVocabSet> {
+    if (!this.client) {
+      throw new ServiceUnavailableException(
+        'AI service not configured. Please add your Anthropic API key in admin settings.',
+      );
+    }
+
+    const lang = this.langName(dto.language ?? 'en');
+    const meaningLang = this.langName(dto.meaningLanguage ?? dto.language ?? 'en');
+    const bilingual = meaningLang !== lang;
+    const level = (dto.level || 'Intermediate (B1)').trim();
+    const topic = (dto.topic || 'everyday vocabulary').trim();
+    const count = Math.min(Math.max(dto.count ?? 15, 4), 40);
+    const definitionHint = bilingual
+      ? `the meaning/translation in ${meaningLang} (so a ${meaningLang}-speaking learner understands it)`
+      : 'clear meaning/translation';
+
+    const prompt = `You are a ${lang} vocabulary teacher building a study set.
+Topic: "${topic}". Target level: ${level}. Generate ${count} useful ${lang} words/phrases fitting this topic and level.
+Match the difficulty to ${level}.${bilingual ? ` Keep each "term" and "example" in ${lang}, but write each "definition" as the meaning in ${meaningLang}.` : ''}
+Return ONLY a valid JSON object (no markdown, no code fences):
+{
+  "name": "a short set name for this topic",
+  "words": [{"term": "word/phrase in ${lang}", "definition": "${definitionHint}", "example": "natural example sentence in ${lang}"}]
+}
+Include exactly ${count} words.`;
+
+    try {
+      const response = await this.client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const raw = (response.content[0] as { type: string; text: string }).text;
+      const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+      const set = JSON.parse(json) as GeneratedVocabSet;
+      set.name ||= topic;
+      set.words = (set.words ?? []).filter((w) => w && w.term && w.definition);
+      return set;
+    } catch (err) {
+      this.logger.error('generateVocabularySet failed', err);
+      throw new ServiceUnavailableException('AI failed to generate the vocabulary set. Please try again.');
     }
   }
 

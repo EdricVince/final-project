@@ -20,7 +20,10 @@ export class UpdateLessonDto {
   @IsOptional() @IsString() title?: string;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() category?: string;
+  @IsOptional() @IsString() difficulty?: string;
+  @IsOptional() @IsInt() class_id?: number;
   @IsOptional() @IsBoolean() is_published?: boolean;
+  @IsOptional() @IsObject() content?: LessonContent;
 }
 
 @Injectable()

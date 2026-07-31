@@ -15,6 +15,7 @@ import { EntranceExamModule } from './modules/entrance-exam/entrance-exam.module
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { SkillsModule } from './modules/skills/skills.module';
 import { LessonsModule } from './modules/lessons/lessons.module';
+import { VocabSetsModule } from './modules/vocab-sets/vocab-sets.module';
 import { BattleModule } from './modules/battle/battle.module';
 
 @Module({
@@ -32,6 +33,7 @@ import { BattleModule } from './modules/battle/battle.module';
     ScheduleModule,
     SkillsModule,
     LessonsModule,
+    VocabSetsModule,
     BattleModule,
   ],
   controllers: [AppController],

@@ -1,14 +1,5 @@
 <template>
   <div class="p-6 lg:p-8">
-    <!-- Back Button -->
-    <button
-      class="group mb-6 flex items-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/8 px-3.5 py-1.5 text-sm font-semibold text-indigo-400 transition-all duration-200 hover:border-indigo-500/40 hover:bg-indigo-500/15 active:scale-95"
-      @click="goBack"
-    >
-      <svg class="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-      Courses
-    </button>
-
     <!-- Not found state -->
     <div v-if="!course" class="flex flex-col items-center justify-center py-20 text-center">
       <div class="bg-secondary mb-6 flex h-24 w-24 items-center justify-center rounded-2xl">
@@ -105,7 +96,7 @@
     </div>
 
     <!-- Content Tabs -->
-    <div v-if="course && lessonContent" class="animate-fade-in-up delay-200">
+    <div v-if="course && lessonContent" ref="contentRef" class="animate-fade-in-up delay-200 scroll-mt-20">
       <!-- Tab Bar -->
       <div class="mb-5 flex gap-2">
         <button
@@ -228,7 +219,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -269,6 +260,7 @@ const course = ref<CourseData | null>(null)
 const lessonContent = ref<LessonContent | null>(null)
 
 const activeContentTab = ref('vocab')
+const contentRef = ref<HTMLElement | null>(null)
 const flippedCards = ref(new Set<number>())
 const quizAnswers = ref(new Map<number, number>())
 const revealedComp = ref(new Set<number>())
@@ -326,8 +318,9 @@ const goBack = () => router.push('/courses')
 const toggleBookmark = () => { isBookmarked.value = !isBookmarked.value }
 
 const startCourse = () => {
-  if (!lessonContent.value) return
   activeContentTab.value = 'vocab'
+  if (course.value && course.value.progress === 0) course.value.progress = 5
+  nextTick(() => contentRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 
 onMounted(async () => {

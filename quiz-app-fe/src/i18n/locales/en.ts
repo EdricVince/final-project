@@ -134,7 +134,7 @@ export default {
     modal: {
       createTitle: 'Create New Deck', editTitle: 'Edit Deck',
       deckTitle: 'Deck Title', description: 'Description', category: 'Category',
-      deckTitlePlaceholder: 'e.g., Japanese Vocabulary N5',
+      deckTitlePlaceholder: '',
       descPlaceholder: 'What will you learn in this deck?',
       selectCategory: 'Select a category',
       saveChanges: 'Save Changes', createDeck: 'Create Deck', cancel: 'Cancel',

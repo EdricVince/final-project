@@ -15,7 +15,7 @@
     </div>
 
     <!-- Progress Bar -->
-    <div class="mb-6">
+    <div v-if="!isLoadingCards" class="mb-6">
       <div class="mb-2 flex items-center justify-between">
         <span class="text-muted-foreground text-sm">
           Card {{ currentIndex + 1 }} of {{ cards.length }}
@@ -39,8 +39,14 @@
       </div>
     </div>
 
+    <!-- Loading State (AI is generating a fresh vocab batch) -->
+    <div v-if="isLoadingCards" class="flex flex-1 flex-col items-center justify-center gap-4">
+      <div class="h-12 w-12 animate-spin rounded-full border-4 border-primary/30 border-t-primary"></div>
+      <p class="text-muted-foreground text-base">Generating fresh vocabulary…</p>
+    </div>
+
     <!-- Main Card Area -->
-    <div class="flex flex-1 flex-col items-center justify-center">
+    <div v-else class="flex flex-1 flex-col items-center justify-center">
       <!-- Card Container -->
       <div
         ref="cardContainer"
@@ -50,7 +56,6 @@
         <!-- Card -->
         <div
           class="card-inner absolute inset-0 transition-transform duration-500"
-          :class="{ 'rotate-y-180': isFlipped }"
           :style="cardStyle"
         >
           <!-- Front (Term) -->
@@ -100,7 +105,11 @@
             </div>
             <!-- Hint -->
             <div class="p-5 text-center">
-              <span class="text-muted-foreground text-sm">Tap to reveal definition</span>
+              <span class="text-muted-foreground text-sm">
+                Tap the card or press
+                <kbd class="bg-secondary mx-1 rounded px-2 py-0.5 font-mono text-xs">Space</kbd>
+                to see the meaning
+              </span>
             </div>
           </div>
 
@@ -129,10 +138,16 @@
                 </button>
               </div>
             </div>
-            <!-- Card Content -->
-            <div class="flex flex-1 items-center justify-center p-6">
+            <!-- Card Content: meaning + a simple explanation -->
+            <div class="flex flex-1 flex-col items-center justify-center gap-3 p-6">
               <p class="text-foreground text-center text-xl font-medium lg:text-2xl">
                 {{ currentCard?.definition }}
+              </p>
+              <p
+                v-if="currentCard?.explanation"
+                class="text-muted-foreground max-w-sm text-center text-sm leading-relaxed lg:text-base"
+              >
+                {{ currentCard.explanation }}
               </p>
             </div>
             <!-- Example if available -->
@@ -257,6 +272,7 @@ import { useToast } from '@/composables/useToast'
 import { useLearningLanguage } from '@/composables/useLearningLanguage'
 import { useLocale } from '@/composables/useLocale'
 import { useVocabulary } from '@/composables/useVocabulary'
+import { api } from '@/utils/api'
 import {
   X,
   Check,
@@ -300,6 +316,7 @@ interface Flashcard {
   id: number
   term: string
   definition: string
+  explanation?: string
   example?: string
   image?: string
   audio?: string
@@ -307,6 +324,9 @@ interface Flashcard {
   isKnown: boolean | null
 }
 
+const isLoadingCards = ref(false)
+
+// Local fallback batch (offline / AI not configured) — the static word list.
 function buildVocabCards(): Flashcard[] {
   const words = getRandomWords(15)
   return words.map((w, i) => ({
@@ -319,8 +339,34 @@ function buildVocabCards(): Flashcard[] {
   }))
 }
 
+// Fresh, diverse batch from the AI endpoint. Falls back to the local list on any error.
+async function loadVocabCards(exclude: string[] = []): Promise<Flashcard[]> {
+  try {
+    const items = await api.generateVocabulary({
+      learningLang: currentLearningOption.value.value,
+      uiLang: uiLang.value as string,
+      count: 15,
+      exclude,
+    })
+    if (items && items.length) {
+      return items.map((it, i) => ({
+        id: i + 1,
+        term: it.term,
+        definition: it.meaning,
+        explanation: it.explanation || undefined,
+        example: it.example || undefined,
+        isFavorite: false,
+        isKnown: null,
+      }))
+    }
+  } catch {
+    // AI unavailable — fall through to the local word list.
+  }
+  return buildVocabCards()
+}
+
 const cards = ref<Flashcard[]>(
-  isVocabMode.value ? buildVocabCards() : [
+  isVocabMode.value ? [] : [
   {
     id: 1,
     term: 'Closure',
@@ -372,9 +418,15 @@ const progressPercent = computed(() => {
   return (reviewed / cards.value.length) * 100
 })
 
-const cardStyle = computed(() => ({
-  transform: `translateX(${cardOffset.value.x}px) translateY(${cardOffset.value.y}px) rotate(${cardOffset.value.rotation}deg)`,
-}))
+const cardStyle = computed(() => {
+  const { x, y, rotation } = cardOffset.value
+  // The flip must live in the same inline transform as the swipe offset, otherwise
+  // this inline style overrides the .rotate-y-180 CSS class and the card never flips.
+  const flip = isFlipped.value ? ' rotateY(180deg)' : ''
+  return {
+    transform: `translateX(${x}px) translateY(${y}px) rotate(${rotation}deg)${flip}`,
+  }
+})
 
 const flipCard = () => {
   isFlipped.value = !isFlipped.value
@@ -446,11 +498,19 @@ const speakCurrentTerm = () => {
   window.speechSynthesis.speak(u)
 }
 
-const restartSession = () => {
-  cards.value.forEach(c => (c.isKnown = null))
-  currentIndex.value = 0
-  isFlipped.value = false
+const restartSession = async () => {
   showCompletionModal.value = false
+  isFlipped.value = false
+  currentIndex.value = 0
+  if (isVocabMode.value) {
+    // Pull a brand-new, different batch so "Study Again" isn't the same words.
+    isLoadingCards.value = true
+    const prevTerms = cards.value.map(c => c.term)
+    cards.value = await loadVocabCards(prevTerms)
+    isLoadingCards.value = false
+  } else {
+    cards.value.forEach(c => (c.isKnown = null))
+  }
 }
 
 const reviewUnknown = () => {
@@ -524,9 +584,14 @@ const setupHammer = () => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('keydown', handleKeydown)
   setupHammer()
+  if (isVocabMode.value) {
+    isLoadingCards.value = true
+    cards.value = await loadVocabCards()
+    isLoadingCards.value = false
+  }
 })
 
 onUnmounted(() => {
