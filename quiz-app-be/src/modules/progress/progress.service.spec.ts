@@ -27,7 +27,7 @@ function build(progress: Partial<UserProgress> | null, daily: Partial<DailyActiv
   };
   const manager = { getRepository: (e: unknown) => (e === UserProgress ? progressRepo : dailyRepo) };
   const dataSource = { transaction: jest.fn((cb: any) => cb(manager)) };
-  return new ProgressService(progressRepo as any, dailyRepo as any, {} as any, dataSource as any);
+  return new ProgressService(progressRepo as any, dailyRepo as any, {} as any, {} as any, dataSource as any);
 }
 
 const dto = (d: Partial<LogActivityDto>) => d as LogActivityDto;

@@ -114,6 +114,10 @@ export default {
     detail: {
       backToCourses: 'Quay lại khóa học', save: 'Lưu', saved: 'Đã lưu',
       startCourse: 'Bắt đầu học', continueCourse: 'Tiếp tục',
+      finishLesson: 'Hoàn thành bài học', restart: 'Học lại', lessonComplete: 'Đã hoàn thành bài học! 🎉',
+      comprehensionHint: 'Đọc đoạn văn ở trên, trả lời câu hỏi, rồi bấm "Xem đáp án" để đối chiếu.',
+      readingPassage: 'Đoạn văn',
+      showAnswer: 'Xem đáp án gợi ý', hideAnswer: 'Ẩn đáp án',
       courseContent: 'Nội dung khóa học', yourProgress: 'Tiến độ của bạn',
       notFound: 'Không tìm thấy khóa học', notFoundDesc: 'Khóa học này chưa có sẵn. Vui lòng quay lại sau.',
       stats: { lessons: 'Bài học', duration: 'Thời lượng', progress: 'Tiến độ', completed: 'Hoàn thành' },
@@ -129,7 +133,7 @@ export default {
     vocabPracticeDesc: 'Học từ vựng ngẫu nhiên với bản dịch tức thì — lật thẻ để xem nghĩa bằng ngôn ngữ của bạn',
     startBtn: 'Bắt đầu →',
     stats: { totalDecks: 'Tổng bộ thẻ', totalCards: 'Tổng thẻ', mastered: 'Đã học thuộc', dayStreak: 'Chuỗi ngày' },
-    deck: { cards: 'thẻ', complete: 'hoàn thành', progress: 'Tiến độ', study: 'Học', edit: 'Chỉnh sửa', duplicate: 'Nhân bản', delete: 'Xóa' },
+    deck: { cards: 'thẻ', complete: 'hoàn thành', progress: 'Tiến độ', study: 'Học', edit: 'Chỉnh sửa', duplicate: 'Nhân bản', delete: 'Xóa', you: 'Của bạn', shared: 'Chia sẻ' },
     empty: { title: 'Chưa có bộ flashcard', desc: 'Tạo bộ thẻ đầu tiên để bắt đầu học' },
     modal: {
       createTitle: 'Tạo bộ thẻ mới', editTitle: 'Chỉnh sửa bộ thẻ',
@@ -138,6 +142,10 @@ export default {
       descPlaceholder: 'Bạn sẽ học gì trong bộ thẻ này?',
       selectCategory: 'Chọn danh mục',
       saveChanges: 'Lưu thay đổi', createDeck: 'Tạo bộ thẻ', cancel: 'Hủy',
+      sharePublic: 'Chia sẻ công khai — mọi người đều có thể học bộ thẻ này',
+      cardsLabel: 'Thẻ (từ + nghĩa)', addCard: 'Thêm thẻ',
+      wordPlaceholder: 'Từ / thuật ngữ', meaningPlaceholder: 'Nghĩa / định nghĩa',
+      cardsHint: 'Nhập từ và nghĩa ngay để có nội dung học. Bạn có thể thêm sau.',
     },
     importModal: {
       title: 'Nhập Flashcard', dropzoneText: 'Thả file vào đây hoặc nhấn để chọn',

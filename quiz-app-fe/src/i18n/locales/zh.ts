@@ -114,6 +114,10 @@ export default {
     detail: {
       backToCourses: '返回课程', save: '收藏', saved: '已收藏',
       startCourse: '开始学习', continueCourse: '继续',
+      finishLesson: '完成课程', restart: '重新学习', lessonComplete: '课程完成！🎉',
+      comprehensionHint: '阅读上面的短文，回答问题，然后点击"查看答案"进行对照。',
+      readingPassage: '阅读短文',
+      showAnswer: '查看参考答案', hideAnswer: '隐藏答案',
       courseContent: '课程内容', yourProgress: '我的进度',
       notFound: '课程未找到', notFoundDesc: '该课程暂时不可用，请稍后再来。',
       stats: { lessons: '课时', duration: '时长', progress: '进度', completed: '已完成' },
@@ -129,7 +133,7 @@ export default {
     vocabPracticeDesc: '随机学习词汇并即时翻译——翻转卡片查看您语言中的释义',
     startBtn: '开始 →',
     stats: { totalDecks: '总卡组', totalCards: '总卡片', mastered: '已掌握', dayStreak: '连续天数' },
-    deck: { cards: '张', complete: '已完成', progress: '进度', study: '学习', edit: '编辑', duplicate: '复制', delete: '删除' },
+    deck: { cards: '张', complete: '已完成', progress: '进度', study: '学习', edit: '编辑', duplicate: '复制', delete: '删除', you: '你的', shared: '共享' },
     empty: { title: '还没有闪卡组', desc: '创建第一个卡组开始学习' },
     modal: {
       createTitle: '创建新卡组', editTitle: '编辑卡组',
@@ -138,6 +142,10 @@ export default {
       descPlaceholder: '这个卡组你将学习什么？',
       selectCategory: '选择分类',
       saveChanges: '保存更改', createDeck: '创建卡组', cancel: '取消',
+      sharePublic: '公开共享 — 所有人都能学习此卡组',
+      cardsLabel: '卡片（词 + 释义）', addCard: '添加卡片',
+      wordPlaceholder: '单词 / 术语', meaningPlaceholder: '含义 / 释义',
+      cardsHint: '现在就添加单词和释义，这样就有内容可学。之后也能再添加。',
     },
     importModal: {
       title: '导入闪卡', dropzoneText: '将文件拖放到此处或点击浏览',

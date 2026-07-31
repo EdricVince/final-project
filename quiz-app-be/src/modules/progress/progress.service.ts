@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, Repository } from 'typeorm';
 import { UserProgress } from './entities/user-progress.entity';
 import { DailyActivity } from './entities/daily-activity.entity';
+import { LessonCompletion } from './entities/lesson-completion.entity';
 import { User } from '../users/entities/user.entity';
 import {
   LogActivityDto,
@@ -76,10 +77,27 @@ export class ProgressService {
     private progressRepo: Repository<UserProgress>,
     @InjectRepository(DailyActivity)
     private dailyRepo: Repository<DailyActivity>,
+    @InjectRepository(LessonCompletion)
+    private completionRepo: Repository<LessonCompletion>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
     private dataSource: DataSource,
   ) {}
+
+  /** Mark a lesson complete for the user (idempotent). */
+  async completeLesson(userId: number, lessonId: number): Promise<{ completed: true }> {
+    const existing = await this.completionRepo.findOne({ where: { user_id: userId, lesson_id: lessonId } });
+    if (!existing) {
+      await this.completionRepo.save(this.completionRepo.create({ user_id: userId, lesson_id: lessonId }));
+    }
+    return { completed: true };
+  }
+
+  /** The lesson ids this user has completed. */
+  async getCompletedLessonIds(userId: number): Promise<number[]> {
+    const rows = await this.completionRepo.find({ where: { user_id: userId }, select: ['lesson_id'] });
+    return rows.map(r => r.lesson_id);
+  }
 
   private async getOrCreateProgress(userId: number): Promise<UserProgress> {
     let progress = await this.progressRepo.findOne({ where: { user_id: userId } });

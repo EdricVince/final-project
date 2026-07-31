@@ -18,6 +18,8 @@ import type {
   LessonContentData,
   GeneratedLessonData,
   GeneratedVocabSetData,
+  FlashcardDeckData,
+  DeckCardData,
 } from '@/types/content'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1'
@@ -353,6 +355,10 @@ export const api = {
     apiRequest(`/lessons/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteLesson: (id: number): Promise<void> =>
     apiRequest(`/lessons/${id}`, { method: 'DELETE' }),
+  // Per-user lesson completion (drives course-card progress).
+  completeLesson: (id: number): Promise<{ completed: true }> =>
+    apiRequest(`/progress/lessons/${id}/complete`, { method: 'POST' }),
+  getCompletedLessons: (): Promise<number[]> => apiRequest('/progress/lessons/completed'),
 
   // ── Vocabulary sets ───────────────────────────────────────────
   getVocabSets: (): Promise<VocabSetData[]> => apiRequest('/vocab-sets'),
@@ -368,4 +374,18 @@ export const api = {
     apiRequest(`/vocab-sets/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteVocabSet: (id: number): Promise<void> =>
     apiRequest(`/vocab-sets/${id}`, { method: 'DELETE' }),
+
+  // ── Flashcard decks (student-created, shareable) ──────────────
+  getFlashcardDecks: (): Promise<FlashcardDeckData[]> => apiRequest('/flashcard-decks'),
+  getFlashcardDeck: (id: number): Promise<FlashcardDeckData> => apiRequest(`/flashcard-decks/${id}`),
+  createFlashcardDeck: (body: {
+    title: string; description?: string; category?: string; is_public?: boolean; cards?: DeckCardData[]
+  }): Promise<FlashcardDeckData> =>
+    apiRequest('/flashcard-decks', { method: 'POST', body: JSON.stringify(body) }),
+  updateFlashcardDeck: (id: number, body: {
+    title?: string; description?: string; category?: string; is_public?: boolean; cards?: DeckCardData[]
+  }): Promise<FlashcardDeckData> =>
+    apiRequest(`/flashcard-decks/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteFlashcardDeck: (id: number): Promise<void> =>
+    apiRequest(`/flashcard-decks/${id}`, { method: 'DELETE' }),
 }

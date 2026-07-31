@@ -20,11 +20,13 @@ import { UserProgress } from '../modules/progress/entities/user-progress.entity'
 import { DailyActivity } from '../modules/progress/entities/daily-activity.entity';
 import { UserGoalSettings } from '../modules/goals/entities/user-goal-settings.entity';
 import { UserCustomGoal } from '../modules/goals/entities/user-custom-goal.entity';
+import { LessonCompletion } from '../modules/progress/entities/lesson-completion.entity';
 import { Class } from '../modules/classes/entities/class.entity';
 import { ClassEnrollment } from '../modules/classes/entities/class-enrollment.entity';
 import { Video } from '../modules/videos/entities/video.entity';
 import { Lesson } from '../modules/lessons/entities/lesson.entity';
 import { VocabSet } from '../modules/vocab-sets/entities/vocab-set.entity';
+import { FlashcardDeck } from '../modules/flashcard-decks/entities/flashcard-deck.entity';
 import { LiveSession } from '../modules/live-quiz/entities/live-session.entity';
 
 dotenv.config();
@@ -38,7 +40,7 @@ const dataSource = new DataSource({
   database: process.env.DB_NAME,
   entities: [
     User, Role, UserProgress, DailyActivity, UserGoalSettings, UserCustomGoal,
-    Class, ClassEnrollment, Video, Lesson, VocabSet, LiveSession,
+    Class, ClassEnrollment, Video, Lesson, VocabSet, FlashcardDeck, LiveSession, LessonCompletion,
   ],
   synchronize: false,
   ssl: process.env.NODE_ENV === 'production'
@@ -61,6 +63,9 @@ const CLEANUP: string[] = [
   `UPDATE lessons SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
   `DELETE FROM vocab_sets WHERE teacher_id NOT IN (SELECT id FROM users)`,
   `UPDATE vocab_sets SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
+  `DELETE FROM flashcard_decks WHERE owner_id NOT IN (SELECT id FROM users)`,
+  `DELETE FROM lesson_completions WHERE user_id NOT IN (SELECT id FROM users)`,
+  `DELETE FROM lesson_completions WHERE lesson_id NOT IN (SELECT id FROM lessons)`,
   `DELETE FROM live_sessions WHERE teacher_id NOT IN (SELECT id FROM users)`,
   `UPDATE live_sessions SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
   `DELETE FROM user_progress WHERE user_id NOT IN (SELECT id FROM users)`,
@@ -86,6 +91,9 @@ const FKS: Array<{ table: string; column: string; ref: string; onDelete: 'CASCAD
   { table: 'lessons', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
   { table: 'vocab_sets', column: 'teacher_id', ref: 'users', onDelete: 'CASCADE' },
   { table: 'vocab_sets', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
+  { table: 'flashcard_decks', column: 'owner_id', ref: 'users', onDelete: 'CASCADE' },
+  { table: 'lesson_completions', column: 'user_id', ref: 'users', onDelete: 'CASCADE' },
+  { table: 'lesson_completions', column: 'lesson_id', ref: 'lessons', onDelete: 'CASCADE' },
   { table: 'live_sessions', column: 'teacher_id', ref: 'users', onDelete: 'CASCADE' },
   { table: 'live_sessions', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
   // Note: users.role_id → roles is intentionally NOT a DB FK — roles are static

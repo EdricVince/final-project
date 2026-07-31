@@ -34,6 +34,7 @@ export interface GeneratedLesson {
   category: string;
   difficulty: string;
   content: {
+    reading?: string;
     vocabulary: { term: string; definition: string; example: string }[];
     quiz: { question: string; options: string[]; correct: number; explanation: string }[];
     comprehension: { question: string; answer: string }[];
@@ -269,12 +270,13 @@ Return ONLY a valid JSON object (no markdown, no code fences) with exactly this 
   "category": "${skill}",
   "difficulty": "${level}",
   "content": {
+    "reading": "a short, coherent ${lang} reading passage (4-6 sentences, one paragraph) about the topic, written at the ${level} level",
     "vocabulary": [{"term": "word/phrase in ${lang}", "definition": "${definitionHint}", "example": "natural example sentence in ${lang}"}],
     "quiz": [{"question": "question text", "options": ["A","B","C","D"], "correct": 0, "explanation": "why this is correct"}],
-    "comprehension": [{"question": "open-ended question", "answer": "ideal answer"}]
+    "comprehension": [{"question": "a reading-comprehension question in ${lang} that can ONLY be answered by reading the passage above", "answer": "the correct answer, taken from / based on the passage"}]
   }
 }
-Generate 8-12 vocabulary items, 6 multiple-choice quiz questions (correct = index of the right option), and 3 comprehension questions.`;
+Generate the reading passage, 8-12 vocabulary items, 6 multiple-choice quiz questions (correct = index of the right option), and 3 comprehension questions that test understanding of the reading passage (not open-ended opinion/speaking prompts).`;
 
     try {
       const response = await this.client.messages.create({

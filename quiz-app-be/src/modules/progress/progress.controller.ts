@@ -3,6 +3,8 @@ import {
   Get,
   Post,
   Body,
+  Param,
+  ParseIntPipe,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -50,5 +52,21 @@ export class ProgressController {
   async getLeaderboard(): Promise<ApiResponse<any>> {
     const data = await this.progressService.getLeaderboard();
     return { code: HttpStatus.OK, message: 'Leaderboard fetched', data };
+  }
+
+  @Get('lessons/completed')
+  async getCompletedLessons(@CurrentUser() user: CurrentUserData): Promise<ApiResponse<number[]>> {
+    const data = await this.progressService.getCompletedLessonIds(user.id);
+    return { code: HttpStatus.OK, message: 'Completed lessons fetched', data };
+  }
+
+  @Post('lessons/:id/complete')
+  @HttpCode(HttpStatus.OK)
+  async completeLesson(
+    @CurrentUser() user: CurrentUserData,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ApiResponse<{ completed: true }>> {
+    const data = await this.progressService.completeLesson(user.id, id);
+    return { code: HttpStatus.OK, message: 'Lesson completed', data };
   }
 }

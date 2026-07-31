@@ -114,6 +114,10 @@ export default {
     detail: {
       backToCourses: 'Back to Courses', save: 'Save', saved: 'Saved',
       startCourse: 'Start Course', continueCourse: 'Continue',
+      finishLesson: 'Finish lesson', restart: 'Study again', lessonComplete: 'Lesson complete! 🎉',
+      comprehensionHint: 'Read the passage above, answer the questions, then click "Show answer" to compare.',
+      readingPassage: 'Reading passage',
+      showAnswer: 'Show suggested answer', hideAnswer: 'Hide answer',
       courseContent: 'Course Content', yourProgress: 'Your Progress',
       notFound: 'Course Not Found', notFoundDesc: 'This course is not available yet. Please check back later.',
       stats: { lessons: 'Lessons', duration: 'Duration', progress: 'Progress', completed: 'Completed' },
@@ -129,7 +133,7 @@ export default {
     vocabPracticeDesc: 'Study random vocabulary with instant translation — flip to see meaning in your language',
     startBtn: 'Start →',
     stats: { totalDecks: 'Total Decks', totalCards: 'Total Cards', mastered: 'Mastered', dayStreak: 'Day Streak' },
-    deck: { cards: 'cards', complete: 'complete', progress: 'Progress', study: 'Study', edit: 'Edit', duplicate: 'Duplicate', delete: 'Delete' },
+    deck: { cards: 'cards', complete: 'complete', progress: 'Progress', study: 'Study', edit: 'Edit', duplicate: 'Duplicate', delete: 'Delete', you: 'You', shared: 'Shared' },
     empty: { title: 'No flashcard decks yet', desc: 'Create your first deck to start learning with flashcards' },
     modal: {
       createTitle: 'Create New Deck', editTitle: 'Edit Deck',
@@ -138,6 +142,10 @@ export default {
       descPlaceholder: 'What will you learn in this deck?',
       selectCategory: 'Select a category',
       saveChanges: 'Save Changes', createDeck: 'Create Deck', cancel: 'Cancel',
+      sharePublic: 'Share publicly — everyone can study this deck',
+      cardsLabel: 'Cards (word + meaning)', addCard: 'Add card',
+      wordPlaceholder: 'Word / term', meaningPlaceholder: 'Meaning / definition',
+      cardsHint: 'Add words and meanings now so there is something to study. You can add more later.',
     },
     importModal: {
       title: 'Import Flashcards', dropzoneText: 'Drop your file here or click to browse',

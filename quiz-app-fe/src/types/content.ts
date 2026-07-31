@@ -7,6 +7,7 @@ export interface VocabWordData {
 }
 
 export interface LessonContentData {
+  reading?: string
   vocabulary: VocabWordData[]
   quiz: { question: string; options: string[]; correct: number; explanation: string }[]
   comprehension: { question: string; answer: string }[]
@@ -44,6 +45,27 @@ export interface TeacherClassData {
   name: string
   class_code: string
   student_count?: number
+}
+
+// Student-created flashcard decks (shareable to everyone via is_public).
+export interface DeckCardData {
+  term: string
+  definition: string
+  example?: string
+  image?: string
+  audio?: string
+}
+
+export interface FlashcardDeckData {
+  id: number
+  owner_id: number
+  title: string
+  description: string | null
+  category: string
+  cards: DeckCardData[]
+  is_public: boolean
+  created_at: string
+  updated_at: string
 }
 
 // AI generation payloads
