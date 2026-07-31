@@ -37,6 +37,13 @@ export class User {
   @Column({ default: false })
   is_verified: boolean;
 
+  // Password-reset: SHA-256 hash of the emailed token + its expiry (epoch ms as string)
+  @Column({ type: 'varchar', nullable: true, default: null })
+  reset_token_hash: string | null;
+
+  @Column({ type: 'bigint', nullable: true, default: null })
+  reset_token_expires: string | null;
+
   @CreateDateColumn()
   created_at: Date;
 
