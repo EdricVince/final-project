@@ -4,8 +4,8 @@
     <!-- Header -->
     <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Students</h1>
-        <p class="text-muted-foreground mt-1 text-sm">The students enrolled across your classes</p>
+        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('teacher.students.title') }}</h1>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.students.pageSubtitle') }}</p>
       </div>
       <div class="flex gap-2">
         <button
@@ -13,7 +13,7 @@
           @click="exportCSV"
         >
           <Download class="h-4 w-4" />
-          Export
+          {{ $t('teacher.students.export') }}
         </button>
       </div>
     </div>
@@ -39,7 +39,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search by name or email..."
+          :placeholder="$t('teacher.students.searchPlaceholder')"
           class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
       </div>
@@ -47,15 +47,15 @@
         v-model="selectedClass"
         class="border-border bg-background text-foreground rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
       >
-        <option value="">All Classes</option>
+        <option value="">{{ $t('teacher.students.filters.allClasses') }}</option>
         <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
       </select>
       <select
         v-model="sortBy"
         class="border-border bg-background text-foreground rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
       >
-        <option value="name">Sort: Name</option>
-        <option value="joined">Sort: Recently joined</option>
+        <option value="name">{{ $t('teacher.students.sortName') }}</option>
+        <option value="joined">{{ $t('teacher.students.sortRecentlyJoined') }}</option>
       </select>
     </div>
 
@@ -91,7 +91,7 @@
           <!-- Joined -->
           <div class="hidden text-right sm:block">
             <p class="text-foreground text-sm font-medium">{{ formatJoined(student.joined_at) }}</p>
-            <p class="text-muted-foreground text-xs">joined</p>
+            <p class="text-muted-foreground text-xs">{{ $t('teacher.students.joinedSmall') }}</p>
           </div>
 
           <!-- Classes + Arrow -->
@@ -116,8 +116,8 @@
         <div class="bg-secondary mb-4 flex h-14 w-14 items-center justify-center rounded-2xl">
           <Users class="text-muted-foreground h-7 w-7" />
         </div>
-        <p class="text-foreground mb-1 font-medium">No students found</p>
-        <p class="text-muted-foreground text-sm">{{ searchQuery ? 'Try a different search term.' : 'Students will appear here once they join a class.' }}</p>
+        <p class="text-foreground mb-1 font-medium">{{ $t('teacher.students.noStudentsFound') }}</p>
+        <p class="text-muted-foreground text-sm">{{ searchQuery ? $t('teacher.students.tryDifferentSearch') : $t('teacher.students.noStudentsDesc') }}</p>
       </div>
     </div>
 
@@ -130,7 +130,7 @@
 
             <!-- Panel Header -->
             <div class="border-border flex items-center justify-between border-b px-6 py-5">
-              <h2 class="text-foreground font-semibold">Student Profile</h2>
+              <h2 class="text-foreground font-semibold">{{ $t('teacher.students.studentProfile') }}</h2>
               <button class="text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg p-1.5 transition-colors" @click="selectedStudent = null">
                 <X class="h-5 w-5" />
               </button>
@@ -153,7 +153,7 @@
 
               <!-- Classes -->
               <div class="mb-5">
-                <h4 class="text-foreground mb-3 text-sm font-semibold">Enrolled Classes</h4>
+                <h4 class="text-foreground mb-3 text-sm font-semibold">{{ $t('teacher.students.enrolledClasses') }}</h4>
                 <div class="flex flex-wrap gap-2">
                   <span
                     v-for="cls in selectedStudent.classes"
@@ -165,7 +165,7 @@
 
               <!-- Joined -->
               <div class="bg-secondary/40 rounded-xl p-4">
-                <span class="text-muted-foreground text-xs">Joined</span>
+                <span class="text-muted-foreground text-xs">{{ $t('teacher.students.joinedLabel') }}</span>
                 <p class="text-foreground mt-0.5 text-sm font-semibold">{{ formatJoined(selectedStudent.joined_at) }}</p>
               </div>
             </div>
@@ -178,10 +178,13 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Search, Users, BookOpen, CheckSquare, ChevronRight, Download, X } from '@/components/icons'
 import { api } from '@/utils/api'
 import { usePolling } from '@/composables/usePolling'
 import type { Class, ClassStudent } from '@/types/class'
+
+const { t } = useI18n()
 
 const searchQuery = ref('')
 const selectedClass = ref('')
@@ -201,9 +204,9 @@ const AVATAR_COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f
 const avatarColor = (id: number) => AVATAR_COLORS[id % AVATAR_COLORS.length] ?? '#6366f1'
 
 const statsCards = computed(() => [
-  { label: 'Total Students', value: students.value.length, icon: Users, color: 'text-primary', bg: 'bg-primary/10', sub: `Across ${classes.value.length} classes` },
-  { label: 'Active Classes', value: classes.value.length, icon: BookOpen, color: 'text-chart-2', bg: 'bg-chart-2/10', sub: 'Classes you teach' },
-  { label: 'Multi-class', value: students.value.filter(s => s.classes.length > 1).length, icon: CheckSquare, color: 'text-chart-3', bg: 'bg-chart-3/10', sub: 'Students in 2+ classes' },
+  { label: t('teacher.students.stats.total'), value: students.value.length, icon: Users, color: 'text-primary', bg: 'bg-primary/10', sub: t('teacher.students.acrossClasses', { n: classes.value.length }) },
+  { label: t('teacher.students.activeClasses'), value: classes.value.length, icon: BookOpen, color: 'text-chart-2', bg: 'bg-chart-2/10', sub: t('teacher.students.classesYouTeach') },
+  { label: t('teacher.students.multiClass'), value: students.value.filter(s => s.classes.length > 1).length, icon: CheckSquare, color: 'text-chart-3', bg: 'bg-chart-3/10', sub: t('teacher.students.stats.multiClassDesc') },
 ])
 
 const filteredStudents = computed(() => {
