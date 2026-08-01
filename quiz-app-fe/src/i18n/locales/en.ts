@@ -234,6 +234,8 @@ export default {
       studentsLabel: 'Students', statusLabel: 'Status',
       modal: { createTitle: 'Create New Class', editTitle: 'Edit Class', classNameLabel: 'Class Name *', classNamePlaceholder: 'e.g. English Grammar A1', subjectLabel: 'Subject', descriptionLabel: 'Description', descriptionPlaceholder: 'What will students learn in this class?', maxStudentsLabel: 'Max Students', cancel: 'Cancel', saving: 'Saving...', saveChanges: 'Save Changes', createClass: 'Create Class' },
       deleteModal: { title: 'Delete Class?', message: '"{name}" and all its enrollments will be permanently deleted.', cancel: 'Cancel', deleting: 'Deleting...', delete: 'Delete' },
+      autoCode: 'Auto',
+      toast: { loadFailed: 'Failed to load classes', updated: 'Class updated', created: 'Class created!', saveFailed: 'Failed to save class', deleted: 'Class deleted', deleteFailed: 'Failed to delete class' },
     },
     classDetail: {
       backToClasses: 'Back to Classes',

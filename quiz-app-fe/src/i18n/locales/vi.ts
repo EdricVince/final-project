@@ -234,6 +234,8 @@ export default {
       studentsLabel: 'Học sinh', statusLabel: 'Trạng thái',
       modal: { createTitle: 'Tạo lớp học mới', editTitle: 'Chỉnh sửa lớp học', classNameLabel: 'Tên lớp *', classNamePlaceholder: 'VD: Ngữ pháp tiếng Anh A1', subjectLabel: 'Môn học', descriptionLabel: 'Mô tả', descriptionPlaceholder: 'Học sinh sẽ học gì trong lớp này?', maxStudentsLabel: 'Số học sinh tối đa', cancel: 'Hủy', saving: 'Đang lưu...', saveChanges: 'Lưu thay đổi', createClass: 'Tạo lớp học' },
       deleteModal: { title: 'Xóa lớp học?', message: '"{name}" và tất cả đăng ký sẽ bị xóa vĩnh viễn.', cancel: 'Hủy', deleting: 'Đang xóa...', delete: 'Xóa' },
+      autoCode: 'Tự động',
+      toast: { loadFailed: 'Không tải được lớp học', updated: 'Đã cập nhật lớp', created: 'Đã tạo lớp!', saveFailed: 'Lưu lớp thất bại', deleted: 'Đã xoá lớp', deleteFailed: 'Xoá lớp thất bại' },
     },
     classDetail: {
       backToClasses: 'Quay lại lớp học',

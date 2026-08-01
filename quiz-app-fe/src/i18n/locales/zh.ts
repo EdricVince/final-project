@@ -234,6 +234,8 @@ export default {
       studentsLabel: '学生', statusLabel: '状态',
       modal: { createTitle: '创建新班级', editTitle: '编辑班级', classNameLabel: '班级名称 *', classNamePlaceholder: '例：英语语法A1', subjectLabel: '科目', descriptionLabel: '描述', descriptionPlaceholder: '学生在此班级将学习什么？', maxStudentsLabel: '最大学生人数', cancel: '取消', saving: '保存中...', saveChanges: '保存更改', createClass: '创建班级' },
       deleteModal: { title: '删除班级？', message: '"{name}"及其所有注册记录将被永久删除。', cancel: '取消', deleting: '删除中...', delete: '删除' },
+      autoCode: '自动',
+      toast: { loadFailed: '加载班级失败', updated: '已更新班级', created: '已创建班级！', saveFailed: '保存班级失败', deleted: '已删除班级', deleteFailed: '删除班级失败' },
     },
     classDetail: {
       backToClasses: '返回班级',
