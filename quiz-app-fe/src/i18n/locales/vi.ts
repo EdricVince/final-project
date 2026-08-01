@@ -189,7 +189,7 @@ export default {
     nav: {
       management: 'Quản lý', content: 'Nội dung', collapse: 'Thu gọn',
       dashboard: 'Bảng điều khiển', classes: 'Lớp học', students: 'Học sinh', analytics: 'Phân tích',
-      lessons: 'Bài học', vocabulary: 'Từ vựng', tests: 'Bài kiểm tra', liveQuiz: 'Buổi học trực tiếp', videos: 'Video', aiImport: 'Nhập AI',
+      lessons: 'Bài học', vocabulary: 'Từ vựng', tests: 'Bài kiểm tra', liveQuiz: 'Buổi học trực tiếp', videos: 'Video',
       portal: 'Cổng giáo viên', teacher: 'Giáo viên', teacherAccount: 'Tài khoản giáo viên', studentView: 'Xem như học sinh', signOut: 'Đăng xuất',
     },
     dashboard: {

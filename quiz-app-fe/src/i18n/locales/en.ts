@@ -189,7 +189,7 @@ export default {
     nav: {
       management: 'Management', content: 'Content', collapse: 'Collapse',
       dashboard: 'Dashboard', classes: 'Classes', students: 'Students', analytics: 'Analytics',
-      lessons: 'Lessons', vocabulary: 'Vocabulary', tests: 'Tests', liveQuiz: 'Live Lesson', videos: 'Videos', aiImport: 'AI Import',
+      lessons: 'Lessons', vocabulary: 'Vocabulary', tests: 'Tests', liveQuiz: 'Live Lesson', videos: 'Videos',
       portal: 'Teacher Portal', teacher: 'Teacher', teacherAccount: 'Teacher Account', studentView: 'Student View', signOut: 'Sign Out',
     },
     dashboard: {

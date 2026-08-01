@@ -224,7 +224,6 @@ import {
   Video,
   Languages,
   GraduationCap,
-  Upload,
   Menu,
   LogOut,
   ChevronDown,
@@ -257,7 +256,6 @@ const contentNavItems = computed(() => [
   { path: '/teacher/tests', label: t('teacher.nav.tests'), icon: FileText },
   { path: '/teacher/live', label: t('teacher.nav.liveQuiz'), icon: Radio },
   { path: '/teacher/videos', label: t('teacher.nav.videos'), icon: Video },
-  { path: '/teacher/import', label: t('teacher.nav.aiImport'), icon: Upload },
 ])
 
 const pageTitleKeys: Record<string, string> = {
@@ -270,7 +268,6 @@ const pageTitleKeys: Record<string, string> = {
   '/teacher/tests': 'teacher.nav.tests',
   '/teacher/live': 'teacher.nav.liveQuiz',
   '/teacher/videos': 'teacher.nav.videos',
-  '/teacher/import': 'teacher.nav.aiImport',
 }
 
 const currentPageTitle = computed(() => {

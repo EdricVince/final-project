@@ -189,7 +189,7 @@ export default {
     nav: {
       management: '管理', content: '内容', collapse: '收起',
       dashboard: '仪表板', classes: '班级', students: '学生', analytics: '分析',
-      lessons: '课程', vocabulary: '词汇', tests: '测试', liveQuiz: '实时课堂', videos: '视频', aiImport: 'AI 导入',
+      lessons: '课程', vocabulary: '词汇', tests: '测试', liveQuiz: '实时课堂', videos: '视频',
       portal: '教师门户', teacher: '教师', teacherAccount: '教师账户', studentView: '学生视图', signOut: '退出登录',
     },
     dashboard: {

@@ -49,7 +49,6 @@ const TEACHER_ROUTES = {
     { path: 'vocabulary', name: 'TeacherVocabulary', component: () => import('@/pages/teacher/VocabularyPage.vue') },
     { path: 'live',       name: 'TeacherLiveQuiz',   component: () => import('@/pages/teacher/LiveQuizPage.vue') },
     { path: 'analytics',  name: 'TeacherAnalytics',  component: () => import('@/pages/teacher/AnalyticsPage.vue') },
-    { path: 'import',     name: 'TeacherImport',     component: () => import('@/pages/teacher/ImportPage.vue') },
   ],
 }
 
