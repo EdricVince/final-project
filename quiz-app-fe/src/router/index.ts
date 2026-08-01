@@ -76,6 +76,7 @@ const routes = [
       { path: 'flashcards',                name: 'Flashcards',           component: () => import('@/pages/student/FlashcardsPage.vue') },
       { path: 'flashcards/:id',            name: 'FlashcardDeck',        component: () => import('@/pages/student/FlashcardDeckPage.vue') },
       { path: 'flashcards/vocab-practice', name: 'FlashcardVocabPractice', component: () => import('@/pages/student/FlashcardStudyPage.vue') },
+      { path: 'flashcards/vocab-set/:id/study', name: 'FlashcardVocabSetStudy', component: () => import('@/pages/student/FlashcardStudyPage.vue') },
       { path: 'flashcards/:id/study',      name: 'FlashcardStudy',       component: () => import('@/pages/student/FlashcardStudyPage.vue') },
 
       // Quizzes
@@ -88,6 +89,7 @@ const routes = [
       { path: 'quizzes/true-false',        name: 'TrueFalseQuiz',     component: () => import('@/pages/quiz/TrueFalseQuiz.vue') },
       { path: 'quizzes/idiom-quiz',        name: 'IdiomQuiz',         component: () => import('@/pages/quiz/IdiomQuiz.vue') },
       { path: 'quizzes/battle',            name: 'BattleMode',        component: () => import('@/pages/quiz/BattleMode.vue') },
+      { path: 'quizzes/test/:id',          name: 'TakeTest',          component: () => import('@/pages/student/TakeTestPage.vue') },
 
       // Progress & Personal
       { path: 'goals',        name: 'Goals',        component: () => import('@/pages/student/GoalsPage.vue') },

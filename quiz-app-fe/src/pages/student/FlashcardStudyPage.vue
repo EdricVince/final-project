@@ -295,6 +295,7 @@ const { locale: uiLang } = useLocale()
 const { getRandomWords, getWordInLang } = useVocabulary()
 
 const isVocabMode = computed(() => route.name === 'FlashcardVocabPractice' || route.query.mode === 'vocab')
+const isVocabSetMode = computed(() => route.name === 'FlashcardVocabSetStudy')
 const deckId = computed(() => Number(route.params.id))
 const deckMeta = ref<{ title: string; description: string } | null>(null)
 
@@ -555,24 +556,34 @@ onMounted(async () => {
     isLoadingCards.value = false
     return
   }
-  // Regular deck — load its cards from the backend.
   isLoadingCards.value = true
   try {
-    const d = await api.getFlashcardDeck(deckId.value)
-    deckMeta.value = { title: d.title, description: d.description ?? '' }
-    cards.value = d.cards.map((c, i) => ({
-      id: i + 1, term: c.term, definition: c.definition,
-      example: c.example, image: c.image, audio: c.audio,
-      isFavorite: false, isKnown: null,
-    }))
+    if (isVocabSetMode.value) {
+      // A published teacher vocabulary set — study its words as flip cards.
+      const s = await api.getVocabSet(deckId.value)
+      deckMeta.value = { title: s.name, description: `${s.language} · ${s.level}` }
+      cards.value = (s.words ?? []).map((w, i) => ({
+        id: i + 1, term: w.term, definition: w.definition, example: w.example,
+        isFavorite: false, isKnown: null,
+      }))
+    } else {
+      // The user's own flashcard deck.
+      const d = await api.getFlashcardDeck(deckId.value)
+      deckMeta.value = { title: d.title, description: d.description ?? '' }
+      cards.value = d.cards.map((c, i) => ({
+        id: i + 1, term: c.term, definition: c.definition,
+        example: c.example, image: c.image, audio: c.audio,
+        isFavorite: false, isKnown: null,
+      }))
+    }
   } catch {
     router.replace('/flashcards')
     return
   } finally {
     isLoadingCards.value = false
   }
-  // Empty deck — send the user back to add cards first.
-  if (cards.value.length === 0) router.replace(`/flashcards/${deckId.value}`)
+  // Empty deck — send the user back (own decks only).
+  if (cards.value.length === 0 && !isVocabSetMode.value) router.replace(`/flashcards/${deckId.value}`)
 })
 
 onUnmounted(() => {

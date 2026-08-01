@@ -78,6 +78,29 @@
       </div>
     </div>
 
+    <!-- From your teacher: published vocab sets -->
+    <div v-if="teacherSets.length" class="animate-fade-in-up delay-125 mb-8">
+      <h2 class="text-foreground mb-3 flex items-center gap-2 text-lg font-semibold">
+        <GraduationCap class="text-primary h-5 w-5" />
+        {{ $t('flashcards.fromTeacher') }}
+      </h2>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <button
+          v-for="set in teacherSets"
+          :key="set.id"
+          class="bg-card border-border hover:border-primary/40 group rounded-2xl border p-5 text-left transition-all hover:shadow-md"
+          @click="studyVocabSet(set.id)"
+        >
+          <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-xl text-2xl">🔤</div>
+          <h3 class="text-foreground font-semibold">{{ set.name }}</h3>
+          <p class="text-muted-foreground mt-0.5 text-sm">{{ set.words.length }} {{ $t('flashcards.deck.cards') }} · {{ set.level }}</p>
+          <span class="text-primary mt-3 inline-flex items-center gap-1 text-sm font-medium group-hover:underline">
+            <Play class="h-3.5 w-3.5" /> {{ $t('flashcards.deck.study') }}
+          </span>
+        </button>
+      </div>
+    </div>
+
     <!-- Search and Filters -->
     <div class="animate-fade-in-up delay-150 mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div class="relative flex-1 lg:max-w-md">
@@ -612,7 +635,7 @@ import { useProgressStore } from '@/stores/progress.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { api, ApiError } from '@/utils/api'
 import { useToast } from '@/composables/useToast'
-import type { FlashcardDeckData as Deck } from '@/types/content'
+import type { FlashcardDeckData as Deck, VocabSetData } from '@/types/content'
 
 const router = useRouter()
 const progressStore = useProgressStore()
@@ -672,10 +695,21 @@ const stats = computed(() => ({
 const isOwner = (deck: Deck) => deck.owner_id === authStore.user?.id
 const errMsg = (e: unknown, fb: string) => (e instanceof ApiError ? e.errorMessage : fb)
 
+// Published vocabulary sets from the student's teachers (studyable as flip cards).
+const teacherSets = ref<VocabSetData[]>([])
+const studyVocabSet = (id: number) => router.push(`/flashcards/vocab-set/${id}/study`)
+
 const load = async () => {
   loading.value = true
   try {
-    decks.value = await api.getFlashcardDecks()
+    const [ds, sets] = await Promise.all([
+      api.getFlashcardDecks(),
+      api.getVocabSets().catch(() => [] as VocabSetData[]),
+    ])
+    decks.value = ds
+    // Published vocab sets available to study (own + teachers'). Backend already
+    // scopes what a student can see; we just need published sets that have words.
+    teacherSets.value = sets.filter(s => s.is_published && (s.words?.length ?? 0) > 0)
   } catch (e) {
     toast.error(errMsg(e, 'Failed to load decks'))
   } finally {

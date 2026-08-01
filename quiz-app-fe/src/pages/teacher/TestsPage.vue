@@ -61,22 +61,28 @@
               <p class="text-muted-foreground text-sm">{{ test.description }}</p>
               <div class="mt-2 flex flex-wrap gap-2">
                 <span class="bg-secondary text-foreground rounded-full px-2 py-0.5 text-xs">
-                  {{ test.question_count }} questions
+                  {{ test.question_count ?? test.questions?.length ?? 0 }} questions
                 </span>
-                <span class="bg-secondary text-foreground rounded-full px-2 py-0.5 text-xs">
+                <span v-if="test.time_limit" class="bg-secondary text-foreground rounded-full px-2 py-0.5 text-xs">
                   {{ test.time_limit }} min
+                </span>
+                <span class="bg-chart-1/10 text-chart-1 rounded-full px-2 py-0.5 text-xs">
+                  {{ test.submission_count ?? 0 }} submissions
                 </span>
                 <span
                   class="rounded-full px-2 py-0.5 text-xs"
-                  :class="test.is_active ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'"
+                  :class="test.is_published ? 'bg-chart-2/10 text-chart-2' : 'bg-secondary text-muted-foreground'"
                 >
-                  {{ test.is_active ? $t('teacher.tests.status.active') : $t('teacher.tests.status.draft') }}
+                  {{ test.is_published ? $t('teacher.tests.status.active') : $t('teacher.tests.status.draft') }}
                 </span>
               </div>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
+            <Button size="sm" :variant="test.is_published ? 'outline' : 'default'" @click="togglePublish(test)">
+              {{ test.is_published ? 'Unpublish' : 'Publish' }}
+            </Button>
             <Button variant="outline" size="sm" @click="$router.push(`/teacher/tests/${test.id}/results`)">
               <BarChart class="mr-2 h-4 w-4" />
               Results
@@ -90,19 +96,6 @@
           </div>
         </div>
 
-        <!-- Assigned Classes -->
-        <div v-if="test.assigned_classes && test.assigned_classes.length > 0" class="border-border mt-4 border-t pt-4">
-          <p class="text-muted-foreground mb-2 text-sm">{{ $t('teacher.tests.assignedTo') }}</p>
-          <div class="flex flex-wrap gap-2">
-            <span
-              v-for="cls in test.assigned_classes"
-              :key="cls"
-              class="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm"
-            >
-              {{ cls }}
-            </span>
-          </div>
-        </div>
       </div>
 
       <!-- Empty State -->
@@ -125,24 +118,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Plus, FileText, BarChart, Pencil, Trash2, HelpCircle, Users, BarChart2 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
+import { api, ApiError } from '@/utils/api'
+import type { TestData } from '@/types/content'
 
 const toast = useToast()
+const tests = ref<TestData[]>([])
+const loading = ref(true)
 
-const tests = ref<{
-  id: number; title: string; description: string; question_count: number
-  time_limit: number; is_active: boolean; assigned_classes: string[]
-}[]>([])
+const totalQuestions = computed(() => tests.value.reduce((s, t) => s + (t.question_count ?? t.questions?.length ?? 0), 0))
+const totalSubmissions = computed(() => tests.value.reduce((s, t) => s + (t.submission_count ?? 0), 0))
+const avgScore = computed(() => {
+  const withSubs = tests.value.filter(t => (t.submission_count ?? 0) > 0)
+  return withSubs.length ? Math.round(withSubs.reduce((s, t) => s + (t.avg_score ?? 0), 0) / withSubs.length) : 0
+})
 
-const totalQuestions = computed(() => tests.value.reduce((sum, t) => sum + t.question_count, 0))
-const totalSubmissions = ref(0)
-const avgScore = ref(0)
+const errMsg = (e: unknown, fb: string) => (e instanceof ApiError ? e.errorMessage : fb)
 
-const deleteTest = (id: number) => {
-  tests.value = tests.value.filter(t => t.id !== id)
-  toast.success('Test deleted')
+const load = async () => {
+  loading.value = true
+  try { tests.value = await api.getTests() } catch (e) { toast.error(errMsg(e, 'Failed to load tests')) } finally { loading.value = false }
+}
+onMounted(load)
+
+const togglePublish = async (test: TestData) => {
+  try {
+    const u = await api.updateTest(test.id, { is_published: !test.is_published })
+    test.is_published = u.is_published
+    toast.success(u.is_published ? 'Published to students' : 'Unpublished')
+  } catch (e) { toast.error(errMsg(e, 'Failed to update')) }
+}
+
+const deleteTest = async (id: number) => {
+  try {
+    await api.deleteTest(id)
+    tests.value = tests.value.filter(t => t.id !== id)
+    toast.success('Test deleted')
+  } catch (e) { toast.error(errMsg(e, 'Failed to delete')) }
 }
 </script>

@@ -115,7 +115,9 @@ import {
   Timer,
   Shuffle,
   Layers,
+  BookOpen,
 } from '@/components/icons'
+import { api } from '@/utils/api'
 
 import MascotGreeting from '@/components/ui/MascotGreeting.vue'
 import DashboardStatsRow from '@/components/dashboard/DashboardStatsRow.vue'
@@ -262,5 +264,19 @@ onMounted(() => {
     progressStore.fetchWeekly(),
     progressStore.fetchLeaderboard(),
   ])
+  // Continue Learning — lessons available to this student (published for their
+  // classes + public), with completion so they know what to pick up next.
+  Promise.all([
+    api.getLessons().catch(() => [] as { id: number; title: string }[]),
+    api.getCompletedLessons().catch(() => [] as number[]),
+  ]).then(([lessons, completed]) => {
+    const done = new Set(completed)
+    continueLearning.value = (lessons as { id: number; title: string }[]).slice(0, 6).map(l => ({
+      id: l.id,
+      title: l.title,
+      progress: done.has(l.id) ? 100 : 0,
+      icon: BookOpen,
+    }))
+  })
 })
 </script>

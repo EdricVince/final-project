@@ -141,39 +141,32 @@
         <div
           v-for="a in assignments"
           :key="a.id"
-          class="bg-secondary/40 rounded-2xl p-4"
+          class="bg-secondary/40 flex flex-col rounded-2xl p-4"
         >
-          <div class="mb-3 flex items-start justify-between gap-2">
-            <div class="flex items-center gap-2.5">
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" :class="a.iconBg">
-                <component :is="a.icon" class="h-4 w-4" :class="a.iconColor" />
+          <div class="mb-2 flex items-start justify-between gap-2">
+            <div class="flex min-w-0 items-center gap-2.5">
+              <div class="bg-chart-2/10 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+                <FileText class="text-chart-2 h-4 w-4" />
               </div>
-              <div>
-                <p class="text-foreground text-sm font-semibold">{{ a.title }}</p>
-                <p class="text-muted-foreground text-xs">{{ a.className }}</p>
+              <div class="min-w-0">
+                <p class="text-foreground truncate text-sm font-semibold">{{ a.title }}</p>
+                <p class="text-muted-foreground text-xs">{{ classNameFor(a.class_id) }}</p>
               </div>
             </div>
-            <button class="text-muted-foreground hover:text-destructive rounded-lg p-1 transition-colors" @click="deleteAssignment(a.id)">
+            <button class="text-muted-foreground hover:text-destructive rounded-lg p-1 transition-colors" @click="removeAssignment(a.id)">
               <X class="h-3.5 w-3.5" />
             </button>
           </div>
-          <!-- Completion Bar -->
-          <div class="mb-2">
-            <div class="mb-1 flex items-center justify-between">
-              <span class="text-muted-foreground text-xs">{{ $t('teacher.dashboard.completion') }}</span>
-              <span class="text-foreground text-xs font-semibold">{{ a.completed }}/{{ a.total }} {{ $t('teacher.dashboard.stats.students').toLowerCase() }}</span>
-            </div>
-            <div class="bg-background h-1.5 overflow-hidden rounded-full">
-              <div
-                class="h-1.5 rounded-full transition-all duration-700"
-                :class="a.total && (a.completed/a.total) >= 0.8 ? 'bg-chart-2' : 'bg-primary'"
-                :style="{ width: `${a.total ? (a.completed/a.total)*100 : 0}%` }"
-              ></div>
-            </div>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="bg-secondary text-muted-foreground rounded-md px-2 py-0.5 text-xs">{{ a.type }}</span>
-            <span class="text-muted-foreground text-xs">{{ $t('teacher.dashboard.due', { date: a.due }) }}</span>
+          <p v-if="a.description" class="text-muted-foreground mb-3 line-clamp-2 text-xs">{{ a.description }}</p>
+          <img v-if="a.attachment" :src="a.attachment" class="mb-3 max-h-28 w-full rounded-lg object-cover" :alt="a.attachment_name || a.title" />
+          <div class="mt-auto flex items-center justify-between">
+            <span
+              class="rounded-md px-2 py-0.5 text-xs"
+              :class="a.is_published ? 'bg-chart-2/10 text-chart-2' : 'bg-secondary text-muted-foreground'"
+            >{{ a.is_published ? $t('teacher.dashboard.publishedBadge') : $t('teacher.dashboard.draftBadge') }}</span>
+            <button v-if="!a.is_published" class="text-primary hover:text-primary/70 text-xs font-medium transition-colors" @click="publishAssignment(a)">
+              {{ $t('teacher.dashboard.publishNow') }}
+            </button>
           </div>
         </div>
       </div>
@@ -259,29 +252,52 @@
                 <X class="h-5 w-5" />
               </button>
             </div>
-            <div class="space-y-4 p-6">
+            <div class="max-h-[70vh] space-y-4 overflow-y-auto p-6">
+              <!-- Choose type: a graded test (opens the Test Builder) vs a document -->
+              <div class="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  class="border-border hover:border-primary/60 hover:bg-secondary/40 rounded-xl border p-3 text-left transition-colors"
+                  @click="goToTestBuilder"
+                >
+                  <FileText class="text-chart-1 mb-1.5 h-5 w-5" />
+                  <p class="text-foreground text-sm font-medium">{{ $t('teacher.dashboard.assignModal.gradedTest') }}</p>
+                  <p class="text-muted-foreground mt-0.5 text-xs">{{ $t('teacher.dashboard.assignModal.gradedTestDesc') }}</p>
+                </button>
+                <div class="border-primary bg-primary/5 rounded-xl border p-3">
+                  <BookOpen class="text-primary mb-1.5 h-5 w-5" />
+                  <p class="text-foreground text-sm font-medium">{{ $t('teacher.dashboard.assignModal.document') }}</p>
+                  <p class="text-muted-foreground mt-0.5 text-xs">{{ $t('teacher.dashboard.assignModal.documentDesc') }}</p>
+                </div>
+              </div>
+
+              <div v-if="assignError" class="info-box info-box-red flex items-center gap-2 text-sm text-red-400">
+                <span>⚠</span> {{ assignError }}
+              </div>
+
               <div>
                 <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.titleLabel') }}</label>
                 <input v-model="newAssign.title" type="text" :placeholder="$t('teacher.dashboard.assignModal.titlePlaceholder')"
                   class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.type') }}</label>
-                  <select v-model="newAssign.type" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                    <option>Flashcard</option>
-                    <option>Quiz</option>
-                    <option>Reading</option>
-                    <option>Listening</option>
-                    <option>Speaking</option>
-                    <option>Writing</option>
-                  </select>
+              <div>
+                <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.descriptionLabel') }}</label>
+                <textarea v-model="newAssign.description" rows="4" :placeholder="$t('teacher.dashboard.assignModal.descriptionPlaceholder')"
+                  class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full resize-y rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"></textarea>
+              </div>
+              <div>
+                <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.attachment') }}</label>
+                <div v-if="newAssign.attachment" class="relative">
+                  <img :src="newAssign.attachment" class="max-h-48 w-full rounded-xl object-contain" :alt="newAssign.attachment_name" />
+                  <button type="button" class="bg-background/80 text-foreground hover:bg-background absolute right-2 top-2 rounded-lg p-1.5 shadow" @click="clearAttachment">
+                    <X class="h-4 w-4" />
+                  </button>
                 </div>
-                <div>
-                  <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.deadline') }}</label>
-                  <input v-model="newAssign.due" type="date"
-                    class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                </div>
+                <label v-else class="border-border hover:border-primary/60 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed px-4 py-6 text-center transition-colors">
+                  <List class="text-muted-foreground h-6 w-6" />
+                  <span class="text-muted-foreground text-xs">{{ $t('teacher.dashboard.assignModal.attachmentHint') }}</span>
+                  <input type="file" accept="image/*" class="hidden" @change="onAttachmentPick" />
+                </label>
               </div>
               <div>
                 <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.assignToClass') }}</label>
@@ -290,10 +306,16 @@
                   <option v-for="cls in recentClasses" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
                 </select>
               </div>
+              <label class="flex cursor-pointer items-center gap-2.5">
+                <input v-model="newAssign.isPublished" type="checkbox" class="accent-primary h-4 w-4 rounded" />
+                <span class="text-foreground text-sm">{{ $t('teacher.dashboard.assignModal.publish') }}</span>
+              </label>
             </div>
             <div class="border-border flex gap-3 border-t p-6">
               <button class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium transition-colors" @click="showAssignModal = false">{{ $t('teacher.dashboard.assignModal.cancel') }}</button>
-              <button class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50" :disabled="!newAssign.title.trim()" @click="createAssignment">{{ $t('teacher.dashboard.assignModal.create') }}</button>
+              <button class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50" :disabled="!newAssign.title.trim() || assignSaving" @click="createAssignment">
+                {{ assignSaving ? $t('teacher.dashboard.assignModal.creating') : $t('teacher.dashboard.assignModal.create') }}
+              </button>
             </div>
           </div>
         </div>
@@ -309,11 +331,12 @@ import { useI18n } from 'vue-i18n'
 import {
   BookOpen, Users, FileText, GraduationCap, Plus,
   Languages, Video, Clock, UserCheck, Activity,
-  List, X, Headphones, PenTool, Mic,
+  List, X,
 } from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
 import { api } from '@/utils/api'
 import type { Class } from '@/types/class'
+import type { AssignmentData } from '@/types/content'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -360,50 +383,103 @@ const recentActivity = ref<{ id: number; text: string; time: string; icon: typeo
 const upcomingTests = ref<{ id: number; title: string; class: string; questions: number; duration: number; status: string }[]>([])
 const dashboardError = ref('')
 
-// Assignments
-const ASSIGN_TYPE_META: Record<string, { icon: typeof BookOpen; iconBg: string; iconColor: string }> = {
-  Flashcard:  { icon: BookOpen,     iconBg: 'bg-primary/10',    iconColor: 'text-primary' },
-  Quiz:       { icon: FileText,     iconBg: 'bg-chart-1/10',   iconColor: 'text-chart-1' },
-  Reading:    { icon: BookOpen,     iconBg: 'bg-chart-2/10',   iconColor: 'text-chart-2' },
-  Listening:  { icon: Headphones,  iconBg: 'bg-chart-3/10',   iconColor: 'text-chart-3' },
-  Speaking:   { icon: Mic,         iconBg: 'bg-chart-4/10',   iconColor: 'text-chart-4' },
-  Writing:    { icon: PenTool,     iconBg: 'bg-chart-5/10',   iconColor: 'text-chart-5' },
-}
-interface Assignment {
-  id: number; title: string; type: string; className: string; classId: number | ''
-  due: string; completed: number; total: number
-  icon: typeof BookOpen; iconBg: string; iconColor: string
-}
-const assignments = ref<Assignment[]>([])
+// Assignments — real document handouts persisted to the backend.
+const assignments = ref<AssignmentData[]>([])
 const showAssignModal = ref(false)
-const newAssign = ref({ title: '', type: 'Flashcard', due: '', classId: '' as number | '' })
+const assignSaving = ref(false)
+const assignError = ref('')
+const newAssign = ref({
+  title: '', description: '', attachment: '' as string, attachment_name: '' as string,
+  classId: '' as number | '', isPublished: true,
+})
 
-const createAssignment = () => {
-  if (!newAssign.value.title.trim()) return
-  const meta = ASSIGN_TYPE_META[newAssign.value.type] ?? ASSIGN_TYPE_META['Flashcard']!
-  const cls = recentClasses.value.find(c => c.id === newAssign.value.classId)
-  assignments.value.unshift({
-    id: Date.now(),
-    title: newAssign.value.title,
-    type: newAssign.value.type,
-    className: cls?.name ?? 'All Classes',
-    classId: newAssign.value.classId,
-    due: newAssign.value.due ? new Date(newAssign.value.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No deadline',
-    completed: 0,
-    total: cls?.studentCount ?? 0,
-    ...meta,
-  })
-  showAssignModal.value = false
-  newAssign.value = { title: '', type: 'Flashcard', due: '', classId: '' }
+const classNameFor = (classId: number | null) => {
+  if (classId == null) return t('teacher.dashboard.allClasses')
+  return recentClasses.value.find(c => c.id === classId)?.name ?? t('teacher.dashboard.allClasses')
 }
 
-const deleteAssignment = (id: number) => { assignments.value = assignments.value.filter(a => a.id !== id) }
+const resetNewAssign = () => {
+  newAssign.value = { title: '', description: '', attachment: '', attachment_name: '', classId: '', isPublished: true }
+  assignError.value = ''
+}
+
+const goToTestBuilder = () => {
+  showAssignModal.value = false
+  router.push('/teacher/tests')
+}
+
+const onAttachmentPick = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  // Keep attachments small so the base64 payload stays reasonable (~2MB cap).
+  if (file.size > 2 * 1024 * 1024) {
+    assignError.value = t('teacher.dashboard.assignModal.imageTooLarge')
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = () => {
+    newAssign.value.attachment = reader.result as string
+    newAssign.value.attachment_name = file.name
+    assignError.value = ''
+  }
+  reader.readAsDataURL(file)
+}
+
+const clearAttachment = () => {
+  newAssign.value.attachment = ''
+  newAssign.value.attachment_name = ''
+}
+
+const createAssignment = async () => {
+  if (!newAssign.value.title.trim() || assignSaving.value) return
+  assignSaving.value = true
+  assignError.value = ''
+  try {
+    const created = await api.createAssignment({
+      title: newAssign.value.title.trim(),
+      description: newAssign.value.description.trim() || undefined,
+      attachment: newAssign.value.attachment || undefined,
+      attachment_name: newAssign.value.attachment_name || undefined,
+      class_id: newAssign.value.classId === '' ? undefined : Number(newAssign.value.classId),
+      is_published: newAssign.value.isPublished,
+    })
+    assignments.value.unshift(created)
+    showAssignModal.value = false
+    resetNewAssign()
+  } catch (e: any) {
+    assignError.value = e?.errorMessage || e?.message || t('teacher.dashboard.assignModal.createFailed')
+  } finally {
+    assignSaving.value = false
+  }
+}
+
+const publishAssignment = async (a: AssignmentData) => {
+  try {
+    const updated = await api.updateAssignment(a.id, { is_published: true })
+    const i = assignments.value.findIndex(x => x.id === a.id)
+    if (i !== -1) assignments.value[i] = updated
+  } catch (e: any) {
+    dashboardError.value = e?.errorMessage || e?.message || 'Failed to publish assignment.'
+  }
+}
+
+const removeAssignment = async (id: number) => {
+  const prev = assignments.value
+  assignments.value = assignments.value.filter(a => a.id !== id)
+  try {
+    await api.deleteAssignment(id)
+  } catch (e: any) {
+    assignments.value = prev
+    dashboardError.value = e?.errorMessage || e?.message || 'Failed to delete assignment.'
+  }
+}
 
 onMounted(async () => {
   try {
-    const [classes, videos] = await Promise.all([
+    const [classes, videos, assigns] = await Promise.all([
       api.getClasses() as Promise<(Class & { student_count: number })[]>,
       api.getVideos() as Promise<{ id: number }[]>,
+      api.getAssignments().catch(() => [] as AssignmentData[]),
     ])
     statsValues.value.classes = classes.length
     statsValues.value.students = classes.reduce((sum, c) => sum + (c.student_count ?? 0), 0)
@@ -417,6 +493,7 @@ onMounted(async () => {
       emoji: CLASS_EMOJIS[i % CLASS_EMOJIS.length] ?? '📚',
       bgColor: CLASS_COLORS[i % CLASS_COLORS.length] ?? 'bg-chart-1/10',
     }))
+    assignments.value = assigns
   } catch (e: any) {
     dashboardError.value = e?.errorMessage || e?.message || 'Failed to load dashboard data.'
   }

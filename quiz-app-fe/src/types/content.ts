@@ -68,6 +68,64 @@ export interface FlashcardDeckData {
   updated_at: string
 }
 
+// Teacher tests (assignments) + student submissions
+export interface TestQuestionData {
+  question: string
+  options: string[]
+  correct?: number // stripped when a student fetches the test to take it
+  points: number
+}
+
+export interface TestData {
+  id: number
+  teacher_id?: number
+  class_id: number | null
+  title: string
+  description: string | null
+  questions: TestQuestionData[]
+  time_limit: number | null
+  is_published: boolean
+  created_at: string
+  updated_at?: string
+  // teacher-list extras
+  question_count?: number
+  submission_count?: number
+  avg_score?: number
+  // student-list extras
+  my_score?: number | null
+  my_total?: number | null
+}
+
+export interface TestSubmissionData {
+  id: number
+  student_id: number
+  student_name: string
+  student_email?: string
+  score: number
+  total: number
+  submitted_at: string
+}
+
+export interface GeneratedTestData {
+  title: string
+  questions: { question: string; options: string[]; correct: number; points: number }[]
+}
+
+// Document assignments: a prompt/handout the teacher posts (optionally with an
+// attached image/file as a base64 data URL). Graded work uses TestData instead.
+export interface AssignmentData {
+  id: number
+  teacher_id?: number
+  class_id: number | null
+  title: string
+  description: string | null
+  attachment: string | null
+  attachment_name: string | null
+  is_published: boolean
+  created_at: string
+  updated_at?: string
+}
+
 // AI generation payloads
 export interface GeneratedLessonData {
   title: string

@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4">
+  <div class="flex flex-col gap-4">
     <div class="flex items-center justify-between">
       <h4 class="text-foreground text-sm font-medium">Weekly Activity</h4>
       <div class="flex items-center gap-4 text-xs">
@@ -19,13 +19,13 @@
     </div>
 
     <!-- Chart -->
-    <div class="flex h-32 items-end justify-between gap-2">
+    <div class="flex min-h-44 flex-1 items-end justify-between gap-2">
       <div
         v-for="(day, index) in activity"
         :key="index"
-        class="flex flex-1 flex-col items-center gap-1"
+        class="flex h-full flex-1 flex-col items-center gap-1"
       >
-        <div class="flex h-24 w-full flex-col-reverse items-center gap-0.5">
+        <div class="flex w-full flex-1 flex-col-reverse items-center gap-0.5">
           <div
             class="bg-chart-1 w-full rounded-t transition-all duration-300"
             :style="{ height: `${getBarHeight(day.flashcards)}%` }"
