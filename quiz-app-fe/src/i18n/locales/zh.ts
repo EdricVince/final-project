@@ -146,6 +146,7 @@ export default {
       cardsLabel: '卡片（词 + 释义）', addCard: '添加卡片',
       wordPlaceholder: '单词 / 术语', meaningPlaceholder: '含义 / 释义',
       cardsHint: '现在就添加单词和释义，这样就有内容可学。之后也能再添加。',
+      editCardsHint: '可编辑任意卡片、删除不需要的，或点击"添加卡片"继续添加。',
     },
     importModal: {
       title: '导入闪卡', dropzoneText: '将文件拖放到此处或点击浏览',

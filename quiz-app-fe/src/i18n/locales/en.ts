@@ -146,6 +146,7 @@ export default {
       cardsLabel: 'Cards (word + meaning)', addCard: 'Add card',
       wordPlaceholder: 'Word / term', meaningPlaceholder: 'Meaning / definition',
       cardsHint: 'Add words and meanings now so there is something to study. You can add more later.',
+      editCardsHint: 'Edit any card, remove ones you don\'t need, or add more with "Add card".',
     },
     importModal: {
       title: 'Import Flashcards', dropzoneText: 'Drop your file here or click to browse',

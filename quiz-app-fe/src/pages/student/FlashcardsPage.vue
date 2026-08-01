@@ -366,10 +366,14 @@
                 <span class="text-foreground text-sm">{{ $t('flashcards.modal.sharePublic') }}</span>
               </label>
 
-              <!-- Inline cards editor — enter words + meanings when creating -->
-              <div v-if="!editingDeck">
+              <!-- Inline cards editor — enter words + meanings, edit existing
+                   cards and keep adding more (works when creating and editing). -->
+              <div>
                 <div class="mb-2 flex items-center justify-between">
-                  <label class="text-foreground block text-sm font-medium">{{ $t('flashcards.modal.cardsLabel') }}</label>
+                  <label class="text-foreground block text-sm font-medium">
+                    {{ $t('flashcards.modal.cardsLabel') }}
+                    <span class="text-muted-foreground font-normal">({{ deckForm.cards.filter(c => c.term.trim()).length }})</span>
+                  </label>
                   <button type="button" class="text-primary flex items-center gap-1 text-xs font-medium" @click="addFormCard">
                     <Plus class="h-3.5 w-3.5" /> {{ $t('flashcards.modal.addCard') }}
                   </button>
@@ -381,7 +385,7 @@
                     <button type="button" class="text-muted-foreground hover:text-destructive shrink-0 p-1.5" @click="removeFormCard(i)"><X class="h-4 w-4" /></button>
                   </div>
                 </div>
-                <p class="text-muted-foreground mt-1.5 text-xs">{{ $t('flashcards.modal.cardsHint') }}</p>
+                <p class="text-muted-foreground mt-1.5 text-xs">{{ editingDeck ? $t('flashcards.modal.editCardsHint') : $t('flashcards.modal.cardsHint') }}</p>
               </div>
 
               <div class="flex gap-3 pt-4">
@@ -673,14 +677,17 @@ const categories = [
   'General',
 ]
 
-// Deck form — a NEW deck is created together with its cards (entered inline),
-// so there is data to study immediately.
+// Deck form — used for both creating (cards entered inline) and editing (the
+// deck's existing cards are loaded so the owner can edit them and add more).
+// Extra fields (example/image/audio) are preserved even though this quick
+// editor only exposes term + definition.
+type FormCard = { term: string; definition: string; example?: string; image?: string; audio?: string }
 const deckForm = ref({
   title: '',
   description: '',
   category: '',
   isPublic: true,
-  cards: [{ term: '', definition: '' }] as { term: string; definition: string }[],
+  cards: [{ term: '', definition: '' }] as FormCard[],
 })
 
 // Decks loaded from the backend: the user's own decks + everyone's PUBLIC decks.
@@ -784,7 +791,10 @@ const openEditDeck = (deck: Deck) => {
     description: deck.description ?? '',
     category: deck.category,
     isPublic: deck.is_public,
-    cards: [],
+    // Load existing cards so the owner can edit them and keep adding more.
+    cards: deck.cards.length
+      ? deck.cards.map(c => ({ term: c.term, definition: c.definition, example: c.example, image: c.image, audio: c.audio }))
+      : [{ term: '', definition: '' }],
   }
   activeDeckMenu.value = null
   showDeckModal.value = true
@@ -800,11 +810,17 @@ const saveDeck = async () => {
   saving.value = true
   try {
     if (editingDeck.value) {
+      // Keep every card that still has a term; preserve rich fields (example/
+      // image/audio) that this quick editor doesn't surface.
+      const cards = deckForm.value.cards
+        .filter(c => c.term.trim())
+        .map(c => ({ term: c.term.trim(), definition: c.definition.trim(), example: c.example, image: c.image, audio: c.audio }))
       const updated = await api.updateFlashcardDeck(editingDeck.value.id, {
         title: deckForm.value.title,
         description: deckForm.value.description,
         category: deckForm.value.category || editingDeck.value.category,
         is_public: deckForm.value.isPublic,
+        cards,
       })
       const i = decks.value.findIndex(d => d.id === updated.id)
       if (i >= 0) decks.value[i] = updated

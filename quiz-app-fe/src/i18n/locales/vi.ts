@@ -146,6 +146,7 @@ export default {
       cardsLabel: 'Thẻ (từ + nghĩa)', addCard: 'Thêm thẻ',
       wordPlaceholder: 'Từ / thuật ngữ', meaningPlaceholder: 'Nghĩa / định nghĩa',
       cardsHint: 'Nhập từ và nghĩa ngay để có nội dung học. Bạn có thể thêm sau.',
+      editCardsHint: 'Sửa thẻ bất kỳ, xoá thẻ không cần, hoặc bấm "Thêm thẻ" để thêm thẻ mới.',
     },
     importModal: {
       title: 'Nhập Flashcard', dropzoneText: 'Thả file vào đây hoặc nhấn để chọn',
