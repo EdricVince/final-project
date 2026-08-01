@@ -131,7 +131,7 @@ export default {
     searchPlaceholder: '搜索卡组...', allCategories: '所有分类',
     vocabPractice: '词汇练习',
     vocabPracticeDesc: '随机学习词汇并即时翻译——翻转卡片查看您语言中的释义',
-    startBtn: '开始 →', fromTeacher: '来自老师', teacherDecks: '老师的卡片集', communityDecks: '学员社区',
+    startBtn: '开始 →', fromTeacher: '来自老师', yourDecks: '我的卡片集', teacherDecks: '老师的卡片集', communityDecks: '学员社区',
     stats: { totalDecks: '总卡组', totalCards: '总卡片', mastered: '已掌握', dayStreak: '连续天数' },
     deck: { cards: '张', complete: '已完成', progress: '进度', study: '学习', edit: '编辑', duplicate: '复制', delete: '删除', you: '你的', shared: '共享' },
     empty: { title: '还没有闪卡组', desc: '创建第一个卡组开始学习' },

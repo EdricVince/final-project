@@ -131,7 +131,7 @@ export default {
     searchPlaceholder: 'Search decks...', allCategories: 'All Categories',
     vocabPractice: 'Vocab Practice',
     vocabPracticeDesc: 'Study random vocabulary with instant translation — flip to see meaning in your language',
-    startBtn: 'Start →', fromTeacher: 'From your teacher', teacherDecks: 'From teachers', communityDecks: 'Student community',
+    startBtn: 'Start →', fromTeacher: 'From your teacher', yourDecks: 'Your decks', teacherDecks: 'From teachers', communityDecks: 'Student community',
     stats: { totalDecks: 'Total Decks', totalCards: 'Total Cards', mastered: 'Mastered', dayStreak: 'Day Streak' },
     deck: { cards: 'cards', complete: 'complete', progress: 'Progress', study: 'Study', edit: 'Edit', duplicate: 'Duplicate', delete: 'Delete', you: 'You', shared: 'Shared' },
     empty: { title: 'No flashcard decks yet', desc: 'Create your first deck to start learning with flashcards' },

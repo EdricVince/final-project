@@ -116,12 +116,12 @@
       </div>
     </div>
 
-    <!-- Two sides: teacher decks (incl. vocab sets) and the student community -->
-    <template v-if="teacherSets.length || teacherDecks.length || communityDecks.length">
+    <!-- Three sides: your own decks, other teachers' decks, student community -->
+    <template v-if="deckSections.length">
       <section v-for="section in deckSections" :key="section.key" class="mb-8">
         <h2 class="text-foreground mb-4 flex items-center gap-2 text-lg font-semibold">
-          <component :is="section.key === 'teacher' ? GraduationCap : Users" class="text-primary h-5 w-5" />
-          {{ section.key === 'teacher' ? $t('flashcards.teacherDecks') : $t('flashcards.communityDecks') }}
+          <component :is="section.icon" class="text-primary h-5 w-5" />
+          {{ $t(section.titleKey) }}
           <span class="text-muted-foreground text-sm font-normal">· {{ section.total }}</span>
         </h2>
 
@@ -737,19 +737,25 @@ const filteredDecks = computed(() => {
   })
 })
 
-// Two "sides": decks authored by teachers vs by students (the community).
+// Decks are grouped into three clearly separated sections so a teacher's own
+// deck never gets lumped in with other teachers' content:
+//  - "Your decks"       → whatever the current user made (any role)
+//  - "From teachers"    → OTHER teachers' decks + teacher vocab sets
+//  - "Student community"→ OTHER students' decks (for everyone to study)
 const ROLE_TEACHER = 2
-const teacherDecks = computed(() => filteredDecks.value.filter(d => d.owner_role === ROLE_TEACHER))
-const communityDecks = computed(() => filteredDecks.value.filter(d => d.owner_role !== ROLE_TEACHER))
+const isMine = (d: Deck) => d.owner_id === authStore.user?.id
+const myDecks = computed(() => filteredDecks.value.filter(isMine))
+const teacherDecks = computed(() => filteredDecks.value.filter(d => !isMine(d) && d.owner_role === ROLE_TEACHER))
+const communityDecks = computed(() => filteredDecks.value.filter(d => !isMine(d) && d.owner_role !== ROLE_TEACHER))
 
-// Sections rendered on the page: "From teachers" (vocab sets + teacher decks)
-// and "Student community" (decks made by students, incl. the user's own).
 const deckSections = computed(() => {
-  const s: { key: 'teacher' | 'community'; decks: Deck[]; total: number }[] = []
+  const s: { key: 'mine' | 'teacher' | 'community'; titleKey: string; icon: Component; decks: Deck[]; total: number }[] = []
+  if (myDecks.value.length)
+    s.push({ key: 'mine', titleKey: 'flashcards.yourDecks', icon: Layers, decks: myDecks.value, total: myDecks.value.length })
   if (teacherSets.value.length || teacherDecks.value.length)
-    s.push({ key: 'teacher', decks: teacherDecks.value, total: teacherSets.value.length + teacherDecks.value.length })
+    s.push({ key: 'teacher', titleKey: 'flashcards.teacherDecks', icon: GraduationCap, decks: teacherDecks.value, total: teacherSets.value.length + teacherDecks.value.length })
   if (communityDecks.value.length)
-    s.push({ key: 'community', decks: communityDecks.value, total: communityDecks.value.length })
+    s.push({ key: 'community', titleKey: 'flashcards.communityDecks', icon: Users, decks: communityDecks.value, total: communityDecks.value.length })
   return s
 })
 

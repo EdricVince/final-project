@@ -131,7 +131,7 @@ export default {
     searchPlaceholder: 'Tìm kiếm bộ thẻ...', allCategories: 'Tất cả danh mục',
     vocabPractice: 'Luyện từ vựng',
     vocabPracticeDesc: 'Học từ vựng ngẫu nhiên với bản dịch tức thì — lật thẻ để xem nghĩa bằng ngôn ngữ của bạn',
-    startBtn: 'Bắt đầu →', fromTeacher: 'Từ giáo viên', teacherDecks: 'Bộ thẻ từ giáo viên', communityDecks: 'Cộng đồng học viên',
+    startBtn: 'Bắt đầu →', fromTeacher: 'Từ giáo viên', yourDecks: 'Bộ thẻ của bạn', teacherDecks: 'Bộ thẻ từ giáo viên', communityDecks: 'Cộng đồng học viên',
     stats: { totalDecks: 'Tổng bộ thẻ', totalCards: 'Tổng thẻ', mastered: 'Đã học thuộc', dayStreak: 'Chuỗi ngày' },
     deck: { cards: 'thẻ', complete: 'hoàn thành', progress: 'Tiến độ', study: 'Học', edit: 'Chỉnh sửa', duplicate: 'Nhân bản', delete: 'Xóa', you: 'Của bạn', shared: 'Chia sẻ' },
     empty: { title: 'Chưa có bộ flashcard', desc: 'Tạo bộ thẻ đầu tiên để bắt đầu học' },
