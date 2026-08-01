@@ -78,10 +78,10 @@ services:
         sync: false
 
   # ── Frontend: Vue 3 SPA (static site) ─────────────────────────────────────
+  # NOTE: static sites are served from a global CDN and cannot set `region`.
   - type: web
     name: studyspark-web
     runtime: static
-    region: singapore
     buildCommand: corepack enable && corepack prepare pnpm@10 --activate && pnpm install --frozen-lockfile --filter quiz-app-fe... && pnpm --filter quiz-app-fe build
     staticPublishPath: ./quiz-app-fe/dist
     # SPA history-mode fallback.
