@@ -263,6 +263,10 @@ export default {
       stats: { total: 'Total Tests', questions: 'Total Questions', submissions: 'Submissions', avgScore: 'Avg. Score' },
       status: { active: 'Active', draft: 'Draft' }, assignedTo: 'Assigned to:',
       noTestsYet: 'No tests yet', createFirstTest: 'Create your first test to get started',
+      assignments: {
+        title: 'Document assignments', subtitle: 'Post a prompt or handout (image + description) for students',
+        new: 'New assignment', empty: 'No assignments yet', emptyDesc: 'Create a document assignment for your students to read.',
+      },
     },
     testResults: {
       backToTests: 'Back to Tests', testResults: 'Test Results', exportCsv: 'Export CSV',

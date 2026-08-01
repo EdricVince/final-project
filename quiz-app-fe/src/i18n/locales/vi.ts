@@ -263,6 +263,10 @@ export default {
       stats: { total: 'Tổng bài KT', questions: 'Tổng câu hỏi', submissions: 'Lượt nộp', avgScore: 'Điểm TB' },
       status: { active: 'Hoạt động', draft: 'Nháp' }, assignedTo: 'Giao cho:',
       noTestsYet: 'Chưa có bài kiểm tra', createFirstTest: 'Tạo bài kiểm tra đầu tiên để bắt đầu',
+      assignments: {
+        title: 'Bài tập tài liệu', subtitle: 'Đăng đề bài hoặc tài liệu (ảnh + mô tả) cho học sinh',
+        new: 'Bài tập mới', empty: 'Chưa có bài tập', emptyDesc: 'Tạo bài tập tài liệu để học sinh đọc và làm.',
+      },
     },
     testResults: {
       backToTests: 'Quay lại bài kiểm tra', testResults: 'Kết quả kiểm tra', exportCsv: 'Xuất CSV',

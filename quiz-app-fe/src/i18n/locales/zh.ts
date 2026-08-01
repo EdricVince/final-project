@@ -263,6 +263,10 @@ export default {
       stats: { total: '总测试', questions: '总题目', submissions: '提交次数', avgScore: '平均分' },
       status: { active: '活跃', draft: '草稿' }, assignedTo: '已分配给：',
       noTestsYet: '还没有测试', createFirstTest: '创建第一个测试开始',
+      assignments: {
+        title: '文档作业', subtitle: '为学生发布题目或讲义（图片 + 说明）',
+        new: '新作业', empty: '还没有作业', emptyDesc: '创建文档作业供学生阅读和完成。',
+      },
     },
     testResults: {
       backToTests: '返回测试', testResults: '测试结果', exportCsv: '导出 CSV',
