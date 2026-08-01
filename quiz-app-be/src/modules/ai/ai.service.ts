@@ -410,13 +410,25 @@ Return ONLY a valid JSON object (no markdown, no code fences):
     }
   }
 
-  async getWordOfTheDay(): Promise<WordOfTheDay> {
+  async getWordOfTheDay(fresh = false): Promise<WordOfTheDay> {
     const today = new Date().toDateString();
-    if (this.cache?.date === today) return this.cache.word;
+    // Daily cache keeps the same word for the whole day; `fresh` (the refresh
+    // button) skips it to pull a brand-new random word on demand.
+    if (!fresh && this.cache?.date === today) return this.cache.word;
 
     if (!this.client) {
       throw new ServiceUnavailableException('AI service not configured. Please add your Anthropic API key in admin settings.');
     }
+
+    // A random seed (theme + starting letter) so each day — and each refresh —
+    // lands on a genuinely different word instead of the model's usual favourites.
+    const themes = [
+      'everyday life', 'nature & science', 'emotions & feelings', 'work & business',
+      'travel & places', 'food & cooking', 'art & music', 'technology',
+      'personality & character', 'time & change', 'communication', 'movement & action',
+    ];
+    const theme = themes[Math.floor(Math.random() * themes.length)];
+    const letter = 'abcdefghijklmnoprstuvw'[Math.floor(Math.random() * 22)];
 
     try {
       const response = await this.client.messages.create({
@@ -436,7 +448,7 @@ Return ONLY valid JSON (no markdown) with this exact structure:
   "difficulty": "beginner|intermediate|advanced",
   "tip": "fun memory trick or etymology tip"
 }
-Pick an interesting, useful English word. Not too common, not too obscure.`,
+Pick an interesting, useful English word related to "${theme}", ideally starting with "${letter}". Not too common, not too obscure. Surprise me with a different word each time.`,
         }],
       });
 

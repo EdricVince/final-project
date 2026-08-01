@@ -39,13 +39,25 @@ export class FlashcardDecksService {
     return this.deckRepo.save(deck);
   }
 
-  /** The user's own decks (public or private) plus every other user's PUBLIC decks. */
-  async findForUser(userId: number): Promise<FlashcardDeck[]> {
-    return this.deckRepo
+  /**
+   * The user's own decks (public or private) plus every other user's PUBLIC decks.
+   * Each deck is annotated with its owner's role + name so the client can split
+   * "from teachers" vs "student community" decks.
+   */
+  async findForUser(userId: number): Promise<(FlashcardDeck & { owner_role: number; owner_name: string | null })[]> {
+    const { entities, raw } = await this.deckRepo
       .createQueryBuilder('d')
+      .leftJoin('users', 'u', 'u.id = d.owner_id')
+      .addSelect('u.role_id', 'owner_role')
+      .addSelect('u.name', 'owner_name')
       .where('d.owner_id = :userId OR d.is_public = true', { userId })
       .orderBy('d.created_at', 'DESC')
-      .getMany();
+      .getRawAndEntities();
+    return entities.map((deck, i) => ({
+      ...deck,
+      owner_role: Number(raw[i]?.owner_role) || 0,
+      owner_name: raw[i]?.owner_name ?? null,
+    }));
   }
 
   async findOne(id: number, userId: number): Promise<FlashcardDeck> {

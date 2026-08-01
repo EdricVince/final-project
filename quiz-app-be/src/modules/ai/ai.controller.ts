@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { JwtGuard } from '../../core/guards/jwt.guard';
 import { AiService, WordOfTheDay, ImportedContent, VocabularyItem, GeneratedLesson, GeneratedVocabSet, GeneratedTest } from './ai.service';
 import { IsOptional, IsString, IsInt, IsArray, Min, Max } from 'class-validator';
@@ -45,8 +45,8 @@ export class AiController {
   constructor(private readonly aiService: AiService) {}
 
   @Get('word-of-the-day')
-  async getWordOfTheDay(): Promise<{ code: number; message: string; data: WordOfTheDay }> {
-    const data = await this.aiService.getWordOfTheDay();
+  async getWordOfTheDay(@Query('fresh') fresh?: string): Promise<{ code: number; message: string; data: WordOfTheDay }> {
+    const data = await this.aiService.getWordOfTheDay(fresh === '1' || fresh === 'true');
     return { code: 200, message: 'Word of the day', data };
   }
 
