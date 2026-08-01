@@ -17,6 +17,8 @@ import { SkillsModule } from './modules/skills/skills.module';
 import { LessonsModule } from './modules/lessons/lessons.module';
 import { VocabSetsModule } from './modules/vocab-sets/vocab-sets.module';
 import { FlashcardDecksModule } from './modules/flashcard-decks/flashcard-decks.module';
+import { TestsModule } from './modules/tests/tests.module';
+import { AssignmentsModule } from './modules/assignments/assignments.module';
 import { BattleModule } from './modules/battle/battle.module';
 
 @Module({
@@ -36,6 +38,8 @@ import { BattleModule } from './modules/battle/battle.module';
     LessonsModule,
     VocabSetsModule,
     FlashcardDecksModule,
+    TestsModule,
+    AssignmentsModule,
     BattleModule,
   ],
   controllers: [AppController],

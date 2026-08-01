@@ -46,6 +46,11 @@ export interface GeneratedVocabSet {
   words: { term: string; definition: string; example: string }[];
 }
 
+export interface GeneratedTest {
+  title: string;
+  questions: { question: string; options: string[]; correct: number; points: number }[];
+}
+
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
@@ -349,6 +354,59 @@ Include exactly ${count} words.`;
     } catch (err) {
       this.logger.error('generateVocabularySet failed', err);
       throw new ServiceUnavailableException('AI failed to generate the vocabulary set. Please try again.');
+    }
+  }
+
+  /** Generate a multiple-choice test (title + questions) for a topic at a level. */
+  async generateTest(dto: {
+    topic: string;
+    level: string;
+    language?: string;
+    count?: number;
+  }): Promise<GeneratedTest> {
+    if (!this.client) {
+      throw new ServiceUnavailableException(
+        'AI service not configured. Please add your Anthropic API key in admin settings.',
+      );
+    }
+    const lang = this.langName(dto.language ?? 'en');
+    const level = (dto.level || 'Intermediate (B1)').trim();
+    const topic = (dto.topic || 'general knowledge').trim();
+    const count = Math.min(Math.max(dto.count ?? 8, 1), 20);
+
+    const prompt = `You are a ${lang} teacher writing a multiple-choice test.
+Topic: "${topic}". Target level: ${level}. Write ${count} clear multiple-choice questions in ${lang}, each with exactly 4 options and one correct answer.
+Return ONLY a valid JSON object (no markdown, no code fences):
+{
+  "title": "a short test title for this topic",
+  "questions": [
+    {"question": "the question text in ${lang}", "options": ["A","B","C","D"], "correct": 0, "points": 1}
+  ]
+}
+"correct" is the 0-based index of the right option. Include exactly ${count} questions.`;
+
+    try {
+      const response = await this.client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 3072,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const raw = (response.content[0] as { type: string; text: string }).text;
+      const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+      const test = JSON.parse(json) as GeneratedTest;
+      test.title ||= topic;
+      test.questions = (test.questions ?? [])
+        .filter(q => q && q.question && Array.isArray(q.options) && q.options.length >= 2)
+        .map(q => ({
+          question: q.question,
+          options: q.options,
+          correct: Math.min(Math.max(Number(q.correct) || 0, 0), q.options.length - 1),
+          points: q.points && q.points > 0 ? q.points : 1,
+        }));
+      return test;
+    } catch (err) {
+      this.logger.error('generateTest failed', err);
+      throw new ServiceUnavailableException('AI failed to generate the test. Please try again.');
     }
   }
 

@@ -27,6 +27,9 @@ import { Video } from '../modules/videos/entities/video.entity';
 import { Lesson } from '../modules/lessons/entities/lesson.entity';
 import { VocabSet } from '../modules/vocab-sets/entities/vocab-set.entity';
 import { FlashcardDeck } from '../modules/flashcard-decks/entities/flashcard-deck.entity';
+import { Test } from '../modules/tests/entities/test.entity';
+import { TestSubmission } from '../modules/tests/entities/test-submission.entity';
+import { Assignment } from '../modules/assignments/entities/assignment.entity';
 import { LiveSession } from '../modules/live-quiz/entities/live-session.entity';
 
 dotenv.config();
@@ -40,7 +43,7 @@ const dataSource = new DataSource({
   database: process.env.DB_NAME,
   entities: [
     User, Role, UserProgress, DailyActivity, UserGoalSettings, UserCustomGoal,
-    Class, ClassEnrollment, Video, Lesson, VocabSet, FlashcardDeck, LiveSession, LessonCompletion,
+    Class, ClassEnrollment, Video, Lesson, VocabSet, FlashcardDeck, LiveSession, LessonCompletion, Test, TestSubmission, Assignment,
   ],
   synchronize: false,
   ssl: process.env.NODE_ENV === 'production'
@@ -66,8 +69,14 @@ const CLEANUP: string[] = [
   `DELETE FROM flashcard_decks WHERE owner_id NOT IN (SELECT id FROM users)`,
   `DELETE FROM lesson_completions WHERE user_id NOT IN (SELECT id FROM users)`,
   `DELETE FROM lesson_completions WHERE lesson_id NOT IN (SELECT id FROM lessons)`,
+  `DELETE FROM tests WHERE teacher_id NOT IN (SELECT id FROM users)`,
+  `UPDATE tests SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
+  `DELETE FROM test_submissions WHERE student_id NOT IN (SELECT id FROM users)`,
+  `DELETE FROM test_submissions WHERE test_id NOT IN (SELECT id FROM tests)`,
   `DELETE FROM live_sessions WHERE teacher_id NOT IN (SELECT id FROM users)`,
   `UPDATE live_sessions SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
+  `DELETE FROM assignments WHERE teacher_id NOT IN (SELECT id FROM users)`,
+  `UPDATE assignments SET class_id = NULL WHERE class_id IS NOT NULL AND class_id NOT IN (SELECT id FROM classes)`,
   `DELETE FROM user_progress WHERE user_id NOT IN (SELECT id FROM users)`,
   `DELETE FROM daily_activities WHERE user_id NOT IN (SELECT id FROM users)`,
   `DELETE FROM user_goal_settings WHERE user_id NOT IN (SELECT id FROM users)`,
@@ -94,8 +103,14 @@ const FKS: Array<{ table: string; column: string; ref: string; onDelete: 'CASCAD
   { table: 'flashcard_decks', column: 'owner_id', ref: 'users', onDelete: 'CASCADE' },
   { table: 'lesson_completions', column: 'user_id', ref: 'users', onDelete: 'CASCADE' },
   { table: 'lesson_completions', column: 'lesson_id', ref: 'lessons', onDelete: 'CASCADE' },
+  { table: 'tests', column: 'teacher_id', ref: 'users', onDelete: 'CASCADE' },
+  { table: 'tests', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
+  { table: 'test_submissions', column: 'student_id', ref: 'users', onDelete: 'CASCADE' },
+  { table: 'test_submissions', column: 'test_id', ref: 'tests', onDelete: 'CASCADE' },
   { table: 'live_sessions', column: 'teacher_id', ref: 'users', onDelete: 'CASCADE' },
   { table: 'live_sessions', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
+  { table: 'assignments', column: 'teacher_id', ref: 'users', onDelete: 'CASCADE' },
+  { table: 'assignments', column: 'class_id', ref: 'classes', onDelete: 'SET NULL' },
   // Note: users.role_id → roles is intentionally NOT a DB FK — roles are static
   // reference data (never deleted) and registering Role for that one relation
   // makes TypeORM synchronize churn the roles table. App-level integrity only.
