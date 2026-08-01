@@ -1,7 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+// Fall back to harmless placeholders when the Supabase env isn't configured.
+// createClient() throws on an empty URL, which would crash the whole app on
+// import (e.g. the login page). With placeholders the app loads fine; only the
+// Google/Facebook OAuth buttons are non-functional until Supabase is set up.
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || 'https://placeholder.supabase.co'
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || 'placeholder-anon-key'
+
+export const isSupabaseConfigured = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY,
+)
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
