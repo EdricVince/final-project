@@ -59,6 +59,8 @@ export interface DeckCardData {
 export interface FlashcardDeckData {
   id: number
   owner_id: number
+  owner_role?: number // 1=student, 2=teacher, 3=admin (from the list endpoint)
+  owner_name?: string | null
   title: string
   description: string | null
   category: string

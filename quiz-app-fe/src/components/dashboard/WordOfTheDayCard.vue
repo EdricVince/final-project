@@ -78,21 +78,16 @@
               </p>
             </div>
 
-            <!-- Actions -->
+            <!-- Actions — pull a fresh random word on demand -->
             <div class="flex gap-2 pt-1">
               <button
-                class="bg-violet-500 text-white hover:bg-violet-600 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-                @click.stop="addToFlashcard"
-              >
-                <Plus class="h-3.5 w-3.5" />
-                {{ $t('dashboard.addToFlashcards') }}
-              </button>
-              <button
-                class="bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg px-3 py-1.5 text-sm transition-colors"
-                @click.stop="fetchWord"
-                title="Refresh"
+                class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-60"
+                :disabled="loading"
+                @click.stop="fetchWord(true)"
+                :title="$t('dashboard.newWord')"
               >
                 <RefreshCw class="h-4 w-4" :class="{ 'animate-spin': loading }" />
+                {{ $t('dashboard.newWord') }}
               </button>
             </div>
           </div>
@@ -104,13 +99,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { Sparkles, Volume2, Plus, RefreshCw, ChevronDown } from '@/components/icons'
+import { Sparkles, Volume2, RefreshCw, ChevronDown } from '@/components/icons'
 import { api } from '@/utils/api'
-import { useToast } from '@/composables/useToast'
 
-const { t } = useI18n()
-const { success: showToast } = useToast()
 const CACHE_KEY = 'wotd-cache'
 
 interface Word {
@@ -131,15 +122,19 @@ const difficultyClass = computed(() => ({
   advanced:     'bg-red-500/10 text-red-500',
 }[word.value?.difficulty ?? 'beginner']))
 
-const fetchWord = async () => {
-  const cached = localStorage.getItem(CACHE_KEY)
-  if (cached) {
-    const { date, data } = JSON.parse(cached)
-    if (date === new Date().toDateString()) { word.value = data; return }
+// `fresh` (the refresh button) skips the daily cache and asks the server for a
+// brand-new random word; otherwise the same word is shown for the whole day.
+const fetchWord = async (fresh = false) => {
+  if (!fresh) {
+    const cached = localStorage.getItem(CACHE_KEY)
+    if (cached) {
+      const { date, data } = JSON.parse(cached)
+      if (date === new Date().toDateString()) { word.value = data; return }
+    }
   }
   loading.value = true; error.value = false
   try {
-    word.value = await api.getWordOfTheDay()
+    word.value = await api.getWordOfTheDay(fresh)
     localStorage.setItem(CACHE_KEY, JSON.stringify({ date: new Date().toDateString(), data: word.value }))
   } catch { error.value = true }
   finally { loading.value = false }
@@ -155,11 +150,7 @@ const speak = () => {
   window.speechSynthesis.speak(utt)
 }
 
-const addToFlashcard = () => {
-  showToast(t('dashboard.savedToFlashcards', { word: word.value?.word }))
-}
-
-onMounted(fetchWord)
+onMounted(() => fetchWord())
 </script>
 
 <style scoped>

@@ -311,7 +311,7 @@ export const api = {
   },
 
   // ── AI ────────────────────────────────────────────────────────
-  getWordOfTheDay: (): Promise<{
+  getWordOfTheDay: (fresh = false): Promise<{
     word: string
     phonetic: string
     partOfSpeech: string
@@ -320,7 +320,7 @@ export const api = {
     synonyms: string[]
     difficulty: 'beginner' | 'intermediate' | 'advanced'
     tip: string
-  }> => apiRequest('/ai/word-of-the-day'),
+  }> => apiRequest(`/ai/word-of-the-day${fresh ? '?fresh=1' : ''}`),
 
   importScan: (body: { url?: string; text?: string; language?: string }): Promise<unknown> =>
     apiRequest('/ai/import/scan', { method: 'POST', body: JSON.stringify(body) }),

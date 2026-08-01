@@ -278,5 +278,17 @@ onMounted(() => {
       icon: BookOpen,
     }))
   })
+  // Recent Flashcards — every deck available to the user (their own + all shared
+  // decks from teachers and other students), newest first.
+  api.getFlashcardDecks()
+    .then((decks) => {
+      recentFlashcards.value = decks.slice(0, 6).map(d => ({
+        id: d.id,
+        question: d.title,
+        difficulty: d.category || 'Deck',
+        lastStudied: t('dashboard.cardsCount', { n: d.cards.length }),
+      }))
+    })
+    .catch(() => { /* non-critical */ })
 })
 </script>

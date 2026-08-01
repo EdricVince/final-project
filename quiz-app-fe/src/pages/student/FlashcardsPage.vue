@@ -78,29 +78,6 @@
       </div>
     </div>
 
-    <!-- From your teacher: published vocab sets -->
-    <div v-if="teacherSets.length" class="animate-fade-in-up delay-125 mb-8">
-      <h2 class="text-foreground mb-3 flex items-center gap-2 text-lg font-semibold">
-        <GraduationCap class="text-primary h-5 w-5" />
-        {{ $t('flashcards.fromTeacher') }}
-      </h2>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <button
-          v-for="set in teacherSets"
-          :key="set.id"
-          class="bg-card border-border hover:border-primary/40 group rounded-2xl border p-5 text-left transition-all hover:shadow-md"
-          @click="studyVocabSet(set.id)"
-        >
-          <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-xl text-2xl">🔤</div>
-          <h3 class="text-foreground font-semibold">{{ set.name }}</h3>
-          <p class="text-muted-foreground mt-0.5 text-sm">{{ set.words.length }} {{ $t('flashcards.deck.cards') }} · {{ set.level }}</p>
-          <span class="text-primary mt-3 inline-flex items-center gap-1 text-sm font-medium group-hover:underline">
-            <Play class="h-3.5 w-3.5" /> {{ $t('flashcards.deck.study') }}
-          </span>
-        </button>
-      </div>
-    </div>
-
     <!-- Search and Filters -->
     <div class="animate-fade-in-up delay-150 mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div class="relative flex-1 lg:max-w-md">
@@ -139,12 +116,36 @@
       </div>
     </div>
 
-    <!-- Decks Grid/List -->
-    <div v-if="filteredDecks.length > 0">
+    <!-- Two sides: teacher decks (incl. vocab sets) and the student community -->
+    <template v-if="teacherSets.length || teacherDecks.length || communityDecks.length">
+      <section v-for="section in deckSections" :key="section.key" class="mb-8">
+        <h2 class="text-foreground mb-4 flex items-center gap-2 text-lg font-semibold">
+          <component :is="section.key === 'teacher' ? GraduationCap : Users" class="text-primary h-5 w-5" />
+          {{ section.key === 'teacher' ? $t('flashcards.teacherDecks') : $t('flashcards.communityDecks') }}
+          <span class="text-muted-foreground text-sm font-normal">· {{ section.total }}</span>
+        </h2>
+
+        <!-- Teacher vocab sets (flip-card study) -->
+        <div v-if="section.key === 'teacher' && teacherSets.length" class="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <button
+            v-for="set in teacherSets"
+            :key="`vs-${set.id}`"
+            class="bg-card border-border hover:border-primary/40 group rounded-2xl border p-5 text-left transition-all hover:shadow-md"
+            @click="studyVocabSet(set.id)"
+          >
+            <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-xl text-2xl">🔤</div>
+            <h3 class="text-foreground font-semibold">{{ set.name }}</h3>
+            <p class="text-muted-foreground mt-0.5 text-sm">{{ set.words.length }} {{ $t('flashcards.deck.cards') }} · {{ set.level }}</p>
+            <span class="text-primary mt-3 inline-flex items-center gap-1 text-sm font-medium group-hover:underline">
+              <Play class="h-3.5 w-3.5" /> {{ $t('flashcards.deck.study') }}
+            </span>
+          </button>
+        </div>
+
       <!-- Grid View -->
-      <div v-if="viewMode === 'grid'" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-6">
+      <div v-if="section.decks.length && viewMode === 'grid'" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-6">
         <div
-          v-for="(deck, index) in filteredDecks"
+          v-for="(deck, index) in section.decks"
           :key="deck.id"
           class="deck-card bg-card border-border group cursor-pointer rounded-2xl border p-5 transition-all duration-300 hover:shadow-lg lg:p-6"
           :style="{ animationDelay: `${index * 50}ms` }"
@@ -209,7 +210,7 @@
               </span>
               <span class="text-muted-foreground flex items-center gap-1 text-sm">
                 <Clock class="h-4 w-4" />
-                {{ isOwner(deck) ? $t('flashcards.deck.you') : $t('flashcards.deck.shared') }}
+                {{ isOwner(deck) ? $t('flashcards.deck.you') : (deck.owner_name || $t('flashcards.deck.shared')) }}
               </span>
             </div>
 
@@ -243,9 +244,9 @@
       </div>
 
       <!-- List View -->
-      <div v-else class="space-y-3">
+      <div v-else-if="section.decks.length" class="space-y-3">
         <div
-          v-for="(deck, index) in filteredDecks"
+          v-for="(deck, index) in section.decks"
           :key="deck.id"
           class="deck-list-item bg-card border-border group flex cursor-pointer items-center gap-4 rounded-2xl border p-4 transition-all duration-300 hover:shadow-lg lg:gap-6 lg:p-5"
           :style="{ animationDelay: `${index * 50}ms` }"
@@ -262,7 +263,7 @@
             <h3 class="text-foreground mb-1 text-lg font-semibold">{{ deck.title }}</h3>
             <div class="flex flex-wrap items-center gap-3">
               <span class="text-muted-foreground text-sm">{{ deck.cards.length }} {{ $t('flashcards.deck.cards') }}</span>
-              <span class="text-muted-foreground text-sm">{{ isOwner(deck) ? $t('flashcards.deck.you') : $t('flashcards.deck.shared') }}</span>
+              <span class="text-muted-foreground text-sm">{{ isOwner(deck) ? $t('flashcards.deck.you') : (deck.owner_name || $t('flashcards.deck.shared')) }}</span>
               <span class="text-muted-foreground text-sm">{{ deck.is_public ? 'Public' : 'Private' }}</span>
             </div>
           </div>
@@ -281,7 +282,8 @@
           </div>
         </div>
       </div>
-    </div>
+      </section>
+    </template>
 
     <!-- Empty State -->
     <div v-else class="animate-fade-in-up flex flex-col items-center justify-center py-20 text-center">
@@ -629,6 +631,7 @@ import {
   ArrowUpDown,
   Mic,
   GraduationCap,
+  Users,
 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { useProgressStore } from '@/stores/progress.store'
@@ -725,6 +728,22 @@ const filteredDecks = computed(() => {
     const matchesCategory = selectedCategory.value === 'all' || deck.category === selectedCategory.value
     return matchesSearch && matchesCategory
   })
+})
+
+// Two "sides": decks authored by teachers vs by students (the community).
+const ROLE_TEACHER = 2
+const teacherDecks = computed(() => filteredDecks.value.filter(d => d.owner_role === ROLE_TEACHER))
+const communityDecks = computed(() => filteredDecks.value.filter(d => d.owner_role !== ROLE_TEACHER))
+
+// Sections rendered on the page: "From teachers" (vocab sets + teacher decks)
+// and "Student community" (decks made by students, incl. the user's own).
+const deckSections = computed(() => {
+  const s: { key: 'teacher' | 'community'; decks: Deck[]; total: number }[] = []
+  if (teacherSets.value.length || teacherDecks.value.length)
+    s.push({ key: 'teacher', decks: teacherDecks.value, total: teacherSets.value.length + teacherDecks.value.length })
+  if (communityDecks.value.length)
+    s.push({ key: 'community', decks: communityDecks.value, total: communityDecks.value.length })
+  return s
 })
 
 const addFormCard = () => deckForm.value.cards.push({ term: '', definition: '' })
