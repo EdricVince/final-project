@@ -61,13 +61,13 @@
               <p class="text-muted-foreground text-sm">{{ test.description }}</p>
               <div class="mt-2 flex flex-wrap gap-2">
                 <span class="bg-secondary text-foreground rounded-full px-2 py-0.5 text-xs">
-                  {{ test.question_count ?? test.questions?.length ?? 0 }} questions
+                  {{ $t('teacher.tests.questionsCount', { n: test.question_count ?? test.questions?.length ?? 0 }) }}
                 </span>
                 <span v-if="test.time_limit" class="bg-secondary text-foreground rounded-full px-2 py-0.5 text-xs">
-                  {{ test.time_limit }} min
+                  {{ $t('teacher.tests.minutesCount', { n: test.time_limit }) }}
                 </span>
                 <span class="bg-chart-1/10 text-chart-1 rounded-full px-2 py-0.5 text-xs">
-                  {{ test.submission_count ?? 0 }} submissions
+                  {{ $t('teacher.tests.submissionsCount', { n: test.submission_count ?? 0 }) }}
                 </span>
                 <span
                   class="rounded-full px-2 py-0.5 text-xs"
@@ -81,11 +81,11 @@
 
           <div class="flex items-center gap-2">
             <Button size="sm" :variant="test.is_published ? 'outline' : 'default'" @click="togglePublish(test)">
-              {{ test.is_published ? 'Unpublish' : 'Publish' }}
+              {{ test.is_published ? $t('teacher.tests.unpublish') : $t('teacher.tests.publish') }}
             </Button>
             <Button variant="outline" size="sm" @click="$router.push(`/teacher/tests/${test.id}/results`)">
               <BarChart class="mr-2 h-4 w-4" />
-              Results
+              {{ $t('teacher.tests.results') }}
             </Button>
             <Button variant="outline" size="sm" @click="$router.push(`/teacher/tests/${test.id}/edit`)">
               <Pencil class="h-4 w-4" />
@@ -106,11 +106,11 @@
         <div class="bg-secondary mb-4 flex h-16 w-16 items-center justify-center rounded-full">
           <FileText class="text-muted-foreground h-8 w-8" />
         </div>
-        <h3 class="text-foreground mb-2 font-medium">No tests yet</h3>
-        <p class="text-muted-foreground mb-4 text-sm">Create your first test to get started</p>
+        <h3 class="text-foreground mb-2 font-medium">{{ $t('teacher.tests.noTestsYet') }}</h3>
+        <p class="text-muted-foreground mb-4 text-sm">{{ $t('teacher.tests.createFirstTest') }}</p>
         <Button @click="$router.push('/teacher/tests/new')">
           <Plus class="mr-2 h-4 w-4" />
-          Create Test
+          {{ $t('teacher.tests.createTest') }}
         </Button>
       </div>
     </div>
@@ -320,7 +320,7 @@ const publishAssignment = async (a: AssignmentData) => {
     const updated = await api.updateAssignment(a.id, { is_published: true })
     const i = assignments.value.findIndex(x => x.id === a.id)
     if (i !== -1) assignments.value[i] = updated
-  } catch (e) { toast.error(errMsg(e, 'Failed to publish assignment')) }
+  } catch (e) { toast.error(errMsg(e, t('teacher.tests.toast.assignPublishFailed'))) }
 }
 
 const removeAssignment = async (id: number) => {
@@ -330,7 +330,7 @@ const removeAssignment = async (id: number) => {
     await api.deleteAssignment(id)
   } catch (e) {
     assignments.value = prev
-    toast.error(errMsg(e, 'Failed to delete assignment'))
+    toast.error(errMsg(e, t('teacher.tests.toast.assignDeleteFailed')))
   }
 }
 
@@ -355,7 +355,7 @@ const load = async () => {
     assignments.value = asg
     classes.value = cls as (Class & { student_count?: number })[]
   } catch (e) {
-    toast.error(errMsg(e, 'Failed to load tests'))
+    toast.error(errMsg(e, t('teacher.tests.toast.loadFailed')))
   } finally {
     loading.value = false
   }
@@ -366,16 +366,16 @@ const togglePublish = async (test: TestData) => {
   try {
     const u = await api.updateTest(test.id, { is_published: !test.is_published })
     test.is_published = u.is_published
-    toast.success(u.is_published ? 'Published to students' : 'Unpublished')
-  } catch (e) { toast.error(errMsg(e, 'Failed to update')) }
+    toast.success(u.is_published ? t('teacher.tests.toast.published') : t('teacher.tests.toast.unpublished'))
+  } catch (e) { toast.error(errMsg(e, t('teacher.tests.toast.updateFailed'))) }
 }
 
 const deleteTest = async (id: number) => {
   try {
     await api.deleteTest(id)
     tests.value = tests.value.filter(t => t.id !== id)
-    toast.success('Test deleted')
-  } catch (e) { toast.error(errMsg(e, 'Failed to delete')) }
+    toast.success(t('teacher.tests.toast.deleted'))
+  } catch (e) { toast.error(errMsg(e, t('teacher.tests.toast.deleteFailed'))) }
 }
 </script>
 

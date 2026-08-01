@@ -1,12 +1,12 @@
 <template>
   <div class="p-6 lg:p-8">
     <button class="text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1.5 text-sm font-medium" @click="router.push('/teacher/tests')">
-      <ArrowLeft class="h-4 w-4" /> Tests
+      <ArrowLeft class="h-4 w-4" /> {{ $t('teacher.testBuilder.back') }}
     </button>
 
     <div class="mb-6">
-      <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ test?.title ?? 'Results' }}</h1>
-      <p class="text-muted-foreground mt-1 text-sm">Student submissions</p>
+      <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ test?.title ?? $t('teacher.testResults.testResults') }}</h1>
+      <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.testResults.subtitle') }}</p>
     </div>
 
     <div v-if="loading" class="flex items-center justify-center py-20"><Loader2 class="text-primary h-8 w-8 animate-spin" /></div>
@@ -16,15 +16,15 @@
       <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
         <div class="bg-card border-border rounded-2xl border p-5">
           <p class="text-foreground text-2xl font-bold">{{ submissions.length }}</p>
-          <p class="text-muted-foreground mt-1 text-sm">Submissions</p>
+          <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.testResults.stats.submissions') }}</p>
         </div>
         <div class="bg-card border-border rounded-2xl border p-5">
           <p class="text-foreground text-2xl font-bold">{{ avgPct }}%</p>
-          <p class="text-muted-foreground mt-1 text-sm">Average score</p>
+          <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.testResults.stats.avgScore') }}</p>
         </div>
         <div class="bg-card border-border rounded-2xl border p-5">
           <p class="text-foreground text-2xl font-bold">{{ test?.questions?.length ?? 0 }}</p>
-          <p class="text-muted-foreground mt-1 text-sm">Questions</p>
+          <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.testResults.stats.questions') }}</p>
         </div>
       </div>
 
@@ -33,10 +33,10 @@
         <table class="w-full text-sm">
           <thead class="bg-secondary">
             <tr>
-              <th class="text-foreground px-5 py-3 text-left font-medium">Student</th>
-              <th class="text-foreground px-5 py-3 text-left font-medium">Score</th>
-              <th class="text-foreground px-5 py-3 text-left font-medium">%</th>
-              <th class="text-foreground px-5 py-3 text-left font-medium">Submitted</th>
+              <th class="text-foreground px-5 py-3 text-left font-medium">{{ $t('teacher.testResults.table.student') }}</th>
+              <th class="text-foreground px-5 py-3 text-left font-medium">{{ $t('teacher.testResults.table.score') }}</th>
+              <th class="text-foreground px-5 py-3 text-left font-medium">{{ $t('teacher.testResults.percent') }}</th>
+              <th class="text-foreground px-5 py-3 text-left font-medium">{{ $t('teacher.testResults.table.submitted') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -57,8 +57,8 @@
 
       <div v-else class="bg-card border-border flex flex-col items-center justify-center rounded-2xl border p-12 text-center">
         <Users class="text-muted-foreground mb-3 h-10 w-10" />
-        <p class="text-foreground font-medium">No submissions yet</p>
-        <p class="text-muted-foreground text-sm">Results appear here once students take the test.</p>
+        <p class="text-foreground font-medium">{{ $t('teacher.testResults.noSubmissions') }}</p>
+        <p class="text-muted-foreground text-sm">{{ $t('teacher.testResults.noSubmissionsDesc') }}</p>
       </div>
     </template>
   </div>
@@ -67,6 +67,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api, ApiError } from '@/utils/api'
 import { useToast } from '@/composables/useToast'
 import type { TestData, TestSubmissionData } from '@/types/content'
@@ -74,6 +75,7 @@ import { ArrowLeft, Users, Loader2Icon as Loader2 } from '@/components/icons'
 
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 const toast = useToast()
 const testId = Number(route.params.id)
 
@@ -90,7 +92,7 @@ onMounted(async () => {
     test.value = t
     submissions.value = subs
   } catch (e) {
-    toast.error(e instanceof ApiError ? e.errorMessage : 'Failed to load results')
+    toast.error(e instanceof ApiError ? e.errorMessage : t('teacher.testResults.loadFailed'))
     router.push('/teacher/tests')
   } finally {
     loading.value = false

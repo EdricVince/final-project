@@ -19,7 +19,7 @@
             :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"
           >
             <span class="text-sidebar-foreground text-base font-bold leading-tight tracking-tight">StudySpark</span>
-            <span class="text-primary text-xs font-semibold">Teacher Portal</span>
+            <span class="text-primary text-xs font-semibold">{{ $t('teacher.nav.portal') }}</span>
           </div>
         </div>
       </div>
@@ -31,7 +31,7 @@
             v-if="!isCollapsed"
             class="text-sidebar-foreground/50 mb-2 px-3 text-xs font-semibold uppercase tracking-wider"
           >
-            Management
+            {{ $t('teacher.nav.management') }}
           </p>
           <div v-else class="border-sidebar-border mb-2 border-t"></div>
 
@@ -71,7 +71,7 @@
             v-if="!isCollapsed"
             class="text-sidebar-foreground/50 mb-2 px-3 text-xs font-semibold uppercase tracking-wider"
           >
-            Content
+            {{ $t('teacher.nav.content') }}
           </p>
           <div v-else class="border-sidebar-border mb-2 border-t"></div>
 
@@ -118,7 +118,7 @@
             class="whitespace-nowrap transition-opacity duration-300"
             :class="[isCollapsed ? 'opacity-0' : 'opacity-100']"
           >
-            Collapse
+            {{ $t('teacher.nav.collapse') }}
           </span>
         </button>
       </div>
@@ -144,7 +144,7 @@
           <!-- Class count badge -->
           <div class="hidden items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 sm:flex">
             <BookOpen class="text-primary h-3.5 w-3.5" />
-            <span class="text-primary text-sm font-semibold">Teacher</span>
+            <span class="text-primary text-sm font-semibold">{{ $t('teacher.nav.teacher') }}</span>
           </div>
 
           <!-- Divider -->
@@ -161,7 +161,7 @@
               </div>
               <div class="hidden text-left sm:block">
                 <p class="text-foreground text-sm font-medium">{{ userName }}</p>
-                <p class="text-muted-foreground text-xs">Teacher</p>
+                <p class="text-muted-foreground text-xs">{{ $t('teacher.nav.teacher') }}</p>
               </div>
               <ChevronDown
                 class="text-muted-foreground hidden h-4 w-4 transition-transform duration-200 sm:block"
@@ -176,7 +176,7 @@
               >
                 <div class="border-border border-b p-3">
                   <p class="text-foreground text-sm font-medium">{{ userName }}</p>
-                  <p class="text-muted-foreground text-xs">Teacher Account</p>
+                  <p class="text-muted-foreground text-xs">{{ $t('teacher.nav.teacherAccount') }}</p>
                 </div>
                 <div class="p-2">
                   <router-link
@@ -185,7 +185,7 @@
                     @click="isDropdownOpen = false"
                   >
                     <LayoutDashboard class="text-muted-foreground h-4 w-4" />
-                    Student View
+                    {{ $t('teacher.nav.studentView') }}
                   </router-link>
                 </div>
                 <div class="border-border border-t p-2">
@@ -194,7 +194,7 @@
                     @click="handleLogout"
                   >
                     <LogOut class="h-4 w-4" />
-                    Sign Out
+                    {{ $t('teacher.nav.signOut') }}
                   </button>
                 </div>
               </div>
@@ -235,7 +235,7 @@ import {
 } from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
 
-const { locale } = useI18n({ useScope: 'global' })
+const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
@@ -244,41 +244,41 @@ const isCollapsed = ref(false)
 const isDropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
-const mainNavItems = [
-  { path: '/teacher/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/teacher/classes', label: 'Classes', icon: BookOpen },
-  { path: '/teacher/students', label: 'Students', icon: Users },
-  { path: '/teacher/analytics', label: 'Analytics', icon: BarChart2 },
-]
+const mainNavItems = computed(() => [
+  { path: '/teacher/dashboard', label: t('teacher.nav.dashboard'), icon: LayoutDashboard },
+  { path: '/teacher/classes', label: t('teacher.nav.classes'), icon: BookOpen },
+  { path: '/teacher/students', label: t('teacher.nav.students'), icon: Users },
+  { path: '/teacher/analytics', label: t('teacher.nav.analytics'), icon: BarChart2 },
+])
 
-const contentNavItems = [
-  { path: '/teacher/lessons', label: 'Lessons', icon: GraduationCap },
-  { path: '/teacher/vocabulary', label: 'Vocabulary', icon: Languages },
-  { path: '/teacher/tests', label: 'Tests', icon: FileText },
-  { path: '/teacher/live', label: 'Live Quiz', icon: Radio },
-  { path: '/teacher/videos', label: 'Videos', icon: Video },
-  { path: '/teacher/import', label: 'AI Import', icon: Upload },
-]
+const contentNavItems = computed(() => [
+  { path: '/teacher/lessons', label: t('teacher.nav.lessons'), icon: GraduationCap },
+  { path: '/teacher/vocabulary', label: t('teacher.nav.vocabulary'), icon: Languages },
+  { path: '/teacher/tests', label: t('teacher.nav.tests'), icon: FileText },
+  { path: '/teacher/live', label: t('teacher.nav.liveQuiz'), icon: Radio },
+  { path: '/teacher/videos', label: t('teacher.nav.videos'), icon: Video },
+  { path: '/teacher/import', label: t('teacher.nav.aiImport'), icon: Upload },
+])
 
-const pageTitles: Record<string, string> = {
-  '/teacher/dashboard': 'Dashboard',
-  '/teacher/classes': 'Classes',
-  '/teacher/students': 'Students',
-  '/teacher/analytics': 'Analytics',
-  '/teacher/lessons': 'Lessons',
-  '/teacher/vocabulary': 'Vocabulary',
-  '/teacher/tests': 'Tests',
-  '/teacher/live': 'Live Quiz',
-  '/teacher/videos': 'Videos',
-  '/teacher/import': 'AI Import',
+const pageTitleKeys: Record<string, string> = {
+  '/teacher/dashboard': 'teacher.nav.dashboard',
+  '/teacher/classes': 'teacher.nav.classes',
+  '/teacher/students': 'teacher.nav.students',
+  '/teacher/analytics': 'teacher.nav.analytics',
+  '/teacher/lessons': 'teacher.nav.lessons',
+  '/teacher/vocabulary': 'teacher.nav.vocabulary',
+  '/teacher/tests': 'teacher.nav.tests',
+  '/teacher/live': 'teacher.nav.liveQuiz',
+  '/teacher/videos': 'teacher.nav.videos',
+  '/teacher/import': 'teacher.nav.aiImport',
 }
 
 const currentPageTitle = computed(() => {
   const path = route.path
-  for (const [key, title] of Object.entries(pageTitles)) {
-    if (path === key || path.startsWith(key + '/')) return title
+  for (const [key, titleKey] of Object.entries(pageTitleKeys)) {
+    if (path === key || path.startsWith(key + '/')) return t(titleKey)
   }
-  return 'Teacher Portal'
+  return t('teacher.nav.portal')
 })
 
 const userName = computed(() => {
