@@ -1,45 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import { QuestionDto } from './live-quiz.service';
+import { StepDto } from './live-quiz.service';
 
-export interface LqPlayer {
+export interface LmParticipant {
   socketId: string;
   userId: number;
   name: string;
-  score: number;
-  answered: Set<number>;
 }
 
-export interface LqRoom {
+export interface LmRoom {
   pin: string;
   sessionId: number;
   teacherId: number;
   title: string;
-  questions: QuestionDto[]; // includes the correct index (server-side only)
+  steps: StepDto[];
   hostSocketId: string | null;
-  players: Map<string, LqPlayer>;
-  status: 'waiting' | 'active' | 'finished';
+  participants: Map<string, LmParticipant>;
+  status: 'waiting' | 'live' | 'ended';
   currentIndex: number;
-  distribution: number[]; // answers-per-option for the current question
 }
 
-export interface ClientQuestion {
+export interface ClientStep {
   index: number;
   total: number;
-  question: string;
-  options: string[];
-  time_limit: number;
+  title: string;
+  body: string;
 }
 
 /**
- * Holds the in-memory state for every live quiz room (keyed by PIN) and the
- * server-authoritative scoring. Nothing here trusts the client: the correct
- * answer index never leaves the server, and scores are computed here.
+ * In-memory state for every live lesson room (keyed by PIN). A live lesson is a
+ * teacher-led meeting: the host advances through presentation steps and every
+ * participant sees the current step in real time. There is no scoring, no timer
+ * and no answering — students simply follow along.
  */
 @Injectable()
 export class LiveQuizRoomService {
-  private rooms = new Map<string, LqRoom>();
+  private rooms = new Map<string, LmRoom>();
   private socketPin = new Map<string, string>();
 
   constructor(private config: ConfigService) {}
@@ -63,26 +60,25 @@ export class LiveQuizRoomService {
     }
   }
 
-  getRoom(pin: string): LqRoom | undefined {
+  getRoom(pin: string): LmRoom | undefined {
     return this.rooms.get(pin);
   }
 
-  getRoomBySocket(socketId: string): LqRoom | undefined {
+  getRoomBySocket(socketId: string): LmRoom | undefined {
     const pin = this.socketPin.get(socketId);
     return pin ? this.rooms.get(pin) : undefined;
   }
 
   /** Create the in-memory room from a DB session if it doesn't exist yet. */
-  ensureRoom(pin: string, sessionId: number, teacherId: number, title: string, questions: QuestionDto[]): LqRoom {
+  ensureRoom(pin: string, sessionId: number, teacherId: number, title: string, steps: StepDto[]): LmRoom {
     let room = this.rooms.get(pin);
     if (!room) {
       room = {
-        pin, sessionId, teacherId, title, questions,
+        pin, sessionId, teacherId, title, steps,
         hostSocketId: null,
-        players: new Map(),
+        participants: new Map(),
         status: 'waiting',
         currentIndex: 0,
-        distribution: new Array(4).fill(0),
       };
       this.rooms.set(pin, room);
     }
@@ -97,85 +93,63 @@ export class LiveQuizRoomService {
     }
   }
 
-  addPlayer(pin: string, socketId: string, userId: number, name: string): LqRoom | null {
+  addParticipant(pin: string, socketId: string, userId: number, name: string): LmRoom | null {
     const room = this.rooms.get(pin);
     if (!room) return null;
-    if (!room.players.has(socketId)) {
-      room.players.set(socketId, { socketId, userId, name, score: 0, answered: new Set() });
+    if (!room.participants.has(socketId)) {
+      room.participants.set(socketId, { socketId, userId, name });
     }
     this.socketPin.set(socketId, pin);
     return room;
   }
 
-  /** Roster/leaderboard, highest score first. */
-  playersList(room: LqRoom): { name: string; score: number }[] {
-    return [...room.players.values()]
-      .sort((a, b) => b.score - a.score)
-      .map((p) => ({ name: p.name, score: p.score }));
+  /** Participant roster (names only — no scores in a meeting). */
+  participantsList(room: LmRoom): { name: string }[] {
+    return [...room.participants.values()].map((p) => ({ name: p.name }));
   }
 
-  clientQuestion(room: LqRoom, index: number): ClientQuestion | null {
-    const q = room.questions[index];
-    if (!q) return null;
+  clientStep(room: LmRoom, index: number): ClientStep | null {
+    const s = room.steps[index];
+    if (!s) return null;
     return {
       index,
-      total: room.questions.length,
-      question: q.question,
-      options: q.options,
-      time_limit: q.time_limit || 20,
+      total: room.steps.length,
+      title: s.title,
+      body: s.body,
     };
   }
 
-  start(pin: string): ClientQuestion | null {
+  /** Begin the lesson at step 0. */
+  start(pin: string): ClientStep | null {
     const room = this.rooms.get(pin);
     if (!room) return null;
-    room.status = 'active';
+    room.status = 'live';
     room.currentIndex = 0;
-    room.distribution = new Array(4).fill(0);
-    room.players.forEach((p) => p.answered.clear());
-    return this.clientQuestion(room, 0);
+    return this.clientStep(room, 0);
   }
 
-  /** Advance to the next question, or finish. Returns finished=true when done. */
-  next(pin: string): { finished: boolean; question: ClientQuestion | null } | null {
+  /** Advance to the next step, or end. Returns ended=true when past the last step. */
+  next(pin: string): { ended: boolean; step: ClientStep | null } | null {
     const room = this.rooms.get(pin);
     if (!room) return null;
-    if (room.currentIndex < room.questions.length - 1) {
+    if (room.currentIndex < room.steps.length - 1) {
       room.currentIndex++;
-      room.distribution = new Array(4).fill(0);
-      return { finished: false, question: this.clientQuestion(room, room.currentIndex) };
+      return { ended: false, step: this.clientStep(room, room.currentIndex) };
     }
-    room.status = 'finished';
-    return { finished: true, question: null };
+    room.status = 'ended';
+    return { ended: true, step: null };
   }
 
-  /** Server-authoritative scoring for the current question. */
-  submitAnswer(socketId: string, answerIndex: number, timeLeft: number) {
-    const room = this.getRoomBySocket(socketId);
-    if (!room || room.status !== 'active') return null;
-    const player = room.players.get(socketId);
-    if (!player) return null;
-    const idx = room.currentIndex;
-    if (player.answered.has(idx)) return null;
-    const q = room.questions[idx];
-    if (!q) return null;
-
-    player.answered.add(idx);
-    if (answerIndex >= 0 && answerIndex < room.distribution.length) {
-      room.distribution[answerIndex]++;
-    }
-    const correct = answerIndex === q.correct;
-    let gained = 0;
-    if (correct) {
-      gained = 100 + Math.max(0, timeLeft) * 5;
-      player.score += gained;
-    }
-    const answeredCount = [...room.players.values()].filter((p) => p.answered.has(idx)).length;
-    return { room, player, correct, correctIndex: q.correct, gained, answeredCount };
+  /** Go back to the previous step (no-op at the first step). */
+  prev(pin: string): ClientStep | null {
+    const room = this.rooms.get(pin);
+    if (!room) return null;
+    if (room.currentIndex > 0) room.currentIndex--;
+    return this.clientStep(room, room.currentIndex);
   }
 
   /** Remove a socket (leave/disconnect). Reports whether it was the host. */
-  removeSocket(socketId: string): { room: LqRoom; wasHost: boolean } | null {
+  removeSocket(socketId: string): { room: LmRoom; wasHost: boolean } | null {
     const pin = this.socketPin.get(socketId);
     this.socketPin.delete(socketId);
     if (!pin) return null;
@@ -183,8 +157,8 @@ export class LiveQuizRoomService {
     if (!room) return null;
     const wasHost = room.hostSocketId === socketId;
     if (wasHost) room.hostSocketId = null;
-    room.players.delete(socketId);
-    if (!room.hostSocketId && room.players.size === 0) {
+    room.participants.delete(socketId);
+    if (!room.hostSocketId && room.participants.size === 0) {
       this.rooms.delete(pin); // nobody left — drop the room
     }
     return { room, wasHost };

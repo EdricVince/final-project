@@ -3,12 +3,12 @@ import { LiveQuizRoomService } from './live-quiz.room.service';
 
 const SECRET = 'lq-secret';
 const config = { get: (k: string) => (k === 'JWT_SECRET' ? SECRET : undefined) } as any;
-const questions = [
-  { question: 'Q1', options: ['a', 'b', 'c', 'd'], correct: 2, time_limit: 20 },
-  { question: 'Q2', options: ['a', 'b', 'c', 'd'], correct: 0, time_limit: 20 },
+const steps = [
+  { title: 'Intro', body: 'Welcome to the lesson' },
+  { title: 'Grammar', body: 'Present perfect explained' },
 ];
 
-describe('LiveQuizRoomService', () => {
+describe('LiveQuizRoomService (live lesson)', () => {
   let svc: LiveQuizRoomService;
   beforeEach(() => { svc = new LiveQuizRoomService(config); });
 
@@ -22,56 +22,53 @@ describe('LiveQuizRoomService', () => {
   });
 
   it('ensureRoom is idempotent for the same PIN', () => {
-    const r1 = svc.ensureRoom('123456', 1, 10, 'Quiz', questions);
-    const r2 = svc.ensureRoom('123456', 1, 10, 'Quiz', questions);
+    const r1 = svc.ensureRoom('123456', 1, 10, 'Lesson', steps);
+    const r2 = svc.ensureRoom('123456', 1, 10, 'Lesson', steps);
     expect(r1).toBe(r2);
   });
 
-  it('start emits a client-safe question 0, next advances, then finishes', () => {
-    svc.ensureRoom('123456', 1, 10, 'Quiz', questions);
-    const q0 = svc.start('123456');
-    expect(q0?.index).toBe(0);
-    expect(q0).not.toHaveProperty('correct'); // correct answer never leaves the server
+  it('start shows step 0, next advances, then ends past the last step', () => {
+    svc.ensureRoom('123456', 1, 10, 'Lesson', steps);
+    const s0 = svc.start('123456');
+    expect(s0?.index).toBe(0);
+    expect(s0?.title).toBe('Intro');
+    expect(s0?.total).toBe(2);
 
     const nx = svc.next('123456');
-    expect(nx?.finished).toBe(false);
-    expect(nx?.question?.index).toBe(1);
+    expect(nx?.ended).toBe(false);
+    expect(nx?.step?.index).toBe(1);
 
-    const fin = svc.next('123456');
-    expect(fin?.finished).toBe(true);
-    expect(fin?.question).toBeNull();
+    const end = svc.next('123456');
+    expect(end?.ended).toBe(true);
+    expect(end?.step).toBeNull();
   });
 
-  it('scores answers server-side (100 + time bonus) and ranks the leaderboard', () => {
-    const room = svc.ensureRoom('123456', 1, 10, 'Quiz', questions);
-    svc.setHost('123456', 'host');
-    svc.addPlayer('123456', 'p1', 5, 'Alice');
-    svc.addPlayer('123456', 'p2', 6, 'Bob');
+  it('prev steps back but never before the first step', () => {
+    svc.ensureRoom('123456', 1, 10, 'Lesson', steps);
     svc.start('123456');
-
-    const r1 = svc.submitAnswer('p1', 2, 15); // Q0 correct = 2
-    expect(r1?.correct).toBe(true);
-    expect(r1?.player.score).toBe(100 + 15 * 5); // 175
-
-    const r2 = svc.submitAnswer('p2', 0, 10); // wrong
-    expect(r2?.correct).toBe(false);
-    expect(r2?.player.score).toBe(0);
-
-    expect(svc.submitAnswer('p1', 2, 15)).toBeNull(); // duplicate ignored
-
-    const board = svc.playersList(room);
-    expect(board[0]).toEqual({ name: 'Alice', score: 175 });
-    expect(board[1]).toEqual({ name: 'Bob', score: 0 });
+    svc.next('123456'); // now at index 1
+    const back = svc.prev('123456');
+    expect(back?.index).toBe(0);
+    const stay = svc.prev('123456');
+    expect(stay?.index).toBe(0); // clamped at the first step
   });
 
-  it('removeSocket drops the room once host and players are gone', () => {
-    svc.ensureRoom('123456', 1, 10, 'Quiz', questions);
+  it('lists participants by name only (no scores in a meeting)', () => {
+    const room = svc.ensureRoom('123456', 1, 10, 'Lesson', steps);
     svc.setHost('123456', 'host');
-    svc.addPlayer('123456', 'p1', 5, 'Alice');
+    svc.addParticipant('123456', 'p1', 5, 'Alice');
+    svc.addParticipant('123456', 'p2', 6, 'Bob');
+    expect(svc.participantsList(room)).toEqual([{ name: 'Alice' }, { name: 'Bob' }]);
+  });
+
+  it('removeSocket drops the room once host and participants are gone', () => {
+    svc.ensureRoom('123456', 1, 10, 'Lesson', steps);
+    svc.setHost('123456', 'host');
+    svc.addParticipant('123456', 'p1', 5, 'Alice');
 
     const left = svc.removeSocket('host');
     expect(left?.wasHost).toBe(true);
-    expect(svc.getRoom('123456')).toBeDefined(); // player still there
+    expect(svc.getRoom('123456')).toBeDefined(); // participant still there
 
     svc.removeSocket('p1');
     expect(svc.getRoom('123456')).toBeUndefined();
