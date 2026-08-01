@@ -253,6 +253,8 @@ export default {
       joinCode: '加入码',
       classNotFound: '未找到班级。',
       active: '活跃', inactive: '不活跃',
+      joinedOn: '加入于 {date}',
+      toast: { loadFailed: '加载班级数据失败', codeCopied: '已复制班级码！', studentRemoved: '已移除学生', removeFailed: '移除学生失败' },
     },
     students: {
       title: '学生', subtitle: '跟踪和管理学生的学习进度',

@@ -253,6 +253,8 @@ export default {
       joinCode: 'Mã tham gia',
       classNotFound: 'Không tìm thấy lớp học.',
       active: 'Đang hoạt động', inactive: 'Không hoạt động',
+      joinedOn: 'Tham gia {date}',
+      toast: { loadFailed: 'Không tải được dữ liệu lớp', codeCopied: 'Đã sao chép mã lớp!', studentRemoved: 'Đã xoá học sinh', removeFailed: 'Xoá học sinh thất bại' },
     },
     students: {
       title: 'Học sinh', subtitle: 'Theo dõi và quản lý tiến độ học tập của học sinh',

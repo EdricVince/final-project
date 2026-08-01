@@ -253,6 +253,8 @@ export default {
       joinCode: 'Join Code',
       classNotFound: 'Class not found.',
       active: 'Active', inactive: 'Inactive',
+      joinedOn: 'Joined {date}',
+      toast: { loadFailed: 'Failed to load class data', codeCopied: 'Class code copied!', studentRemoved: 'Student removed', removeFailed: 'Failed to remove student' },
     },
     students: {
       title: 'Students', subtitle: 'Track and manage your students\' learning progress',
