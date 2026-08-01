@@ -16,17 +16,17 @@
         <div class="flex-1">
           <div class="mb-2 flex items-center gap-3">
             <div class="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
-              <component :is="getCategoryIcon(deck.category)" class="text-primary h-6 w-6" />
+              <component :is="getCategoryIcon(deck?.category ?? 'General')" class="text-primary h-6 w-6" />
             </div>
             <div>
-              <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ deck.title }}</h1>
-              <p class="text-muted-foreground text-base">{{ deck.description }}</p>
+              <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ deck?.title }}</h1>
+              <p class="text-muted-foreground text-base">{{ deck?.description }}</p>
             </div>
           </div>
         </div>
 
         <div class="flex flex-wrap gap-3">
-          <Button variant="outline" @click="showImportModal = true">
+          <Button v-if="isOwner" variant="outline" @click="showImportModal = true">
             <Upload class="mr-2 h-5 w-5" />
             Import
           </Button>
@@ -57,8 +57,8 @@
         <p class="text-muted-foreground mt-1 text-base">Learning</p>
       </div>
       <div class="bg-card border-border rounded-2xl border p-5 lg:p-6">
-        <span class="text-foreground text-3xl font-bold lg:text-4xl">{{ deck.progress }}%</span>
-        <p class="text-muted-foreground mt-1 text-base">Progress</p>
+        <span class="text-foreground text-3xl font-bold lg:text-4xl">{{ deck?.is_public ? '🌐' : '🔒' }}</span>
+        <p class="text-muted-foreground mt-1 text-base">{{ deck?.is_public ? 'Public' : 'Private' }}</p>
       </div>
     </div>
 
@@ -73,7 +73,7 @@
           class="bg-secondary text-foreground placeholder:text-muted-foreground h-12 w-full rounded-xl border-0 pl-12 pr-4 text-base transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </div>
-      <Button @click="openCreateCard">
+      <Button v-if="isOwner" @click="openCreateCard">
         <Plus class="mr-2 h-5 w-5" />
         Add Card
       </Button>
@@ -103,7 +103,7 @@
       <p class="text-muted-foreground mb-6 max-w-md text-base">
         {{ searchQuery ? 'Try a different search term' : 'Add your first flashcard to start learning' }}
       </p>
-      <div v-if="!searchQuery" class="flex gap-3">
+      <div v-if="!searchQuery && isOwner" class="flex gap-3">
         <Button variant="outline" @click="showImportModal = true">
           <Upload class="mr-2 h-5 w-5" />
           Import
@@ -147,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, type Component } from 'vue'
+import { ref, computed, onMounted, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Plus,
@@ -171,10 +171,16 @@ import FlashcardImportModal from '@/components/flashcard/FlashcardImportModal.vu
 import CardMenuDropdown from '@/components/flashcard/CardMenuDropdown.vue'
 import DeleteConfirmModal from '@/components/common/DeleteConfirmModal.vue'
 import type { FlashcardItem, CardFormData } from '@/types/flashcard'
+import type { FlashcardDeckData } from '@/types/content'
+import { api, ApiError } from '@/utils/api'
+import { useToast } from '@/composables/useToast'
+import { useAuthStore } from '@/stores/auth.store'
 
 const route = useRoute()
 const router = useRouter()
-const deckId = route.params.id
+const toast = useToast()
+const authStore = useAuthStore()
+const deckId = Number(route.params.id)
 
 // Modal states
 const showCardModal = ref(false)
@@ -189,59 +195,37 @@ const activeCardId = ref<number | null>(null)
 const menuPosition = ref({ top: '0px', left: '0px' })
 const searchQuery = ref('')
 
-// Sample deck data
-const deck = ref({
-  id: deckId,
-  title: 'JavaScript Fundamentals',
-  description: 'Core concepts and syntax of JavaScript programming language',
-  category: 'Programming',
-  progress: 72,
-})
+// Real deck loaded from the backend (no seeded/sample content).
+const deck = ref<FlashcardDeckData | null>(null)
+const cards = ref<FlashcardItem[]>([])
+const isOwner = computed(() => !!deck.value && deck.value.owner_id === authStore.user?.id)
 
-// Cards data
-const cards = ref<FlashcardItem[]>([
-  {
-    id: 1,
-    term: 'Closure',
-    definition: 'A function that has access to variables from its outer scope, even after the outer function has returned.',
-    example: 'function outer() { let x = 10; return function inner() { return x; } }',
-    isFavorite: false,
-    status: 'Mastered',
-  },
-  {
-    id: 2,
-    term: 'Hoisting',
-    definition: "JavaScript's default behavior of moving declarations to the top of the current scope.",
-    example: 'console.log(x); var x = 5; // undefined',
-    image: 'https://via.placeholder.com/200x200?text=Hoisting',
-    isFavorite: true,
-    status: 'Learning',
-  },
-  {
-    id: 3,
-    term: 'Event Loop',
-    definition: 'A mechanism that allows JavaScript to perform non-blocking operations by offloading operations to the system kernel.',
-    isFavorite: false,
-    status: 'New',
-  },
-  {
-    id: 4,
-    term: 'Promise',
-    definition: 'An object representing the eventual completion or failure of an asynchronous operation.',
-    example: 'new Promise((resolve, reject) => { ... })',
-    isFavorite: false,
-    status: 'Mastered',
-  },
-  {
-    id: 5,
-    term: 'async/await',
-    definition: 'Syntactic sugar over Promises. async declares an async function, await pauses until Promise resolves.',
-    example: 'async function fetch() { const data = await api.get(); }',
-    audio: '/audio/async.mp3',
-    isFavorite: true,
-    status: 'Learning',
-  },
-])
+const toDeckCards = () => cards.value.map(c => ({
+  term: c.term, definition: c.definition, example: c.example, image: c.image, audio: c.audio,
+}))
+// Persist the whole card list back to the deck (owner only).
+const persist = async () => {
+  if (!deck.value || !isOwner.value) return
+  try {
+    await api.updateFlashcardDeck(deck.value.id, { cards: toDeckCards() })
+  } catch (e) {
+    toast.error(e instanceof ApiError ? e.errorMessage : 'Failed to save changes')
+  }
+}
+
+onMounted(async () => {
+  try {
+    const d = await api.getFlashcardDeck(deckId)
+    deck.value = d
+    cards.value = d.cards.map((c, i) => ({
+      id: i + 1, term: c.term, definition: c.definition,
+      example: c.example, image: c.image, audio: c.audio,
+      isFavorite: false, status: 'New',
+    }))
+  } catch {
+    router.replace('/flashcards')
+  }
+})
 
 // Computed
 const filteredCards = computed(() => {
@@ -278,18 +262,20 @@ const startStudy = () => {
 }
 
 const openCreateCard = () => {
+  if (!isOwner.value) return
   editingCard.value = null
   showCardModal.value = true
 }
 
 const openEditCard = (card: FlashcardItem) => {
+  if (!isOwner.value) return
   editingCard.value = card
   showCardModal.value = true
 }
 
-const saveCard = (formData: CardFormData) => {
+const saveCard = async (formData: CardFormData) => {
   if (editingCard.value) {
-    const card = cards.value.find((c) => c.id === editingCard.value!.id)
+    const card = cards.value.find(c => c.id === editingCard.value!.id)
     if (card) {
       card.term = formData.term
       card.definition = formData.definition
@@ -298,19 +284,14 @@ const saveCard = (formData: CardFormData) => {
       card.audio = formData.audio || undefined
     }
   } else {
-    const newCard: FlashcardItem = {
-      id: Date.now(),
-      term: formData.term,
-      definition: formData.definition,
-      example: formData.example || undefined,
-      image: formData.image || undefined,
-      audio: formData.audio || undefined,
-      isFavorite: false,
-      status: 'New',
-    }
-    cards.value.unshift(newCard)
+    cards.value.unshift({
+      id: Date.now(), term: formData.term, definition: formData.definition,
+      example: formData.example || undefined, image: formData.image || undefined,
+      audio: formData.audio || undefined, isFavorite: false, status: 'New',
+    })
   }
   editingCard.value = null
+  await persist()
 }
 
 const toggleFavorite = (card: FlashcardItem) => {
@@ -318,6 +299,7 @@ const toggleFavorite = (card: FlashcardItem) => {
 }
 
 const openCardMenu = (cardId: number, event: MouseEvent) => {
+  if (!isOwner.value) return
   activeCardId.value = cardId
   const rect = (event.target as HTMLElement).getBoundingClientRect()
   menuPosition.value = {
@@ -327,16 +309,11 @@ const openCardMenu = (cardId: number, event: MouseEvent) => {
   showCardMenu.value = true
 }
 
-const duplicateCard = () => {
+const duplicateCard = async () => {
   const card = cards.value.find((c) => c.id === activeCardId.value)
   if (card) {
-    const newCard: FlashcardItem = {
-      ...card,
-      id: Date.now(),
-      term: `${card.term} (Copy)`,
-      status: 'New',
-    }
-    cards.value.unshift(newCard)
+    cards.value.unshift({ ...card, id: Date.now(), term: `${card.term} (Copy)`, status: 'New' })
+    await persist()
   }
 }
 
@@ -348,32 +325,54 @@ const confirmDeleteCard = () => {
   }
 }
 
-const deleteCard = () => {
+const deleteCard = async () => {
   if (cardToDelete.value) {
-    cards.value = cards.value.filter((c) => c.id !== cardToDelete.value!.id)
+    cards.value = cards.value.filter(c => c.id !== cardToDelete.value!.id)
+    await persist()
   }
   cardToDelete.value = null
 }
 
-const importCards = (_file: File) => {
-  // In real app, parse the file here
-  const sampleImportedCards: FlashcardItem[] = [
-    {
-      id: Date.now(),
-      term: 'Imported Term 1',
-      definition: 'Definition from import',
+// Parse a CSV (the same shape exportDeck produces: Term,Definition,Example,Image,Audio).
+const parseCsv = (text: string): string[][] => {
+  const rows: string[][] = []
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue
+    const cells: string[] = []
+    let cur = '', inQ = false
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i]
+      if (inQ) {
+        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++ }
+        else if (ch === '"') inQ = false
+        else cur += ch
+      } else if (ch === '"') inQ = true
+      else if (ch === ',') { cells.push(cur); cur = '' }
+      else cur += ch
+    }
+    cells.push(cur)
+    rows.push(cells)
+  }
+  if (rows.length && /term/i.test(rows[0]?.[0] ?? '')) rows.shift() // drop header row
+  return rows
+}
+
+const importCards = async (file: File) => {
+  const now = Date.now()
+  const parsed = parseCsv(await file.text())
+    .filter((r) => (r[0] ?? '').trim())
+    .map((r, i): FlashcardItem => ({
+      id: now + i,
+      term: (r[0] ?? '').trim(),
+      definition: (r[1] ?? '').trim(),
+      example: (r[2] ?? '').trim() || undefined,
+      image: (r[3] ?? '').trim() || undefined,
+      audio: (r[4] ?? '').trim() || undefined,
       isFavorite: false,
       status: 'New',
-    },
-    {
-      id: Date.now() + 1,
-      term: 'Imported Term 2',
-      definition: 'Another definition from import',
-      isFavorite: false,
-      status: 'New',
-    },
-  ]
-  cards.value.unshift(...sampleImportedCards)
+    }))
+  cards.value.unshift(...parsed)
+  await persist()
 }
 
 const exportDeck = () => {
@@ -392,7 +391,7 @@ const exportDeck = () => {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `${deck.value.title}.csv`
+  a.download = `${deck.value?.title ?? 'deck'}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }

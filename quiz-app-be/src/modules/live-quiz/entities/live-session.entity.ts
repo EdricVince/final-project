@@ -27,14 +27,20 @@ export class LiveSession {
   @Column({ unique: true, length: 8 })
   pin: string;
 
+  // A live lesson/meeting is a sequence of presentation steps the teacher walks
+  // through; students watch the current step in real time. JSON array of
+  // { title, body }. (Legacy `questions` kept nullable for older rows.)
   @Column({ type: 'text', nullable: true })
-  questions: string | null; // JSON array
+  steps: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  questions: string | null; // legacy quiz JSON — unused by the meeting model
 
   @Column({ default: 'waiting' })
-  status: string; // waiting | active | finished
+  status: string; // waiting | live | ended
 
   @Column({ default: 0 })
-  current_question: number;
+  current_question: number; // reused as the current step index
 
   @CreateDateColumn()
   created_at: Date;

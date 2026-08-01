@@ -58,7 +58,60 @@
         <BookOpen class="text-primary h-6 w-6" />
         {{ $t('quizzesPage.assignmentsFromTeacher') }}
       </h2>
-      <div class="bg-card border-border flex flex-col items-center justify-center rounded-2xl border p-10 text-center">
+      <!-- Assigned tests + document handouts -->
+      <div v-if="assignments.length || docAssignments.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Graded tests -->
+        <button
+          v-for="t in assignments"
+          :key="`test-${t.id}`"
+          class="bg-card border-border hover:border-primary/40 group rounded-2xl border p-5 text-left transition-all hover:shadow-md"
+          @click="openTest(t.id)"
+        >
+          <div class="mb-3 flex items-start justify-between gap-2">
+            <div class="bg-primary/10 flex h-11 w-11 items-center justify-center rounded-xl">
+              <FileText class="text-primary h-5 w-5" />
+            </div>
+            <span
+              v-if="t.my_score != null"
+              class="rounded-full px-2 py-0.5 text-xs font-semibold"
+              :class="(t.my_total && t.my_score / t.my_total >= 0.5) ? 'bg-chart-2/10 text-chart-2' : 'bg-secondary text-muted-foreground'"
+            >{{ t.my_score }}/{{ t.my_total }}</span>
+          </div>
+          <h3 class="text-foreground font-semibold">{{ t.title }}</h3>
+          <p v-if="t.description" class="text-muted-foreground mt-0.5 line-clamp-2 text-sm">{{ t.description }}</p>
+          <div class="text-muted-foreground mt-3 flex items-center gap-3 text-xs">
+            <span>{{ t.question_count ?? 0 }} {{ $t('quizzesPage.questions') }}</span>
+            <span v-if="t.time_limit">· {{ t.time_limit }} min</span>
+          </div>
+          <span class="text-primary mt-3 inline-block text-sm font-medium group-hover:underline">
+            {{ t.my_score != null ? $t('quizzesPage.retake') : $t('quizzesPage.startTest') }} →
+          </span>
+        </button>
+
+        <!-- Document handouts -->
+        <button
+          v-for="d in docAssignments"
+          :key="`doc-${d.id}`"
+          class="bg-card border-border hover:border-chart-2/40 group rounded-2xl border p-5 text-left transition-all hover:shadow-md"
+          @click="openDoc(d)"
+        >
+          <div class="mb-3 flex items-start justify-between gap-2">
+            <div class="bg-chart-2/10 flex h-11 w-11 items-center justify-center rounded-xl">
+              <BookOpen class="text-chart-2 h-5 w-5" />
+            </div>
+            <span class="bg-chart-2/10 text-chart-2 rounded-full px-2 py-0.5 text-xs font-semibold">{{ $t('quizzesPage.document') }}</span>
+          </div>
+          <h3 class="text-foreground font-semibold">{{ d.title }}</h3>
+          <p v-if="d.description" class="text-muted-foreground mt-0.5 line-clamp-2 text-sm">{{ d.description }}</p>
+          <img v-if="d.attachment" :src="d.attachment" class="mt-3 max-h-28 w-full rounded-lg object-cover" :alt="d.attachment_name || d.title" />
+          <span class="text-chart-2 mt-3 inline-block text-sm font-medium group-hover:underline">
+            {{ $t('quizzesPage.viewDocument') }} →
+          </span>
+        </button>
+      </div>
+
+      <!-- Empty -->
+      <div v-else class="bg-card border-border flex flex-col items-center justify-center rounded-2xl border p-10 text-center">
         <div class="bg-secondary mb-4 flex h-16 w-16 items-center justify-center rounded-full">
           <BookOpen class="text-muted-foreground h-8 w-8" />
         </div>
@@ -68,6 +121,36 @@
         </p>
       </div>
     </div>
+
+    <!-- Document viewer modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div
+          v-if="viewingDoc"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
+          @click.self="viewingDoc = null"
+        >
+          <div class="bg-card border-border max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border shadow-2xl">
+            <div class="border-border bg-card sticky top-0 flex items-center justify-between border-b p-5">
+              <div class="flex items-center gap-3">
+                <div class="bg-chart-2/10 flex h-10 w-10 items-center justify-center rounded-xl">
+                  <BookOpen class="text-chart-2 h-5 w-5" />
+                </div>
+                <h3 class="text-foreground text-lg font-semibold">{{ viewingDoc.title }}</h3>
+              </div>
+              <button class="text-muted-foreground hover:text-foreground" @click="viewingDoc = null">
+                <X class="h-5 w-5" />
+              </button>
+            </div>
+            <div class="space-y-4 p-5">
+              <p v-if="viewingDoc.description" class="text-foreground whitespace-pre-wrap text-sm leading-relaxed">{{ viewingDoc.description }}</p>
+              <img v-if="viewingDoc.attachment" :src="viewingDoc.attachment" class="w-full rounded-xl" :alt="viewingDoc.attachment_name || viewingDoc.title" />
+              <p v-if="!viewingDoc.description && !viewingDoc.attachment" class="text-muted-foreground text-sm">{{ $t('quizzesPage.emptyDocument') }}</p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Battle Mode Banner -->
     <div class="animate-fade-in-up delay-175 mb-8">
@@ -299,7 +382,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, type Component } from 'vue'
+import { ref, computed, onMounted, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Flame,
@@ -319,17 +402,32 @@ import {
   X,
   Keyboard,
   MessageSquare,
+  FileText,
 } from '@/components/icons'
 import QuizModeCard from '@/components/quiz/QuizModeCard.vue'
 import type { QuizMode } from '@/types/quiz'
 import { useProgressStore } from '@/stores/progress.store'
 import { useQuizStore } from '@/stores/quiz.store'
 import { useAuthStore } from '@/stores/auth.store'
+import { api } from '@/utils/api'
+import type { TestData, AssignmentData } from '@/types/content'
 
 const router = useRouter()
 const progressStore = useProgressStore()
 const quizStore = useQuizStore()
 const authStore = useAuthStore()
+
+// Content published by the student's teachers, shown as "Assignments from Teacher":
+// graded tests (taken & auto-scored) and document handouts (read-only prompts).
+const assignments = ref<TestData[]>([])
+const docAssignments = ref<AssignmentData[]>([])
+const viewingDoc = ref<AssignmentData | null>(null)
+onMounted(async () => {
+  try { assignments.value = await api.getTests() } catch { /* non-critical */ }
+  try { docAssignments.value = await api.getAssignments() } catch { /* non-critical */ }
+})
+const openTest = (id: number) => router.push(`/quizzes/test/${id}`)
+const openDoc = (d: AssignmentData) => { viewingDoc.value = d }
 
 const overallAccuracy = computed(() => {
   const games = quizStore.recentGames

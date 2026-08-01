@@ -113,7 +113,7 @@
       </div>
     </div>
 
-    <!-- Assignments Section -->
+    <!-- Assignments Section (read-only overview — created & managed on the Tests page) -->
     <div class="mt-6 bg-card border-border rounded-2xl border p-6">
       <div class="mb-4 flex items-center justify-between">
         <div>
@@ -121,11 +121,10 @@
           <p class="text-muted-foreground mt-0.5 text-xs">{{ $t('teacher.dashboard.activeAssignmentsDesc') }}</p>
         </div>
         <button
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
-          @click="showAssignModal = true"
+          class="text-primary hover:text-primary/70 text-sm font-medium transition-colors"
+          @click="router.push('/teacher/tests')"
         >
-          <Plus class="h-4 w-4" />
-          {{ $t('teacher.dashboard.newAssignment') }}
+          {{ $t('teacher.dashboard.viewAll') }}
         </button>
       </div>
 
@@ -135,47 +134,39 @@
         </div>
         <p class="text-foreground mb-1 font-medium">{{ $t('teacher.dashboard.noAssignmentsYet') }}</p>
         <p class="text-muted-foreground text-sm">{{ $t('teacher.dashboard.noAssignmentsDesc') }}</p>
+        <button
+          class="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+          @click="router.push('/teacher/tests')"
+        >
+          {{ $t('teacher.dashboard.newAssignment') }}
+        </button>
       </div>
 
       <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div
+        <button
           v-for="a in assignments"
           :key="a.id"
-          class="bg-secondary/40 rounded-2xl p-4"
+          class="bg-secondary/40 hover:bg-secondary/60 flex flex-col rounded-2xl p-4 text-left transition-colors"
+          @click="router.push('/teacher/tests')"
         >
-          <div class="mb-3 flex items-start justify-between gap-2">
-            <div class="flex items-center gap-2.5">
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" :class="a.iconBg">
-                <component :is="a.icon" class="h-4 w-4" :class="a.iconColor" />
-              </div>
-              <div>
-                <p class="text-foreground text-sm font-semibold">{{ a.title }}</p>
-                <p class="text-muted-foreground text-xs">{{ a.className }}</p>
-              </div>
+          <div class="mb-2 flex min-w-0 items-center gap-2.5">
+            <div class="bg-chart-2/10 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+              <FileText class="text-chart-2 h-4 w-4" />
             </div>
-            <button class="text-muted-foreground hover:text-destructive rounded-lg p-1 transition-colors" @click="deleteAssignment(a.id)">
-              <X class="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <!-- Completion Bar -->
-          <div class="mb-2">
-            <div class="mb-1 flex items-center justify-between">
-              <span class="text-muted-foreground text-xs">{{ $t('teacher.dashboard.completion') }}</span>
-              <span class="text-foreground text-xs font-semibold">{{ a.completed }}/{{ a.total }} {{ $t('teacher.dashboard.stats.students').toLowerCase() }}</span>
-            </div>
-            <div class="bg-background h-1.5 overflow-hidden rounded-full">
-              <div
-                class="h-1.5 rounded-full transition-all duration-700"
-                :class="a.total && (a.completed/a.total) >= 0.8 ? 'bg-chart-2' : 'bg-primary'"
-                :style="{ width: `${a.total ? (a.completed/a.total)*100 : 0}%` }"
-              ></div>
+            <div class="min-w-0">
+              <p class="text-foreground truncate text-sm font-semibold">{{ a.title }}</p>
+              <p class="text-muted-foreground text-xs">{{ classNameFor(a.class_id) }}</p>
             </div>
           </div>
-          <div class="flex items-center justify-between">
-            <span class="bg-secondary text-muted-foreground rounded-md px-2 py-0.5 text-xs">{{ a.type }}</span>
-            <span class="text-muted-foreground text-xs">{{ $t('teacher.dashboard.due', { date: a.due }) }}</span>
+          <p v-if="a.description" class="text-muted-foreground mb-3 line-clamp-2 text-xs">{{ a.description }}</p>
+          <img v-if="a.attachment" :src="a.attachment" class="mb-3 max-h-28 w-full rounded-lg object-cover" :alt="a.attachment_name || a.title" />
+          <div class="mt-auto">
+            <span
+              class="rounded-md px-2 py-0.5 text-xs"
+              :class="a.is_published ? 'bg-chart-2/10 text-chart-2' : 'bg-secondary text-muted-foreground'"
+            >{{ a.is_published ? $t('teacher.dashboard.publishedBadge') : $t('teacher.dashboard.draftBadge') }}</span>
           </div>
-        </div>
+        </button>
       </div>
     </div>
 
@@ -247,58 +238,6 @@
         </div>
       </div>
     </div>
-    <!-- Create Assignment Modal -->
-    <Teleport to="body">
-      <Transition name="modal">
-        <div v-if="showAssignModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showAssignModal = false" />
-          <div class="bg-card border-border relative z-10 w-full max-w-md rounded-2xl border shadow-xl">
-            <div class="border-border flex items-center justify-between border-b p-6">
-              <h3 class="text-foreground text-lg font-semibold">{{ $t('teacher.dashboard.assignModal.title') }}</h3>
-              <button class="text-muted-foreground hover:text-foreground" @click="showAssignModal = false">
-                <X class="h-5 w-5" />
-              </button>
-            </div>
-            <div class="space-y-4 p-6">
-              <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.titleLabel') }}</label>
-                <input v-model="newAssign.title" type="text" :placeholder="$t('teacher.dashboard.assignModal.titlePlaceholder')"
-                  class="border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.type') }}</label>
-                  <select v-model="newAssign.type" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                    <option>Flashcard</option>
-                    <option>Quiz</option>
-                    <option>Reading</option>
-                    <option>Listening</option>
-                    <option>Speaking</option>
-                    <option>Writing</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.deadline') }}</label>
-                  <input v-model="newAssign.due" type="date"
-                    class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                </div>
-              </div>
-              <div>
-                <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('teacher.dashboard.assignModal.assignToClass') }}</label>
-                <select v-model="newAssign.classId" class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                  <option value="">{{ $t('teacher.dashboard.allClasses') }}</option>
-                  <option v-for="cls in recentClasses" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
-                </select>
-              </div>
-            </div>
-            <div class="border-border flex gap-3 border-t p-6">
-              <button class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-3 font-medium transition-colors" @click="showAssignModal = false">{{ $t('teacher.dashboard.assignModal.cancel') }}</button>
-              <button class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-medium transition-colors disabled:opacity-50" :disabled="!newAssign.title.trim()" @click="createAssignment">{{ $t('teacher.dashboard.assignModal.create') }}</button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
   </div>
 </template>
 
@@ -309,11 +248,12 @@ import { useI18n } from 'vue-i18n'
 import {
   BookOpen, Users, FileText, GraduationCap, Plus,
   Languages, Video, Clock, UserCheck, Activity,
-  List, X, Headphones, PenTool, Mic,
+  List,
 } from '@/components/icons'
 import { useAuthStore } from '@/stores/auth.store'
 import { api } from '@/utils/api'
 import type { Class } from '@/types/class'
+import type { AssignmentData } from '@/types/content'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -360,50 +300,20 @@ const recentActivity = ref<{ id: number; text: string; time: string; icon: typeo
 const upcomingTests = ref<{ id: number; title: string; class: string; questions: number; duration: number; status: string }[]>([])
 const dashboardError = ref('')
 
-// Assignments
-const ASSIGN_TYPE_META: Record<string, { icon: typeof BookOpen; iconBg: string; iconColor: string }> = {
-  Flashcard:  { icon: BookOpen,     iconBg: 'bg-primary/10',    iconColor: 'text-primary' },
-  Quiz:       { icon: FileText,     iconBg: 'bg-chart-1/10',   iconColor: 'text-chart-1' },
-  Reading:    { icon: BookOpen,     iconBg: 'bg-chart-2/10',   iconColor: 'text-chart-2' },
-  Listening:  { icon: Headphones,  iconBg: 'bg-chart-3/10',   iconColor: 'text-chart-3' },
-  Speaking:   { icon: Mic,         iconBg: 'bg-chart-4/10',   iconColor: 'text-chart-4' },
-  Writing:    { icon: PenTool,     iconBg: 'bg-chart-5/10',   iconColor: 'text-chart-5' },
-}
-interface Assignment {
-  id: number; title: string; type: string; className: string; classId: number | ''
-  due: string; completed: number; total: number
-  icon: typeof BookOpen; iconBg: string; iconColor: string
-}
-const assignments = ref<Assignment[]>([])
-const showAssignModal = ref(false)
-const newAssign = ref({ title: '', type: 'Flashcard', due: '', classId: '' as number | '' })
+// Assignments — a read-only overview; they are created & managed on the Tests page.
+const assignments = ref<AssignmentData[]>([])
 
-const createAssignment = () => {
-  if (!newAssign.value.title.trim()) return
-  const meta = ASSIGN_TYPE_META[newAssign.value.type] ?? ASSIGN_TYPE_META['Flashcard']!
-  const cls = recentClasses.value.find(c => c.id === newAssign.value.classId)
-  assignments.value.unshift({
-    id: Date.now(),
-    title: newAssign.value.title,
-    type: newAssign.value.type,
-    className: cls?.name ?? 'All Classes',
-    classId: newAssign.value.classId,
-    due: newAssign.value.due ? new Date(newAssign.value.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No deadline',
-    completed: 0,
-    total: cls?.studentCount ?? 0,
-    ...meta,
-  })
-  showAssignModal.value = false
-  newAssign.value = { title: '', type: 'Flashcard', due: '', classId: '' }
+const classNameFor = (classId: number | null) => {
+  if (classId == null) return t('teacher.dashboard.allClasses')
+  return recentClasses.value.find(c => c.id === classId)?.name ?? t('teacher.dashboard.allClasses')
 }
-
-const deleteAssignment = (id: number) => { assignments.value = assignments.value.filter(a => a.id !== id) }
 
 onMounted(async () => {
   try {
-    const [classes, videos] = await Promise.all([
+    const [classes, videos, assigns] = await Promise.all([
       api.getClasses() as Promise<(Class & { student_count: number })[]>,
       api.getVideos() as Promise<{ id: number }[]>,
+      api.getAssignments().catch(() => [] as AssignmentData[]),
     ])
     statsValues.value.classes = classes.length
     statsValues.value.students = classes.reduce((sum, c) => sum + (c.student_count ?? 0), 0)
@@ -417,6 +327,7 @@ onMounted(async () => {
       emoji: CLASS_EMOJIS[i % CLASS_EMOJIS.length] ?? '📚',
       bgColor: CLASS_COLORS[i % CLASS_COLORS.length] ?? 'bg-chart-1/10',
     }))
+    assignments.value = assigns
   } catch (e: any) {
     dashboardError.value = e?.errorMessage || e?.message || 'Failed to load dashboard data.'
   }

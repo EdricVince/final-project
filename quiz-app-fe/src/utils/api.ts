@@ -18,6 +18,13 @@ import type {
   LessonContentData,
   GeneratedLessonData,
   GeneratedVocabSetData,
+  FlashcardDeckData,
+  DeckCardData,
+  TestData,
+  TestQuestionData,
+  TestSubmissionData,
+  GeneratedTestData,
+  AssignmentData,
 } from '@/types/content'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1'
@@ -209,8 +216,8 @@ export const api = {
   deleteVideo: (id: number): Promise<void> =>
     apiRequest<void>(`/videos/${id}`, { method: 'DELETE' }),
 
-  // ── Live Quiz ─────────────────────────────────────────────────
-  createLiveSession: (data: { title: string; class_id?: number; questions?: unknown[] }): Promise<unknown> =>
+  // ── Live Lesson (real-time teacher-led meeting) ───────────────
+  createLiveSession: (data: { title: string; class_id?: number; steps?: { title: string; body: string }[] }): Promise<unknown> =>
     apiRequest<unknown>('/live-quiz', { method: 'POST', body: JSON.stringify(data) }),
 
   getMyLiveSessions: (): Promise<unknown[]> => apiRequest<unknown[]>('/live-quiz/my'),
@@ -221,12 +228,6 @@ export const api = {
 
   updateLiveStatus: (id: number, status: string): Promise<unknown> =>
     apiRequest<unknown>(`/live-quiz/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
-
-  nextLiveQuestion: (id: number): Promise<unknown> =>
-    apiRequest<unknown>(`/live-quiz/${id}/next`, { method: 'PATCH' }),
-
-  updateLiveQuestions: (id: number, questions: unknown[]): Promise<unknown> =>
-    apiRequest<unknown>(`/live-quiz/${id}/questions`, { method: 'PATCH', body: JSON.stringify({ questions }) }),
 
   deleteLiveSession: (id: number): Promise<void> =>
     apiRequest<void>(`/live-quiz/${id}`, { method: 'DELETE' }),
@@ -310,7 +311,7 @@ export const api = {
   },
 
   // ── AI ────────────────────────────────────────────────────────
-  getWordOfTheDay: (): Promise<{
+  getWordOfTheDay: (fresh = false): Promise<{
     word: string
     phonetic: string
     partOfSpeech: string
@@ -319,7 +320,7 @@ export const api = {
     synonyms: string[]
     difficulty: 'beginner' | 'intermediate' | 'advanced'
     tip: string
-  }> => apiRequest('/ai/word-of-the-day'),
+  }> => apiRequest(`/ai/word-of-the-day${fresh ? '?fresh=1' : ''}`),
 
   importScan: (body: { url?: string; text?: string; language?: string }): Promise<unknown> =>
     apiRequest('/ai/import/scan', { method: 'POST', body: JSON.stringify(body) }),
@@ -338,6 +339,9 @@ export const api = {
   generateVocabSet: (body: { topic: string; level: string; language?: string; meaningLanguage?: string; count?: number }): Promise<GeneratedVocabSetData> =>
     apiRequest('/ai/vocab-set', { method: 'POST', body: JSON.stringify(body) }),
 
+  generateTest: (body: { topic: string; level: string; language?: string; count?: number }): Promise<GeneratedTestData> =>
+    apiRequest('/ai/test', { method: 'POST', body: JSON.stringify(body) }),
+
   // ── Lessons ───────────────────────────────────────────────────
   getLessons: (): Promise<LessonData[]> => apiRequest('/lessons'),
   getLessonById: (id: number): Promise<LessonData> => apiRequest(`/lessons/${id}`),
@@ -353,6 +357,10 @@ export const api = {
     apiRequest(`/lessons/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteLesson: (id: number): Promise<void> =>
     apiRequest(`/lessons/${id}`, { method: 'DELETE' }),
+  // Per-user lesson completion (drives course-card progress).
+  completeLesson: (id: number): Promise<{ completed: true }> =>
+    apiRequest(`/progress/lessons/${id}/complete`, { method: 'POST' }),
+  getCompletedLessons: (): Promise<number[]> => apiRequest('/progress/lessons/completed'),
 
   // ── Vocabulary sets ───────────────────────────────────────────
   getVocabSets: (): Promise<VocabSetData[]> => apiRequest('/vocab-sets'),
@@ -368,4 +376,54 @@ export const api = {
     apiRequest(`/vocab-sets/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteVocabSet: (id: number): Promise<void> =>
     apiRequest(`/vocab-sets/${id}`, { method: 'DELETE' }),
+
+  // ── Flashcard decks (student-created, shareable) ──────────────
+  getFlashcardDecks: (): Promise<FlashcardDeckData[]> => apiRequest('/flashcard-decks'),
+  getFlashcardDeck: (id: number): Promise<FlashcardDeckData> => apiRequest(`/flashcard-decks/${id}`),
+  createFlashcardDeck: (body: {
+    title: string; description?: string; category?: string; is_public?: boolean; cards?: DeckCardData[]
+  }): Promise<FlashcardDeckData> =>
+    apiRequest('/flashcard-decks', { method: 'POST', body: JSON.stringify(body) }),
+  updateFlashcardDeck: (id: number, body: {
+    title?: string; description?: string; category?: string; is_public?: boolean; cards?: DeckCardData[]
+  }): Promise<FlashcardDeckData> =>
+    apiRequest(`/flashcard-decks/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteFlashcardDeck: (id: number): Promise<void> =>
+    apiRequest(`/flashcard-decks/${id}`, { method: 'DELETE' }),
+
+  // ── Tests (teacher-created assignments) ───────────────────────
+  getTests: (): Promise<TestData[]> => apiRequest('/tests'),
+  getTest: (id: number): Promise<TestData> => apiRequest(`/tests/${id}`),
+  createTest: (body: {
+    title: string; description?: string; class_id?: number; time_limit?: number
+    is_published?: boolean; questions?: TestQuestionData[]
+  }): Promise<TestData> =>
+    apiRequest('/tests', { method: 'POST', body: JSON.stringify(body) }),
+  updateTest: (id: number, body: {
+    title?: string; description?: string; class_id?: number; time_limit?: number
+    is_published?: boolean; questions?: TestQuestionData[]
+  }): Promise<TestData> =>
+    apiRequest(`/tests/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteTest: (id: number): Promise<void> =>
+    apiRequest(`/tests/${id}`, { method: 'DELETE' }),
+  submitTest: (id: number, answers: number[]): Promise<{ score: number; total: number; submission_id: number }> =>
+    apiRequest(`/tests/${id}/submit`, { method: 'POST', body: JSON.stringify({ answers }) }),
+  getTestSubmissions: (id: number): Promise<TestSubmissionData[]> =>
+    apiRequest(`/tests/${id}/submissions`),
+
+  // ── Assignments (teacher document handouts) ───────────────────
+  getAssignments: (): Promise<AssignmentData[]> => apiRequest('/assignments'),
+  getAssignment: (id: number): Promise<AssignmentData> => apiRequest(`/assignments/${id}`),
+  createAssignment: (body: {
+    title: string; description?: string; attachment?: string; attachment_name?: string
+    class_id?: number; is_published?: boolean
+  }): Promise<AssignmentData> =>
+    apiRequest('/assignments', { method: 'POST', body: JSON.stringify(body) }),
+  updateAssignment: (id: number, body: {
+    title?: string; description?: string; attachment?: string; attachment_name?: string
+    is_published?: boolean
+  }): Promise<AssignmentData> =>
+    apiRequest(`/assignments/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteAssignment: (id: number): Promise<void> =>
+    apiRequest(`/assignments/${id}`, { method: 'DELETE' }),
 }

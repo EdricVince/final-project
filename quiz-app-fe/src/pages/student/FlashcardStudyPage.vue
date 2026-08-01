@@ -295,6 +295,9 @@ const { locale: uiLang } = useLocale()
 const { getRandomWords, getWordInLang } = useVocabulary()
 
 const isVocabMode = computed(() => route.name === 'FlashcardVocabPractice' || route.query.mode === 'vocab')
+const isVocabSetMode = computed(() => route.name === 'FlashcardVocabSetStudy')
+const deckId = computed(() => Number(route.params.id))
+const deckMeta = ref<{ title: string; description: string } | null>(null)
 
 const cardContainer = ref<HTMLElement | null>(null)
 let hammer: HammerManager | null = null
@@ -305,11 +308,12 @@ const swipeDirection = ref<'left' | 'right' | null>(null)
 const cardOffset = ref({ x: 0, y: 0, rotation: 0 })
 const showCompletionModal = ref(false)
 
-const currentDeck = computed(() =>
-  isVocabMode.value
-    ? { id: 'vocab', title: `${currentLearningOption.value.flag} Vocabulary Practice`, description: `Learn ${currentLearningOption.value.name} words with ${uiLang.value.toUpperCase()} translations` }
-    : { id: route.params.id || 1, title: 'JavaScript Fundamentals', description: 'Core concepts and syntax' }
-)
+const currentDeck = computed(() => {
+  if (isVocabMode.value) {
+    return { id: 'vocab', title: `${currentLearningOption.value.flag} Vocabulary Practice`, description: `Learn ${currentLearningOption.value.name} words with ${uiLang.value.toUpperCase()} translations` }
+  }
+  return { id: deckId.value, title: deckMeta.value?.title ?? 'Deck', description: deckMeta.value?.description ?? '' }
+})
 
 // Flashcard interface
 interface Flashcard {
@@ -365,49 +369,8 @@ async function loadVocabCards(exclude: string[] = []): Promise<Flashcard[]> {
   return buildVocabCards()
 }
 
-const cards = ref<Flashcard[]>(
-  isVocabMode.value ? [] : [
-  {
-    id: 1,
-    term: 'Closure',
-    definition: 'A function that has access to variables from its outer (enclosing) scope, even after the outer function has returned.',
-    example: 'function outer() { let x = 10; return function inner() { return x; } }',
-    audio: '/audio/closure.mp3',
-    isFavorite: false,
-    isKnown: null,
-  },
-  {
-    id: 2,
-    term: 'let vs const',
-    definition: 'let allows reassignment while const creates a read-only reference. Both are block-scoped.',
-    example: 'let x = 1; x = 2; // OK | const y = 1; y = 2; // Error',
-    isFavorite: true,
-    isKnown: null,
-  },
-  {
-    id: 3,
-    term: 'Event Loop',
-    definition: 'A mechanism that allows JavaScript to perform non-blocking operations by offloading operations to the system kernel whenever possible.',
-    isFavorite: false,
-    isKnown: null,
-  },
-  {
-    id: 4,
-    term: 'Hoisting',
-    definition: 'JavaScript\'s default behavior of moving declarations to the top of the current scope. Variable and function declarations are hoisted, but not initializations.',
-    example: 'console.log(x); var x = 5; // undefined, not error',
-    isFavorite: false,
-    isKnown: null,
-  },
-  {
-    id: 5,
-    term: '== vs ===',
-    definition: '== performs type coercion before comparison (loose equality), while === compares both value and type without coercion (strict equality).',
-    example: '1 == "1" // true | 1 === "1" // false',
-    isFavorite: false,
-    isKnown: null,
-  },
-])
+// A regular deck's cards are loaded from the backend in onMounted (no sample data).
+const cards = ref<Flashcard[]>([])
 
 const currentCard = computed(() => cards.value[currentIndex.value])
 
@@ -591,7 +554,36 @@ onMounted(async () => {
     isLoadingCards.value = true
     cards.value = await loadVocabCards()
     isLoadingCards.value = false
+    return
   }
+  isLoadingCards.value = true
+  try {
+    if (isVocabSetMode.value) {
+      // A published teacher vocabulary set — study its words as flip cards.
+      const s = await api.getVocabSet(deckId.value)
+      deckMeta.value = { title: s.name, description: `${s.language} · ${s.level}` }
+      cards.value = (s.words ?? []).map((w, i) => ({
+        id: i + 1, term: w.term, definition: w.definition, example: w.example,
+        isFavorite: false, isKnown: null,
+      }))
+    } else {
+      // The user's own flashcard deck.
+      const d = await api.getFlashcardDeck(deckId.value)
+      deckMeta.value = { title: d.title, description: d.description ?? '' }
+      cards.value = d.cards.map((c, i) => ({
+        id: i + 1, term: c.term, definition: c.definition,
+        example: c.example, image: c.image, audio: c.audio,
+        isFavorite: false, isKnown: null,
+      }))
+    }
+  } catch {
+    router.replace('/flashcards')
+    return
+  } finally {
+    isLoadingCards.value = false
+  }
+  // Empty deck — send the user back (own decks only).
+  if (cards.value.length === 0 && !isVocabSetMode.value) router.replace(`/flashcards/${deckId.value}`)
 })
 
 onUnmounted(() => {

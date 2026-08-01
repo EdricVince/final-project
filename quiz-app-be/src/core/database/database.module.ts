@@ -16,9 +16,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: config.get<string>('DB_SYNCHRONIZE') === 'true',
         migrations: ['src/migrations/*{.ts,.js}'],
         autoLoadEntities: true,
-        ssl: config.get<string>('NODE_ENV') === 'production'
-          ? { rejectUnauthorized: true }
-          : { rejectUnauthorized: false },
+        // Supabase requires SSL. `rejectUnauthorized: false` avoids the
+        // "self-signed certificate in chain" error managed hosts (Render) hit
+        // against the Supabase pooler — matches the FK-sync script.
+        ssl: { rejectUnauthorized: false },
       }),
     }),
   ],

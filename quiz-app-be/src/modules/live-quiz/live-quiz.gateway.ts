@@ -7,15 +7,15 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { LiveQuizRoomService, LqRoom } from './live-quiz.room.service';
+import { LiveQuizRoomService, LmRoom } from './live-quiz.room.service';
 import { LiveQuizService } from './live-quiz.service';
 import { ROLE_TEACHER } from '../roles/entities/role.entity';
 
 /**
- * Real-time Live Quiz over Socket.IO (namespace `/live-quiz`).
- * The teacher hosts a session by PIN and drives it (start / next); students
- * join the same PIN and receive questions, submit answers and see a live
- * leaderboard — all pushed instantly, replacing the old HTTP polling.
+ * Real-time Live Lesson over Socket.IO (namespace `/live-quiz`).
+ * The teacher hosts a session by PIN and leads it step by step (start / next /
+ * prev / end); students join the same PIN and watch the current step in real
+ * time. It's a meeting — no scoring, no timer, no answering.
  */
 @WebSocketGateway({
   namespace: '/live-quiz',
@@ -34,156 +34,146 @@ export class LiveQuizGateway implements OnGatewayDisconnect {
   }
 
   /** Teacher hosts their own session (by PIN). */
-  @SubscribeMessage('lq:host')
+  @SubscribeMessage('lm:host')
   async onHost(@ConnectedSocket() socket: Socket, @MessageBody() body: { pin: string }) {
     const user = this.auth(socket);
     if (!user || user.role_id !== ROLE_TEACHER) {
-      socket.emit('lq:error', { message: 'Only a teacher can host a live quiz.' });
+      socket.emit('lm:error', { message: 'Only a teacher can host a live lesson.' });
       return;
     }
     let session;
     try {
       session = await this.liveQuiz.findByPin(String(body?.pin ?? ''));
     } catch {
-      socket.emit('lq:error', { message: 'Session not found.' });
+      socket.emit('lm:error', { message: 'Session not found.' });
       return;
     }
     if (session.teacher_id !== user.id) {
-      socket.emit('lq:error', { message: 'This is not your session.' });
+      socket.emit('lm:error', { message: 'This is not your session.' });
       return;
     }
-    const questions = this.liveQuiz.parseQuestions(session);
-    const room = this.rooms.ensureRoom(session.pin, session.id, session.teacher_id, session.title, questions);
+    const steps = this.liveQuiz.parseSteps(session);
+    const room = this.rooms.ensureRoom(session.pin, session.id, session.teacher_id, session.title, steps);
     this.rooms.setHost(session.pin, socket.id);
     socket.join(session.pin);
-    socket.emit('lq:host_ready', {
+    socket.emit('lm:host_ready', {
       pin: session.pin,
       title: room.title,
-      total: questions.length,
+      total: steps.length,
       status: room.status,
-      players: this.rooms.playersList(room),
+      currentIndex: room.currentIndex,
+      participants: this.rooms.participantsList(room),
     });
   }
 
-  /** Student joins a live quiz by PIN. */
-  @SubscribeMessage('lq:join')
+  /** Student joins a live lesson by PIN. */
+  @SubscribeMessage('lm:join')
   async onJoin(@ConnectedSocket() socket: Socket, @MessageBody() body: { pin: string }) {
     const user = this.auth(socket);
     if (!user) {
-      socket.emit('lq:error', { message: 'Please sign in again.' });
+      socket.emit('lm:error', { message: 'Please sign in again.' });
       return;
     }
     let session;
     try {
       session = await this.liveQuiz.findByPin(String(body?.pin ?? ''));
     } catch {
-      socket.emit('lq:error', { message: 'No live quiz found for that PIN.' });
+      socket.emit('lm:error', { message: 'No live lesson found for that PIN.' });
       return;
     }
-    const questions = this.liveQuiz.parseQuestions(session);
-    this.rooms.ensureRoom(session.pin, session.id, session.teacher_id, session.title, questions);
-    const name = (user.email?.split('@')[0] || 'Player').slice(0, 20);
-    const room = this.rooms.addPlayer(session.pin, socket.id, user.id, name);
+    const steps = this.liveQuiz.parseSteps(session);
+    this.rooms.ensureRoom(session.pin, session.id, session.teacher_id, session.title, steps);
+    const name = (user.email?.split('@')[0] || 'Student').slice(0, 20);
+    const room = this.rooms.addParticipant(session.pin, socket.id, user.id, name);
     if (!room) {
-      socket.emit('lq:error', { message: 'Could not join the session.' });
+      socket.emit('lm:error', { message: 'Could not join the session.' });
       return;
     }
     socket.join(session.pin);
-    socket.emit('lq:joined', { title: room.title, total: room.questions.length, status: room.status });
-    // Late joiner during an active quiz gets the current question immediately.
-    if (room.status === 'active') {
-      const q = this.rooms.clientQuestion(room, room.currentIndex);
-      if (q) socket.emit('lq:question', q);
+    socket.emit('lm:joined', { title: room.title, total: room.steps.length, status: room.status });
+    // Late joiner during a live lesson gets the current step immediately.
+    if (room.status === 'live') {
+      const step = this.rooms.clientStep(room, room.currentIndex);
+      if (step) socket.emit('lm:step', step);
     }
     this.notifyHostRoster(room);
-    this.broadcastLeaderboard(room);
+    this.broadcastPresence(room);
   }
 
-  @SubscribeMessage('lq:start')
+  @SubscribeMessage('lm:start')
   async onStart(@ConnectedSocket() socket: Socket) {
     const room = this.requireHost(socket);
     if (!room) return;
-    const question = this.rooms.start(room.pin);
-    await this.persistStatus(room, 'active');
-    if (question) this.server.to(room.pin).emit('lq:question', question);
-    this.broadcastLeaderboard(room);
+    const step = this.rooms.start(room.pin);
+    await this.persistStatus(room, 'live');
+    if (step) this.server.to(room.pin).emit('lm:step', step);
   }
 
-  @SubscribeMessage('lq:next')
+  @SubscribeMessage('lm:next')
   async onNext(@ConnectedSocket() socket: Socket) {
     const room = this.requireHost(socket);
     if (!room) return;
     const res = this.rooms.next(room.pin);
     if (!res) return;
-    if (res.finished) {
-      await this.persistStatus(room, 'finished');
-      this.server.to(room.pin).emit('lq:finished', { leaderboard: this.rooms.playersList(room) });
-    } else if (res.question) {
-      this.server.to(room.pin).emit('lq:question', res.question);
-      this.broadcastLeaderboard(room);
+    if (res.ended) {
+      await this.persistStatus(room, 'ended');
+      this.server.to(room.pin).emit('lm:ended', {});
+    } else if (res.step) {
+      this.server.to(room.pin).emit('lm:step', res.step);
     }
   }
 
-  @SubscribeMessage('lq:answer')
-  onAnswer(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() body: { answerIndex: number; timeLeft?: number },
-  ) {
-    const r = this.rooms.submitAnswer(socket.id, Number(body?.answerIndex), Number(body?.timeLeft) || 0);
-    if (!r) return;
-    socket.emit('lq:answer_result', {
-      correct: r.correct,
-      correctIndex: r.correctIndex,
-      gained: r.gained,
-      score: r.player.score,
-    });
-    if (r.room.hostSocketId) {
-      this.server.to(r.room.hostSocketId).emit('lq:progress', {
-        answered: r.answeredCount,
-        count: r.room.players.size,
-        distribution: r.room.distribution,
-      });
-    }
-    this.broadcastLeaderboard(r.room);
+  @SubscribeMessage('lm:prev')
+  onPrev(@ConnectedSocket() socket: Socket) {
+    const room = this.requireHost(socket);
+    if (!room) return;
+    const step = this.rooms.prev(room.pin);
+    if (step) this.server.to(room.pin).emit('lm:step', step);
+  }
+
+  @SubscribeMessage('lm:end')
+  async onEnd(@ConnectedSocket() socket: Socket) {
+    const room = this.requireHost(socket);
+    if (!room) return;
+    await this.persistStatus(room, 'ended');
+    this.server.to(room.pin).emit('lm:ended', {});
   }
 
   handleDisconnect(socket: Socket) {
     const res = this.rooms.removeSocket(socket.id);
     if (!res) return;
     if (res.wasHost) {
-      this.server.to(res.room.pin).emit('lq:host_left', {});
+      this.server.to(res.room.pin).emit('lm:host_left', {});
     } else {
       this.notifyHostRoster(res.room);
-      this.broadcastLeaderboard(res.room);
+      this.broadcastPresence(res.room);
     }
   }
 
   // ── helpers ────────────────────────────────────────────────────────────────
-  private requireHost(socket: Socket): LqRoom | null {
+  private requireHost(socket: Socket): LmRoom | null {
     const room = this.rooms.getRoomBySocket(socket.id);
     if (!room || room.hostSocketId !== socket.id) {
-      socket.emit('lq:error', { message: 'Only the host can control this quiz.' });
+      socket.emit('lm:error', { message: 'Only the host can control this lesson.' });
       return null;
     }
     return room;
   }
 
-  private notifyHostRoster(room: LqRoom) {
+  private notifyHostRoster(room: LmRoom) {
     if (room.hostSocketId) {
-      this.server.to(room.hostSocketId).emit('lq:players', {
-        players: this.rooms.playersList(room),
-        count: room.players.size,
+      this.server.to(room.hostSocketId).emit('lm:participants', {
+        participants: this.rooms.participantsList(room),
+        count: room.participants.size,
       });
     }
   }
 
-  private broadcastLeaderboard(room: LqRoom) {
-    this.server.to(room.pin).emit('lq:leaderboard', {
-      top: this.rooms.playersList(room).slice(0, 5),
-    });
+  private broadcastPresence(room: LmRoom) {
+    this.server.to(room.pin).emit('lm:presence', { count: room.participants.size });
   }
 
-  private async persistStatus(room: LqRoom, status: string) {
+  private async persistStatus(room: LmRoom, status: string) {
     try {
       await this.liveQuiz.updateStatus(room.sessionId, room.teacherId, status);
     } catch {

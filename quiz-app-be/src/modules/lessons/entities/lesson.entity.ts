@@ -3,6 +3,7 @@ import { User } from '../../users/entities/user.entity';
 import { Class } from '../../classes/entities/class.entity';
 
 export interface LessonContent {
+  reading?: string;
   vocabulary: { term: string; definition: string; example: string }[];
   quiz: { question: string; options: string[]; correct: number; explanation: string }[];
   comprehension: { question: string; answer: string }[];

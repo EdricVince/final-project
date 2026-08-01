@@ -197,19 +197,27 @@ const openCourse = (courseId: number) => {
 
 onMounted(async () => {
   try {
-    const lessons = ((await api.getLessons()) as LessonItem[] | null) ?? []
-    courses.value = lessons.map((l) => ({
-      id: l.id,
-      title: l.title,
-      description: l.description ?? '',
-      category: l.category ?? 'General',
-      difficulty: l.difficulty ?? 'beginner',
-      progress: 0,
-      completedLessons: 0,
-      totalLessons: 1,
-      lastAccessed: new Date(l.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      estimatedHours: 1,
-    }))
+    const [lessonsRaw, completedIds] = await Promise.all([
+      api.getLessons(),
+      api.getCompletedLessons().catch(() => [] as number[]),
+    ])
+    const lessons = (lessonsRaw as unknown as LessonItem[] | null) ?? []
+    const completed = new Set(completedIds)
+    courses.value = lessons.map((l) => {
+      const done = completed.has(l.id)
+      return {
+        id: l.id,
+        title: l.title,
+        description: l.description ?? '',
+        category: l.category ?? 'General',
+        difficulty: l.difficulty ?? 'beginner',
+        progress: done ? 100 : 0,
+        completedLessons: done ? 1 : 0,
+        totalLessons: 1,
+        lastAccessed: new Date(l.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        estimatedHours: 1,
+      }
+    })
     stats.value = {
       totalCourses: courses.value.length,
       completed: courses.value.filter(c => c.progress === 100).length,

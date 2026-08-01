@@ -2,7 +2,7 @@ import {
   Controller, Get, Post, Patch, Delete,
   Body, Param, ParseIntPipe, UseGuards, Req, HttpCode, HttpStatus,
 } from '@nestjs/common';
-import { LiveQuizService, QuestionDto } from './live-quiz.service';
+import { LiveQuizService, StepDto } from './live-quiz.service';
 import { JwtGuard } from '../../core/guards/jwt.guard';
 import { RolesGuard } from '../../core/guards/roles.guard';
 import { Roles } from '../../core/decorators/roles.decorator';
@@ -13,15 +13,15 @@ import { ROLE_TEACHER } from '../roles/entities/role.entity';
 export class LiveQuizController {
   constructor(private liveQuizService: LiveQuizService) {}
 
-  /** Teacher: create session */
+  /** Teacher: create a live lesson session */
   @Post()
   @Roles(ROLE_TEACHER)
   async create(
     @Req() req: any,
-    @Body() body: { title: string; class_id?: number; questions?: QuestionDto[] },
+    @Body() body: { title: string; class_id?: number; steps?: StepDto[] },
   ) {
     const session = await this.liveQuizService.create(
-      req.user.id, body.title, body.class_id, body.questions,
+      req.user.id, body.title, body.class_id, body.steps,
     );
     return { code: 201, message: 'Session created', data: session };
   }
@@ -38,38 +38,22 @@ export class LiveQuizController {
   @Get('join/:pin')
   async joinByPin(@Param('pin') pin: string) {
     const session = await this.liveQuizService.findByPin(pin);
-    const questions = this.liveQuizService.parseQuestions(session);
+    const steps = this.liveQuizService.parseSteps(session);
     return {
       code: 200, message: 'OK',
-      data: {
-        ...session,
-        questions, // parsed
-        total_questions: questions.length,
-      },
+      data: { ...session, steps, total_steps: steps.length },
     };
   }
 
-  /** Get session state (student polls this) */
+  /** Get session state */
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) id: number) {
     const session = await this.liveQuizService.findOne(id);
-    const questions = this.liveQuizService.parseQuestions(session);
-    return { code: 200, message: 'OK', data: { ...session, questions, total_questions: questions.length } };
+    const steps = this.liveQuizService.parseSteps(session);
+    return { code: 200, message: 'OK', data: { ...session, steps, total_steps: steps.length } };
   }
 
-  /** Teacher: update questions */
-  @Patch(':id/questions')
-  @Roles(ROLE_TEACHER)
-  async updateQuestions(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: { questions: QuestionDto[] },
-  ) {
-    const session = await this.liveQuizService.updateQuestions(id, req.user.id, body.questions);
-    return { code: 200, message: 'Updated', data: session };
-  }
-
-  /** Teacher: start / finish session */
+  /** Teacher: start / end session */
   @Patch(':id/status')
   @Roles(ROLE_TEACHER)
   async updateStatus(
@@ -79,14 +63,6 @@ export class LiveQuizController {
   ) {
     const session = await this.liveQuizService.updateStatus(id, req.user.id, body.status);
     return { code: 200, message: 'Updated', data: session };
-  }
-
-  /** Teacher: next question */
-  @Patch(':id/next')
-  @Roles(ROLE_TEACHER)
-  async nextQuestion(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
-    const session = await this.liveQuizService.nextQuestion(id, req.user.id);
-    return { code: 200, message: 'OK', data: session };
   }
 
   /** Teacher: delete session */

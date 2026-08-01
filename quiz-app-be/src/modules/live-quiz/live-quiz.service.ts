@@ -3,11 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LiveSession } from './entities/live-session.entity';
 
-export interface QuestionDto {
-  question: string;
-  options: string[];
-  correct: number;
-  time_limit: number;
+// A live lesson is a sequence of presentation steps the teacher walks through.
+export interface StepDto {
+  title: string;
+  body: string;
 }
 
 @Injectable()
@@ -21,9 +20,9 @@ export class LiveQuizService {
     return Math.floor(10000000 + Math.random() * 90000000).toString().slice(0, 6);
   }
 
-  async create(teacherId: number, title: string, classId?: number, questions: QuestionDto[] = []): Promise<LiveSession> {
+  async create(teacherId: number, title: string, classId?: number, steps: StepDto[] = []): Promise<LiveSession> {
     let pin = this.generatePin();
-    // Ensure unique pin
+    // Ensure a unique pin among sessions still open.
     while (await this.sessionRepo.findOne({ where: { pin, status: 'waiting' } })) {
       pin = this.generatePin();
     }
@@ -32,7 +31,7 @@ export class LiveQuizService {
       class_id: classId ?? null,
       title,
       pin,
-      questions: JSON.stringify(questions),
+      steps: JSON.stringify(steps),
       status: 'waiting',
       current_question: 0,
     });
@@ -65,32 +64,18 @@ export class LiveQuizService {
     return this.sessionRepo.save(session);
   }
 
-  async nextQuestion(id: number, teacherId: number): Promise<LiveSession> {
-    const session = await this.findOne(id);
-    if (session.teacher_id !== teacherId) throw new BadRequestException('Not your session');
-    const questions: QuestionDto[] = this.parseQuestions(session);
-    if (session.current_question < questions.length - 1) {
-      session.current_question++;
-    } else {
-      session.status = 'finished';
-    }
-    return this.sessionRepo.save(session);
-  }
-
-  async updateQuestions(id: number, teacherId: number, questions: QuestionDto[]): Promise<LiveSession> {
-    const session = await this.findOne(id);
-    if (session.teacher_id !== teacherId) throw new BadRequestException('Not your session');
-    session.questions = JSON.stringify(questions);
-    return this.sessionRepo.save(session);
-  }
-
   async delete(id: number, teacherId: number): Promise<void> {
     const session = await this.findOne(id);
     if (session.teacher_id !== teacherId) throw new BadRequestException('Not your session');
     await this.sessionRepo.delete(id);
   }
 
-  parseQuestions(session: LiveSession): QuestionDto[] {
-    try { return JSON.parse(session.questions || '[]'); } catch { return []; }
+  parseSteps(session: LiveSession): StepDto[] {
+    try {
+      const parsed = JSON.parse(session.steps || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
   }
 }

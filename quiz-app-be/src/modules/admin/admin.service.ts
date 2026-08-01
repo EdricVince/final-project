@@ -4,11 +4,16 @@ import { Repository, In } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { UserProgress } from '../progress/entities/user-progress.entity';
 import { DailyActivity } from '../progress/entities/daily-activity.entity';
+import { LessonCompletion } from '../progress/entities/lesson-completion.entity';
 import { Class } from '../classes/entities/class.entity';
 import { ClassEnrollment } from '../classes/entities/class-enrollment.entity';
 import { Video } from '../videos/entities/video.entity';
 import { Lesson } from '../lessons/entities/lesson.entity';
 import { VocabSet } from '../vocab-sets/entities/vocab-set.entity';
+import { FlashcardDeck } from '../flashcard-decks/entities/flashcard-deck.entity';
+import { Test } from '../tests/entities/test.entity';
+import { TestSubmission } from '../tests/entities/test-submission.entity';
+import { Assignment } from '../assignments/entities/assignment.entity';
 import { LiveSession } from '../live-quiz/entities/live-session.entity';
 import { UserGoalSettings } from '../goals/entities/user-goal-settings.entity';
 import { UserCustomGoal } from '../goals/entities/user-custom-goal.entity';
@@ -152,11 +157,16 @@ export class AdminService {
       await m.delete(Video, { teacher_id: userId });
       await m.delete(Lesson, { teacher_id: userId });
       await m.delete(VocabSet, { teacher_id: userId });
+      await m.delete(FlashcardDeck, { owner_id: userId });
+      await m.delete(TestSubmission, { student_id: userId });
+      await m.delete(Test, { teacher_id: userId });
+      await m.delete(Assignment, { teacher_id: userId });
       await m.delete(LiveSession, { teacher_id: userId });
 
       // Personal learning data.
       await m.delete(UserProgress, { user_id: userId });
       await m.delete(DailyActivity, { user_id: userId });
+      await m.delete(LessonCompletion, { user_id: userId });
       await m.delete(UserGoalSettings, { user_id: userId });
       await m.delete(UserCustomGoal, { user_id: userId });
 

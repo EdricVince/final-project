@@ -143,7 +143,7 @@
 
       <!-- Weekly Activity Chart -->
       <div class="animate-fade-in-up delay-200 lg:col-span-2">
-        <div class="bg-card border-border rounded-2xl border p-6">
+        <div class="bg-card border-border flex h-full flex-col rounded-2xl border p-6">
           <div class="mb-6 flex items-center justify-between">
             <h3 class="text-foreground flex items-center gap-2 font-semibold">
               <Activity class="text-primary h-5 w-5" />
@@ -153,7 +153,7 @@
               {{ $t('statistics.totalActivities', { count: getTotalActivity() }) }}
             </div>
           </div>
-          <WeeklyActivityChart :activity="statistics.weeklyActivity" />
+          <WeeklyActivityChart class="min-h-0 flex-1" :activity="statistics.weeklyActivity" />
         </div>
       </div>
 

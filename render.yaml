@@ -1,0 +1,104 @@
+# StudySpark — Render Blueprint (one apply provisions both services).
+#
+# New + apply:  Render Dashboard > New > Blueprint > pick this repo > Apply.
+# The database stays external (Supabase) — there is no `databases:` block.
+#
+# IMPORTANT — the two services reference each other by their public URL, which
+# Render derives from the service NAME. This file assumes:
+#     API  ->  https://studyspark-api.onrender.com
+#     Web  ->  https://studyspark-web.onrender.com
+# If either name is already taken, Render appends a suffix and the URLs differ.
+# In that case, after the first apply, fix these three env vars to match the
+# real URLs and redeploy:
+#     API service:  CORS_ORIGINS, APP_URL   -> the real Web URL
+#     Web service:  VITE_API_BASE_URL       -> the real API URL + /api/v1
+# (VITE_API_BASE_URL is baked at build time, so changing it triggers a rebuild.)
+
+services:
+  # ── Backend: NestJS API (Docker) ──────────────────────────────────────────
+  - type: web
+    name: studyspark-api
+    runtime: docker
+    dockerfilePath: ./quiz-app-be/Dockerfile
+    dockerContext: .
+    region: singapore
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Frontend origin (CORS allow-list + password-reset link base).
+      - key: CORS_ORIGINS
+        value: https://studyspark-web.onrender.com
+      - key: APP_URL
+        value: https://studyspark-web.onrender.com
+      # Auth secrets — auto-generated on first deploy.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      # Database (Supabase) — fill in the dashboard (Session pooler recommended).
+      - key: DB_TYPE
+        value: postgres
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      # Create/upgrade tables on boot. Set to false once the schema is stable.
+      - key: DB_SYNCHRONIZE
+        value: "true"
+      # AI features (Anthropic). Optional — AI endpoints 503 without it.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Supabase OAuth verification (optional — only if using Google/Facebook login).
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # SMTP for password-reset email (optional — logs the link if unset).
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+
+  # ── Frontend: Vue 3 SPA (static site) ─────────────────────────────────────
+  - type: web
+    name: studyspark-web
+    runtime: static
+    region: singapore
+    buildCommand: corepack enable && corepack prepare pnpm@10 --activate && pnpm install --frozen-lockfile --filter quiz-app-fe... && pnpm --filter quiz-app-fe build
+    staticPublishPath: ./quiz-app-fe/dist
+    # SPA history-mode fallback.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    envVars:
+      # Baked into the client bundle at build time — must match the API URL.
+      - key: VITE_API_BASE_URL
+        value: https://studyspark-api.onrender.com/api/v1
+      # Supabase browser client (optional — only if using Google/Facebook login).
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false

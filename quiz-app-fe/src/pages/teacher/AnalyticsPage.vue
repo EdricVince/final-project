@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h2 class="text-foreground text-2xl font-bold">Analytics</h2>
-        <p class="text-muted-foreground mt-1 text-sm">Track student performance and engagement across all classes</p>
+        <h2 class="text-foreground text-2xl font-bold">{{ $t('teacher.analytics.title') }}</h2>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('teacher.analytics.subtitle') }}</p>
       </div>
       <div class="flex items-center gap-1 rounded-xl border border-border bg-card p-1">
         <button
@@ -35,7 +35,7 @@
     <div v-if="analyticsError" class="info-box info-box-red mb-6 flex items-center gap-3 text-sm text-red-400">
       <span class="text-lg">⚠</span>
       <div>
-        <div class="font-semibold">Failed to load analytics</div>
+        <div class="font-semibold">{{ $t('teacher.analytics.failedToLoad') }}</div>
         <div class="text-red-400/70 mt-0.5">{{ analyticsError }}</div>
       </div>
       <button @click="analyticsError = ''" class="ml-auto text-red-400/50 hover:text-red-400">✕</button>
@@ -60,7 +60,7 @@
             <TrendingUp v-if="(kpi.trend ?? 0) >= 0" class="h-3 w-3 text-chart-2" />
             <TrendingDown v-else class="h-3 w-3 text-destructive" />
             <p class="text-xs" :class="(kpi.trend ?? 0) >= 0 ? 'text-chart-2' : 'text-destructive'">
-              {{ Math.abs(kpi.trend ?? 0) }}% vs last {{ selectedPeriod }}
+              {{ $t('teacher.analytics.vsLast', { n: Math.abs(kpi.trend ?? 0), period: $t('teacher.analytics.periods.' + selectedPeriod) }) }}
             </p>
           </div>
         </div>
@@ -71,13 +71,13 @@
         <!-- Activity Bar Chart -->
         <div class="bg-card border-border rounded-2xl border p-6 lg:col-span-3">
           <div class="mb-5 flex items-center justify-between">
-            <h3 class="text-foreground font-semibold">Student Activity</h3>
-            <span class="text-muted-foreground text-xs">Active students per period</span>
+            <h3 class="text-foreground font-semibold">{{ $t('teacher.analytics.studentActivity') }}</h3>
+            <span class="text-muted-foreground text-xs">{{ $t('teacher.analytics.activePerPeriod') }}</span>
           </div>
 
           <div v-if="maxActivity === 0" class="flex h-40 flex-col items-center justify-center gap-2 rounded-xl bg-secondary/30 text-center">
             <BarChart2 class="text-muted-foreground/40 h-8 w-8" />
-            <p class="text-muted-foreground text-sm">No activity data yet</p>
+            <p class="text-muted-foreground text-sm">{{ $t('teacher.analytics.noActivityData') }}</p>
           </div>
 
           <template v-else>
@@ -92,7 +92,7 @@
                   :style="{ height: `${(bar.value / maxActivity) * 100}%` }"
                 >
                   <div class="bg-foreground text-background pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-2 py-1 text-xs opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                    {{ bar.value }} active
+                    {{ $t('teacher.analytics.barTooltip', { value: bar.value }) }}
                   </div>
                 </div>
               </div>
@@ -107,9 +107,9 @@
 
         <!-- Class Performance Bars -->
         <div class="bg-card border-border rounded-2xl border p-6 lg:col-span-2">
-          <h3 class="text-foreground mb-5 font-semibold">Avg Score by Class</h3>
+          <h3 class="text-foreground mb-5 font-semibold">{{ $t('teacher.analytics.avgScoreByClass') }}</h3>
           <div v-if="!classScores.length" class="flex h-32 items-center justify-center rounded-xl bg-secondary/30">
-            <p class="text-muted-foreground text-sm">No classes yet</p>
+            <p class="text-muted-foreground text-sm">{{ $t('teacher.analytics.noClassesYet') }}</p>
           </div>
           <div v-else class="space-y-4">
             <div v-for="cls in classScores" :key="cls.name">
@@ -129,7 +129,7 @@
           <div class="mt-5 space-y-1.5">
             <div v-for="cls in classScores" :key="cls.name" class="flex items-center gap-2">
               <div class="h-2.5 w-2.5 rounded-full" :class="cls.dotColor"></div>
-              <span class="text-muted-foreground text-xs">{{ cls.name }} · {{ cls.students }} students</span>
+              <span class="text-muted-foreground text-xs">{{ $t('teacher.analytics.classDotLabel', { name: cls.name, n: cls.students }) }}</span>
             </div>
           </div>
         </div>
@@ -140,11 +140,11 @@
         <!-- Top Students -->
         <div class="bg-card border-border rounded-2xl border p-6">
           <div class="mb-4 flex items-center justify-between">
-            <h3 class="text-foreground font-semibold">Top Students</h3>
-            <span class="text-muted-foreground text-xs">This {{ selectedPeriod }}</span>
+            <h3 class="text-foreground font-semibold">{{ $t('teacher.analytics.topStudents') }}</h3>
+            <span class="text-muted-foreground text-xs">{{ $t('teacher.analytics.thisPeriod', { period: $t('teacher.analytics.periods.' + selectedPeriod) }) }}</span>
           </div>
           <div v-if="!topStudents.length" class="flex h-32 items-center justify-center rounded-xl bg-secondary/30">
-            <p class="text-muted-foreground text-sm">No students enrolled yet</p>
+            <p class="text-muted-foreground text-sm">{{ $t('teacher.analytics.noStudentsEnrolled') }}</p>
           </div>
           <div v-else class="space-y-3">
             <div
@@ -174,7 +174,7 @@
               </div>
               <div class="text-right">
                 <p class="text-foreground font-bold">{{ student.score }}%</p>
-                <p class="text-muted-foreground text-xs">{{ student.quizzes }} quizzes</p>
+                <p class="text-muted-foreground text-xs">{{ $t('teacher.analytics.quizzesN', { n: student.quizzes }) }}</p>
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@
 
         <!-- Quiz Type Breakdown -->
         <div class="bg-card border-border rounded-2xl border p-6">
-          <h3 class="text-foreground mb-4 font-semibold">Quiz Type Performance</h3>
+          <h3 class="text-foreground mb-4 font-semibold">{{ $t('teacher.analytics.quizTypePerformance') }}</h3>
           <div class="space-y-4">
             <div v-for="qt in quizTypes" :key="qt.type">
               <div class="mb-1.5 flex items-center justify-between">
@@ -190,11 +190,11 @@
                   <div class="rounded-lg p-1.5" :class="qt.bg">
                     <component :is="qt.icon" class="h-3.5 w-3.5" :class="qt.color" />
                   </div>
-                  <span class="text-foreground text-sm font-medium">{{ qt.type }}</span>
+                  <span class="text-foreground text-sm font-medium">{{ qt.label }}</span>
                 </div>
                 <div class="text-right">
                   <span class="text-foreground text-sm font-bold">{{ qt.avg }}%</span>
-                  <span class="text-muted-foreground ml-1 text-xs">({{ qt.count }} games)</span>
+                  <span class="text-muted-foreground ml-1 text-xs">{{ $t('teacher.analytics.gamesCount', { n: qt.count }) }}</span>
                 </div>
               </div>
               <div class="bg-secondary h-2 rounded-full">
@@ -209,15 +209,15 @@
           <div class="mt-5 flex flex-wrap gap-2">
             <div class="bg-secondary rounded-xl px-3 py-2 text-center">
               <p class="text-foreground text-lg font-bold">{{ totalQuizzes }}</p>
-              <p class="text-muted-foreground text-xs">Total Games</p>
+              <p class="text-muted-foreground text-xs">{{ $t('teacher.analytics.totalGames') }}</p>
             </div>
             <div class="bg-secondary rounded-xl px-3 py-2 text-center">
               <p class="text-foreground text-lg font-bold">{{ avgAccuracy }}%</p>
-              <p class="text-muted-foreground text-xs">Avg Accuracy</p>
+              <p class="text-muted-foreground text-xs">{{ $t('teacher.analytics.avgAccuracy') }}</p>
             </div>
             <div class="bg-secondary rounded-xl px-3 py-2 text-center">
               <p class="text-foreground text-lg font-bold">{{ totalLiveQuizzes }}</p>
-              <p class="text-muted-foreground text-xs">Live Sessions</p>
+              <p class="text-muted-foreground text-xs">{{ $t('teacher.analytics.liveSessions2') }}</p>
             </div>
           </div>
         </div>
@@ -227,8 +227,8 @@
       <div class="mb-6 bg-card border-border rounded-2xl border p-6">
         <div class="mb-5 flex items-center justify-between">
           <div>
-            <h3 class="text-foreground font-semibold">Skills Monitor</h3>
-            <p class="text-muted-foreground mt-0.5 text-xs">Average class performance across 4 language skills</p>
+            <h3 class="text-foreground font-semibold">{{ $t('teacher.analytics.skillsMonitor') }}</h3>
+            <p class="text-muted-foreground mt-0.5 text-xs">{{ $t('teacher.analytics.skillsMonitorDesc') }}</p>
           </div>
         </div>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -236,8 +236,8 @@
             <div class="mb-3 flex items-center gap-2.5">
               <div class="flex h-10 w-10 items-center justify-center rounded-xl text-xl" :class="skill.bgColor">{{ skill.icon }}</div>
               <div>
-                <p class="text-foreground font-semibold">{{ skill.name }}</p>
-                <p class="text-muted-foreground text-xs">{{ skill.desc }}</p>
+                <p class="text-foreground font-semibold">{{ $t('teacher.analytics.skillNames.' + skill.name) }}</p>
+                <p class="text-muted-foreground text-xs">{{ $t('teacher.analytics.skillDescs.' + skill.name) }}</p>
               </div>
             </div>
             <div class="mb-3 flex items-end gap-1.5">
@@ -259,7 +259,7 @@
                   <div class="h-1.5 rounded-full transition-all duration-700" :class="skill.barColor" :style="{ width: `${cls.score}%` }"></div>
                 </div>
               </div>
-              <div v-if="!skill.classes.length" class="text-muted-foreground text-xs">No classes yet</div>
+              <div v-if="!skill.classes.length" class="text-muted-foreground text-xs">{{ $t('teacher.analytics.noClassesYet') }}</div>
             </div>
           </div>
         </div>
@@ -269,11 +269,11 @@
       <div class="bg-card border-border rounded-2xl border p-6">
         <div class="mb-4 flex items-center gap-2">
           <AlertCircle class="text-chart-1 h-5 w-5" />
-          <h3 class="text-foreground font-semibold">Students Needing Attention</h3>
+          <h3 class="text-foreground font-semibold">{{ $t('teacher.analytics.studentsNeedingAttention') }}</h3>
           <span class="bg-chart-1/10 text-chart-1 rounded-full px-2.5 py-0.5 text-xs font-medium">{{ strugglingStudents.length }}</span>
         </div>
         <div v-if="!strugglingStudents.length" class="flex h-24 items-center justify-center rounded-xl bg-secondary/30">
-          <p class="text-muted-foreground text-sm">All students are performing well!</p>
+          <p class="text-muted-foreground text-sm">{{ $t('teacher.analytics.allPerformingWell') }}</p>
         </div>
         <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div
@@ -295,16 +295,16 @@
             </div>
             <div class="space-y-1">
               <div class="flex justify-between text-xs">
-                <span class="text-muted-foreground">Avg Score</span>
+                <span class="text-muted-foreground">{{ $t('teacher.analytics.avgScore2') }}</span>
                 <span class="text-chart-1 font-semibold">{{ student.score }}%</span>
               </div>
               <div class="flex justify-between text-xs">
-                <span class="text-muted-foreground">Last Active</span>
+                <span class="text-muted-foreground">{{ $t('teacher.analytics.lastActive') }}</span>
                 <span class="text-foreground">{{ student.lastActive }}</span>
               </div>
               <div class="flex justify-between text-xs">
-                <span class="text-muted-foreground">Quizzes</span>
-                <span class="text-foreground">{{ student.quizzes }} completed</span>
+                <span class="text-muted-foreground">{{ $t('teacher.analytics.quizzesCompleted') }}</span>
+                <span class="text-foreground">{{ $t('teacher.analytics.completedSuffix', { n: student.quizzes }) }}</span>
               </div>
             </div>
           </div>
@@ -316,18 +316,27 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Users, FileText, Trophy, TrendingUp, TrendingDown,
   AlertCircle, CircleHelp, Shuffle, Timer, CircleCheck, BarChart2,
 } from '@/components/icons'
 import { api } from '@/utils/api'
 
+const { t } = useI18n()
+
 const selectedPeriod = ref<'week' | 'month' | 'year'>('week')
-const periods = [
-  { label: 'Week', value: 'week' as const },
-  { label: 'Month', value: 'month' as const },
-  { label: 'Year', value: 'year' as const },
-]
+const periods = computed(() => [
+  { label: t('teacher.analytics.periods.week'), value: 'week' as const },
+  { label: t('teacher.analytics.periods.month'), value: 'month' as const },
+  { label: t('teacher.analytics.periods.year'), value: 'year' as const },
+])
+
+// Map a quiz-type name to its i18n key slug (types stay English for API matching).
+const QUIZ_TYPE_KEY: Record<string, string> = {
+  'Multiple Choice': 'multipleChoice', 'True or False': 'trueFalse',
+  'Speed Round': 'speedRound', 'Word Scramble': 'wordScramble',
+}
 
 const avatarBg = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4', 'bg-chart-5', 'bg-primary']
 const loading = ref(true)
@@ -376,17 +385,20 @@ const emptyKpi = { students: 0, quizzes: 0, avgScore: 0, liveQuizzes: 0, trends:
 const kpiCards = computed(() => {
   const d = kpiDataMap.value[selectedPeriod.value] ?? emptyKpi
   return [
-    { label: 'Active Students', value: d.students, trend: d.trends[0], icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Quizzes Played', value: d.quizzes, trend: d.trends[1], icon: FileText, color: 'text-chart-2', bg: 'bg-chart-2/10' },
-    { label: 'Avg Score', value: `${d.avgScore}%`, trend: d.trends[2], icon: Trophy, color: 'text-chart-3', bg: 'bg-chart-3/10' },
-    { label: 'Live Sessions', value: d.liveQuizzes, trend: d.trends[3], icon: Users, color: 'text-chart-1', bg: 'bg-chart-1/10' },
+    { label: t('teacher.analytics.kpi.activeStudents'), value: d.students, trend: d.trends[0], icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
+    { label: t('teacher.analytics.kpi.quizzesPlayed'), value: d.quizzes, trend: d.trends[1], icon: FileText, color: 'text-chart-2', bg: 'bg-chart-2/10' },
+    { label: t('teacher.analytics.kpi.avgScore'), value: `${d.avgScore}%`, trend: d.trends[2], icon: Trophy, color: 'text-chart-3', bg: 'bg-chart-3/10' },
+    { label: t('teacher.analytics.kpi.liveSessions'), value: d.liveQuizzes, trend: d.trends[3], icon: Users, color: 'text-chart-1', bg: 'bg-chart-1/10' },
   ]
 })
 
 const activityData = computed(() => activityDataMapRef.value[selectedPeriod.value] ?? [])
 const maxActivity = computed(() => activityData.value.length ? Math.max(...activityData.value.map(d => d.value), 0) : 0)
 
-const quizTypes = computed(() => quizTypesData.value)
+const quizTypes = computed(() => quizTypesData.value.map(qt => ({
+  ...qt,
+  label: t('teacher.analytics.quizTypeNames.' + (QUIZ_TYPE_KEY[qt.type] ?? 'multipleChoice')),
+})))
 const skillsData = computed(() => skillsDataRef.value)
 
 const totalQuizzes = computed(() => quizTypesData.value.reduce((s, q) => s + q.count, 0))
@@ -436,11 +448,11 @@ onMounted(async () => {
     console.error('Failed to load analytics:', e)
     const status = e?.status ?? e?.response?.status
     if (status === 403) {
-      analyticsError.value = 'Access denied. This page is for teachers only.'
+      analyticsError.value = t('teacher.analytics.errAccessDenied')
     } else if (status === 503) {
-      analyticsError.value = 'Analytics service is temporarily unavailable. Please try again.'
+      analyticsError.value = t('teacher.analytics.errServiceUnavailable')
     } else {
-      analyticsError.value = e?.errorMessage || e?.message || 'Failed to load analytics data. Please refresh.'
+      analyticsError.value = e?.errorMessage || e?.message || t('teacher.analytics.errLoadFailed')
     }
   } finally {
     loading.value = false

@@ -116,12 +116,36 @@
       </div>
     </div>
 
-    <!-- Decks Grid/List -->
-    <div v-if="filteredDecks.length > 0">
+    <!-- Three sides: your own decks, other teachers' decks, student community -->
+    <template v-if="deckSections.length">
+      <section v-for="section in deckSections" :key="section.key" class="mb-8">
+        <h2 class="text-foreground mb-4 flex items-center gap-2 text-lg font-semibold">
+          <component :is="section.icon" class="text-primary h-5 w-5" />
+          {{ $t(section.titleKey) }}
+          <span class="text-muted-foreground text-sm font-normal">· {{ section.total }}</span>
+        </h2>
+
+        <!-- Teacher vocab sets (flip-card study) -->
+        <div v-if="section.key === 'teacher' && teacherSets.length" class="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <button
+            v-for="set in teacherSets"
+            :key="`vs-${set.id}`"
+            class="bg-card border-border hover:border-primary/40 group rounded-2xl border p-5 text-left transition-all hover:shadow-md"
+            @click="studyVocabSet(set.id)"
+          >
+            <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-xl text-2xl">🔤</div>
+            <h3 class="text-foreground font-semibold">{{ set.name }}</h3>
+            <p class="text-muted-foreground mt-0.5 text-sm">{{ set.words.length }} {{ $t('flashcards.deck.cards') }} · {{ set.level }}</p>
+            <span class="text-primary mt-3 inline-flex items-center gap-1 text-sm font-medium group-hover:underline">
+              <Play class="h-3.5 w-3.5" /> {{ $t('flashcards.deck.study') }}
+            </span>
+          </button>
+        </div>
+
       <!-- Grid View -->
-      <div v-if="viewMode === 'grid'" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-6">
+      <div v-if="section.decks.length && viewMode === 'grid'" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-6">
         <div
-          v-for="(deck, index) in filteredDecks"
+          v-for="(deck, index) in section.decks"
           :key="deck.id"
           class="deck-card bg-card border-border group cursor-pointer rounded-2xl border p-5 transition-all duration-300 hover:shadow-lg lg:p-6"
           :style="{ animationDelay: `${index * 50}ms` }"
@@ -147,6 +171,7 @@
                 class="bg-card border-border absolute right-0 top-10 z-10 w-40 rounded-xl border py-2 shadow-lg"
               >
                 <button
+                  v-if="isOwner(deck)"
                   class="hover:bg-secondary text-foreground flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors"
                   @click.stop="openEditDeck(deck)"
                 >
@@ -161,6 +186,7 @@
                   {{ $t('flashcards.deck.duplicate') }}
                 </button>
                 <button
+                  v-if="isOwner(deck)"
                   class="hover:bg-destructive/10 text-destructive flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors"
                   @click.stop="confirmDeleteDeck(deck)"
                 >
@@ -180,26 +206,18 @@
             <div class="mb-4 flex items-center gap-4">
               <span class="text-muted-foreground flex items-center gap-1 text-sm">
                 <CreditCard class="h-4 w-4" />
-                {{ deck.cardCount }} {{ $t('flashcards.deck.cards') }}
+                {{ deck.cards.length }} {{ $t('flashcards.deck.cards') }}
               </span>
               <span class="text-muted-foreground flex items-center gap-1 text-sm">
                 <Clock class="h-4 w-4" />
-                {{ deck.lastStudied }}
+                {{ isOwner(deck) ? $t('flashcards.deck.you') : (deck.owner_name || $t('flashcards.deck.shared')) }}
               </span>
             </div>
 
-            <!-- Progress -->
-            <div>
-              <div class="mb-2 flex items-center justify-between">
-                <span class="text-muted-foreground text-sm">{{ $t('flashcards.deck.progress') }}</span>
-                <span class="text-foreground text-sm font-medium">{{ deck.progress }}%</span>
-              </div>
-              <div class="bg-secondary h-2 overflow-hidden rounded-full">
-                <div
-                  class="bg-primary h-full rounded-full transition-all duration-500"
-                  :style="{ width: `${deck.progress}%` }"
-                ></div>
-              </div>
+            <!-- Visibility -->
+            <div class="text-muted-foreground flex items-center gap-1.5 text-sm">
+              <Globe class="h-3.5 w-3.5" />
+              {{ deck.is_public ? 'Public' : 'Private' }}
             </div>
           </div>
 
@@ -226,9 +244,9 @@
       </div>
 
       <!-- List View -->
-      <div v-else class="space-y-3">
+      <div v-else-if="section.decks.length" class="space-y-3">
         <div
-          v-for="(deck, index) in filteredDecks"
+          v-for="(deck, index) in section.decks"
           :key="deck.id"
           class="deck-list-item bg-card border-border group flex cursor-pointer items-center gap-4 rounded-2xl border p-4 transition-all duration-300 hover:shadow-lg lg:gap-6 lg:p-5"
           :style="{ animationDelay: `${index * 50}ms` }"
@@ -244,9 +262,9 @@
           <div class="min-w-0 flex-1">
             <h3 class="text-foreground mb-1 text-lg font-semibold">{{ deck.title }}</h3>
             <div class="flex flex-wrap items-center gap-3">
-              <span class="text-muted-foreground text-sm">{{ deck.cardCount }} {{ $t('flashcards.deck.cards') }}</span>
-              <span class="text-muted-foreground text-sm">{{ deck.lastStudied }}</span>
-              <span class="text-muted-foreground text-sm">{{ deck.progress }}% {{ $t('flashcards.deck.complete') }}</span>
+              <span class="text-muted-foreground text-sm">{{ deck.cards.length }} {{ $t('flashcards.deck.cards') }}</span>
+              <span class="text-muted-foreground text-sm">{{ isOwner(deck) ? $t('flashcards.deck.you') : (deck.owner_name || $t('flashcards.deck.shared')) }}</span>
+              <span class="text-muted-foreground text-sm">{{ deck.is_public ? 'Public' : 'Private' }}</span>
             </div>
           </div>
 
@@ -264,7 +282,8 @@
           </div>
         </div>
       </div>
-    </div>
+      </section>
+    </template>
 
     <!-- Empty State -->
     <div v-else class="animate-fade-in-up flex flex-col items-center justify-center py-20 text-center">
@@ -295,7 +314,7 @@
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
           @click.self="closeDeckModal"
         >
-          <div class="bg-card border-border w-full max-w-lg rounded-3xl border p-6 shadow-xl lg:p-8">
+          <div class="bg-card border-border max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-3xl border p-6 shadow-xl lg:p-8">
             <div class="mb-6 flex items-center justify-between">
               <h2 class="text-foreground text-xl font-bold lg:text-2xl">
                 {{ editingDeck ? $t('flashcards.modal.editTitle') : $t('flashcards.modal.createTitle') }}
@@ -341,11 +360,39 @@
                 </select>
               </div>
 
+              <!-- Share publicly so everyone can study this deck -->
+              <label class="flex cursor-pointer items-center gap-2.5">
+                <input type="checkbox" v-model="deckForm.isPublic" class="accent-primary h-4 w-4 rounded" />
+                <span class="text-foreground text-sm">{{ $t('flashcards.modal.sharePublic') }}</span>
+              </label>
+
+              <!-- Inline cards editor — enter words + meanings, edit existing
+                   cards and keep adding more (works when creating and editing). -->
+              <div>
+                <div class="mb-2 flex items-center justify-between">
+                  <label class="text-foreground block text-sm font-medium">
+                    {{ $t('flashcards.modal.cardsLabel') }}
+                    <span class="text-muted-foreground font-normal">({{ deckForm.cards.filter(c => c.term.trim()).length }})</span>
+                  </label>
+                  <button type="button" class="text-primary flex items-center gap-1 text-xs font-medium" @click="addFormCard">
+                    <Plus class="h-3.5 w-3.5" /> {{ $t('flashcards.modal.addCard') }}
+                  </button>
+                </div>
+                <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
+                  <div v-for="(card, i) in deckForm.cards" :key="i" class="flex items-center gap-2">
+                    <input v-model="card.term" type="text" :placeholder="$t('flashcards.modal.wordPlaceholder')" class="bg-secondary text-foreground placeholder:text-muted-foreground h-11 min-w-0 flex-1 rounded-xl border-0 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                    <input v-model="card.definition" type="text" :placeholder="$t('flashcards.modal.meaningPlaceholder')" class="bg-secondary text-foreground placeholder:text-muted-foreground h-11 min-w-0 flex-1 rounded-xl border-0 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                    <button type="button" class="text-muted-foreground hover:text-destructive shrink-0 p-1.5" @click="removeFormCard(i)"><X class="h-4 w-4" /></button>
+                  </div>
+                </div>
+                <p class="text-muted-foreground mt-1.5 text-xs">{{ editingDeck ? $t('flashcards.modal.editCardsHint') : $t('flashcards.modal.cardsHint') }}</p>
+              </div>
+
               <div class="flex gap-3 pt-4">
                 <Button type="button" variant="outline" class="flex-1" @click="closeDeckModal">
                   {{ $t('flashcards.modal.cancel') }}
                 </Button>
-                <Button type="submit" class="flex-1">
+                <Button type="submit" class="flex-1" :disabled="!deckForm.title.trim() || saving">
                   {{ editingDeck ? $t('flashcards.modal.saveChanges') : $t('flashcards.modal.createDeck') }}
                 </Button>
               </div>
@@ -482,7 +529,7 @@
                 </div>
                 <div>
                   <h2 class="text-foreground text-lg font-bold">{{ previewDeck.title }}</h2>
-                  <p class="text-muted-foreground text-sm">{{ previewDeck.cards?.length ?? 0 }} / {{ previewDeck.cardCount }} cards shown</p>
+                  <p class="text-muted-foreground text-sm">{{ previewDeck.cards.length }} {{ $t('flashcards.deck.cards') }}</p>
                 </div>
               </div>
               <button class="hover:bg-secondary rounded-lg p-2 transition-colors" @click="showPreviewModal = false">
@@ -503,11 +550,11 @@
                   </thead>
                   <tbody>
                     <tr
-                      v-for="card in previewDeck.cards"
-                      :key="card.id"
+                      v-for="(card, index) in previewDeck.cards"
+                      :key="index"
                       class="border-t border-border hover:bg-secondary/30 transition-colors"
                     >
-                      <td class="text-muted-foreground px-4 py-3">{{ card.id }}</td>
+                      <td class="text-muted-foreground px-4 py-3">{{ index + 1 }}</td>
                       <td class="text-foreground px-4 py-3 font-medium">{{ card.term }}</td>
                       <td class="text-muted-foreground px-4 py-3">{{ card.definition }}</td>
                     </tr>
@@ -588,14 +635,19 @@ import {
   ArrowUpDown,
   Mic,
   GraduationCap,
+  Users,
 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { useProgressStore } from '@/stores/progress.store'
 import { useAuthStore } from '@/stores/auth.store'
+import { api, ApiError } from '@/utils/api'
+import { useToast } from '@/composables/useToast'
+import type { FlashcardDeckData as Deck, VocabSetData } from '@/types/content'
 
 const router = useRouter()
 const progressStore = useProgressStore()
 const authStore = useAuthStore()
+const toast = useToast()
 
 // State
 const searchQuery = ref('')
@@ -625,51 +677,90 @@ const categories = [
   'General',
 ]
 
-// Deck form
+// Deck form — used for both creating (cards entered inline) and editing (the
+// deck's existing cards are loaded so the owner can edit them and add more).
+// Extra fields (example/image/audio) are preserved even though this quick
+// editor only exposes term + definition.
+type FormCard = { term: string; definition: string; example?: string; image?: string; audio?: string }
 const deckForm = ref({
   title: '',
   description: '',
   category: '',
+  isPublic: true,
+  cards: [{ term: '', definition: '' }] as FormCard[],
 })
 
-// Stats — computed from real decks data
-const stats = ref({
-  totalDecks: 0,
-  totalCards: 0,
-  masteredCards: 0,
-  studyStreak: 0,
-})
-
-// Sample decks
-interface FlashCard {
-  id: number
-  term: string
-  definition: string
-}
-
-interface Deck {
-  id: number
-  title: string
-  description: string
-  category: string
-  cardCount: number
-  progress: number
-  lastStudied: string
-  cards?: FlashCard[]
-}
-
-// Empty decks — user creates their own decks
+// Decks loaded from the backend: the user's own decks + everyone's PUBLIC decks.
 const decks = ref<Deck[]>([])
+const loading = ref(true)
+const saving = ref(false)
+
+const stats = computed(() => ({
+  totalDecks: decks.value.length,
+  totalCards: decks.value.reduce((sum, d) => sum + d.cards.length, 0),
+  masteredCards: progressStore.totalCardsStudied,
+  studyStreak: progressStore.streakCount,
+}))
+
+const isOwner = (deck: Deck) => deck.owner_id === authStore.user?.id
+const errMsg = (e: unknown, fb: string) => (e instanceof ApiError ? e.errorMessage : fb)
+
+// Published vocabulary sets from the student's teachers (studyable as flip cards).
+const teacherSets = ref<VocabSetData[]>([])
+const studyVocabSet = (id: number) => router.push(`/flashcards/vocab-set/${id}/study`)
+
+const load = async () => {
+  loading.value = true
+  try {
+    const [ds, sets] = await Promise.all([
+      api.getFlashcardDecks(),
+      api.getVocabSets().catch(() => [] as VocabSetData[]),
+    ])
+    decks.value = ds
+    // Published vocab sets available to study (own + teachers'). Backend already
+    // scopes what a student can see; we just need published sets that have words.
+    teacherSets.value = sets.filter(s => s.is_published && (s.words?.length ?? 0) > 0)
+  } catch (e) {
+    toast.error(errMsg(e, 'Failed to load decks'))
+  } finally {
+    loading.value = false
+  }
+}
 
 // Computed
 const filteredDecks = computed(() => {
   return decks.value.filter(deck => {
     const matchesSearch = deck.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         deck.description.toLowerCase().includes(searchQuery.value.toLowerCase())
+                         (deck.description ?? '').toLowerCase().includes(searchQuery.value.toLowerCase())
     const matchesCategory = selectedCategory.value === 'all' || deck.category === selectedCategory.value
     return matchesSearch && matchesCategory
   })
 })
+
+// Decks are grouped into three clearly separated sections so a teacher's own
+// deck never gets lumped in with other teachers' content:
+//  - "Your decks"       → whatever the current user made (any role)
+//  - "From teachers"    → OTHER teachers' decks + teacher vocab sets
+//  - "Student community"→ OTHER students' decks (for everyone to study)
+const ROLE_TEACHER = 2
+const isMine = (d: Deck) => d.owner_id === authStore.user?.id
+const myDecks = computed(() => filteredDecks.value.filter(isMine))
+const teacherDecks = computed(() => filteredDecks.value.filter(d => !isMine(d) && d.owner_role === ROLE_TEACHER))
+const communityDecks = computed(() => filteredDecks.value.filter(d => !isMine(d) && d.owner_role !== ROLE_TEACHER))
+
+const deckSections = computed(() => {
+  const s: { key: 'mine' | 'teacher' | 'community'; titleKey: string; icon: Component; decks: Deck[]; total: number }[] = []
+  if (myDecks.value.length)
+    s.push({ key: 'mine', titleKey: 'flashcards.yourDecks', icon: Layers, decks: myDecks.value, total: myDecks.value.length })
+  if (teacherSets.value.length || teacherDecks.value.length)
+    s.push({ key: 'teacher', titleKey: 'flashcards.teacherDecks', icon: GraduationCap, decks: teacherDecks.value, total: teacherSets.value.length + teacherDecks.value.length })
+  if (communityDecks.value.length)
+    s.push({ key: 'community', titleKey: 'flashcards.communityDecks', icon: Users, decks: communityDecks.value, total: communityDecks.value.length })
+  return s
+})
+
+const addFormCard = () => deckForm.value.cards.push({ term: '', definition: '' })
+const removeFormCard = (i: number) => deckForm.value.cards.splice(i, 1)
 
 // Methods
 const getCategoryIcon = (category: string): Component => {
@@ -695,7 +786,7 @@ const toggleDeckMenu = (deckId: number) => {
 
 const openCreateDeck = () => {
   editingDeck.value = null
-  deckForm.value = { title: '', description: '', category: '' }
+  deckForm.value = { title: '', description: '', category: '', isPublic: true, cards: [{ term: '', definition: '' }] }
   showDeckModal.value = true
 }
 
@@ -703,8 +794,13 @@ const openEditDeck = (deck: Deck) => {
   editingDeck.value = deck
   deckForm.value = {
     title: deck.title,
-    description: deck.description,
+    description: deck.description ?? '',
     category: deck.category,
+    isPublic: deck.is_public,
+    // Load existing cards so the owner can edit them and keep adding more.
+    cards: deck.cards.length
+      ? deck.cards.map(c => ({ term: c.term, definition: c.definition, example: c.example, image: c.image, audio: c.audio }))
+      : [{ term: '', definition: '' }],
   }
   activeDeckMenu.value = null
   showDeckModal.value = true
@@ -715,43 +811,61 @@ const closeDeckModal = () => {
   editingDeck.value = null
 }
 
-const saveDeck = () => {
-  if (editingDeck.value) {
-    // Update existing deck
-    const existingDeck = decks.value.find(d => d.id === editingDeck.value!.id)
-    if (existingDeck) {
-      existingDeck.title = deckForm.value.title
-      existingDeck.description = deckForm.value.description
-      existingDeck.category = deckForm.value.category || existingDeck.category
+const saveDeck = async () => {
+  if (!deckForm.value.title.trim() || saving.value) return
+  saving.value = true
+  try {
+    if (editingDeck.value) {
+      // Keep every card that still has a term; preserve rich fields (example/
+      // image/audio) that this quick editor doesn't surface.
+      const cards = deckForm.value.cards
+        .filter(c => c.term.trim())
+        .map(c => ({ term: c.term.trim(), definition: c.definition.trim(), example: c.example, image: c.image, audio: c.audio }))
+      const updated = await api.updateFlashcardDeck(editingDeck.value.id, {
+        title: deckForm.value.title,
+        description: deckForm.value.description,
+        category: deckForm.value.category || editingDeck.value.category,
+        is_public: deckForm.value.isPublic,
+        cards,
+      })
+      const i = decks.value.findIndex(d => d.id === updated.id)
+      if (i >= 0) decks.value[i] = updated
+    } else {
+      const cards = deckForm.value.cards
+        .filter(c => c.term.trim())
+        .map(c => ({ term: c.term.trim(), definition: c.definition.trim() }))
+      const created = await api.createFlashcardDeck({
+        title: deckForm.value.title,
+        description: deckForm.value.description,
+        category: deckForm.value.category || 'General',
+        is_public: deckForm.value.isPublic,
+        cards,
+      })
+      decks.value.unshift(created)
     }
-  } else {
-    // Create new deck
-    const newDeck: Deck = {
-      id: Date.now(),
-      title: deckForm.value.title,
-      description: deckForm.value.description,
-      category: deckForm.value.category || 'General',
-      cardCount: 0,
-      progress: 0,
-      lastStudied: 'Never',
-    }
-    decks.value.unshift(newDeck)
-    stats.value.totalDecks++
+    closeDeckModal()
+  } catch (e) {
+    toast.error(errMsg(e, 'Failed to save deck'))
+  } finally {
+    saving.value = false
   }
-  closeDeckModal()
 }
 
-const duplicateDeck = (deck: Deck) => {
-  const newDeck: Deck = {
-    ...deck,
-    id: Date.now(),
-    title: `${deck.title} (Copy)`,
-    progress: 0,
-    lastStudied: 'Never',
-  }
-  decks.value.unshift(newDeck)
-  stats.value.totalDecks++
+const duplicateDeck = async (deck: Deck) => {
   activeDeckMenu.value = null
+  try {
+    const created = await api.createFlashcardDeck({
+      title: `${deck.title} (Copy)`,
+      description: deck.description ?? '',
+      category: deck.category,
+      is_public: deck.is_public,
+      cards: deck.cards,
+    })
+    decks.value.unshift(created)
+    toast.success('Deck copied to your decks')
+  } catch (e) {
+    toast.error(errMsg(e, 'Failed to duplicate'))
+  }
 }
 
 const confirmDeleteDeck = (deck: Deck) => {
@@ -760,13 +874,13 @@ const confirmDeleteDeck = (deck: Deck) => {
   showDeleteModal.value = true
 }
 
-const deleteDeck = () => {
+const deleteDeck = async () => {
   if (deckToDelete.value) {
-    const deckToRemove = decks.value.find(d => d.id === deckToDelete.value!.id)
-    if (deckToRemove) {
-      stats.value.totalCards -= deckToRemove.cardCount
+    try {
+      await api.deleteFlashcardDeck(deckToDelete.value.id)
       decks.value = decks.value.filter(d => d.id !== deckToDelete.value!.id)
-      stats.value.totalDecks--
+    } catch (e) {
+      toast.error(errMsg(e, 'Failed to delete'))
     }
   }
   showDeleteModal.value = false
@@ -818,26 +932,21 @@ const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-const importCards = () => {
-  // In a real app, this would parse the file and create cards
-  const newDeck: Deck = {
-    id: Date.now(),
-    title: importDeckName.value,
-    description: 'Imported from ' + importFile.value?.name,
-    category: 'General',
-    cardCount: 0,
-    progress: 0,
-    lastStudied: 'Never',
+const importCards = async () => {
+  try {
+    const deck = await api.createFlashcardDeck({
+      title: importDeckName.value || 'Imported deck',
+      description: importFile.value ? 'Imported from ' + importFile.value.name : '',
+      category: 'General',
+    })
+    showImportModal.value = false
+    importFile.value = null
+    importDeckName.value = ''
+    // Navigate to the new deck to add cards from the file
+    router.push(`/flashcards/${deck.id}`)
+  } catch (e) {
+    toast.error(errMsg(e, 'Failed to create deck'))
   }
-  decks.value.unshift(newDeck)
-  stats.value.totalDecks++
-
-  showImportModal.value = false
-  importFile.value = null
-  importDeckName.value = ''
-
-  // Navigate to the new deck to add cards
-  router.push(`/flashcards/${newDeck.id}`)
 }
 
 // Close menu when clicking outside
@@ -849,10 +958,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 onMounted(() => {
-  stats.value.totalDecks = decks.value.length
-  stats.value.totalCards = decks.value.reduce((sum, d) => sum + d.cardCount, 0)
-  stats.value.masteredCards = progressStore.totalCardsStudied
-  stats.value.studyStreak = progressStore.streakCount
+  load()
   document.addEventListener('click', handleClickOutside)
 })
 

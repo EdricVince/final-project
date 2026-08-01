@@ -3,12 +3,12 @@
     <!-- Header -->
     <div class="animate-fade-in-down mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">Videos</h1>
-        <p class="text-muted-foreground mt-2">Upload and manage teaching videos</p>
+        <h1 class="text-foreground text-2xl font-bold tracking-tight lg:text-3xl">{{ $t('teacher.videos.title') }}</h1>
+        <p class="text-muted-foreground mt-2">{{ $t('teacher.videos.subtitle') }}</p>
       </div>
       <Button @click="showUploadModal = true">
         <Upload class="mr-2 h-4 w-4" />
-        Upload Video
+        {{ $t('teacher.videos.uploadVideo') }}
       </Button>
     </div>
 
@@ -18,7 +18,7 @@
         v-model="selectedClass"
         class="bg-secondary text-foreground h-10 rounded-xl border-0 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
       >
-        <option value="">All Classes</option>
+        <option value="">{{ $t('teacher.videos.allClasses') }}</option>
         <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
       </select>
     </div>
@@ -74,11 +74,11 @@
         <div class="bg-secondary mb-4 flex h-16 w-16 items-center justify-center rounded-full">
           <Video class="text-muted-foreground h-8 w-8" />
         </div>
-        <h3 class="text-foreground mb-2 font-medium">No videos yet</h3>
-        <p class="text-muted-foreground mb-4 text-sm">Upload your first teaching video</p>
+        <h3 class="text-foreground mb-2 font-medium">{{ $t('teacher.videos.noVideos') }}</h3>
+        <p class="text-muted-foreground mb-4 text-sm">{{ $t('teacher.videos.noVideosDesc') }}</p>
         <Button @click="showUploadModal = true">
           <Upload class="mr-2 h-4 w-4" />
-          Upload Video
+          {{ $t('teacher.videos.uploadVideo') }}
         </Button>
       </div>
     </div>
@@ -92,69 +92,69 @@
         >
           <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showUploadModal = false"></div>
           <div class="bg-card border-border relative w-full max-w-lg rounded-2xl border p-6 shadow-xl">
-            <h2 class="text-foreground mb-6 text-xl font-semibold">Upload Video</h2>
+            <h2 class="text-foreground mb-6 text-xl font-semibold">{{ $t('teacher.videos.uploadVideo') }}</h2>
 
             <form @submit.prevent="uploadVideo" class="space-y-5">
               <div>
-                <label class="text-foreground mb-2 block text-sm font-medium">Title *</label>
+                <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('teacher.videos.modal.titleLabel') }}</label>
                 <input
                   v-model="uploadForm.title"
                   type="text"
-                  placeholder="Video title"
+                  :placeholder="$t('teacher.videos.modal.titlePlaceholder')"
                   required
                   class="bg-secondary text-foreground placeholder:text-muted-foreground h-12 w-full rounded-xl border-0 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
 
               <div>
-                <label class="text-foreground mb-2 block text-sm font-medium">Description</label>
+                <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('teacher.videos.modal.descriptionLabel') }}</label>
                 <textarea
                   v-model="uploadForm.description"
                   rows="3"
-                  placeholder="Video description"
+                  :placeholder="$t('teacher.videos.modal.descPlaceholder')"
                   class="bg-secondary text-foreground placeholder:text-muted-foreground w-full resize-none rounded-xl border-0 p-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 ></textarea>
               </div>
 
               <div>
-                <label class="text-foreground mb-2 block text-sm font-medium">Class</label>
+                <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('teacher.videos.modal.classLabel') }}</label>
                 <select
                   v-model="uploadForm.class_id"
                   class="bg-secondary text-foreground h-12 w-full rounded-xl border-0 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
-                  <option value="">No specific class</option>
+                  <option value="">{{ $t('teacher.videos.modal.noSpecificClass') }}</option>
                   <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
                 </select>
               </div>
 
               <div>
-                <label class="text-foreground mb-2 block text-sm font-medium">Video URL *</label>
+                <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('teacher.videos.modal.urlLabel') }}</label>
                 <input
                   v-model="uploadForm.video_url"
                   type="url"
-                  placeholder="https://..."
+                  :placeholder="$t('teacher.videos.modal.urlPlaceholder')"
                   required
                   class="bg-secondary text-foreground placeholder:text-muted-foreground h-12 w-full rounded-xl border-0 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
-                <p class="text-muted-foreground mt-1 text-xs">YouTube, Vimeo, or direct video URL</p>
+                <p class="text-muted-foreground mt-1 text-xs">{{ $t('teacher.videos.modal.urlHint') }}</p>
               </div>
 
               <div>
-                <label class="text-foreground mb-2 block text-sm font-medium">Lesson Name</label>
+                <label class="text-foreground mb-2 block text-sm font-medium">{{ $t('teacher.videos.modal.lessonNameLabel') }}</label>
                 <input
                   v-model="uploadForm.lesson_name"
                   type="text"
-                  placeholder="e.g., Lesson 1"
+                  :placeholder="$t('teacher.videos.modal.lessonNamePlaceholder')"
                   class="bg-secondary text-foreground placeholder:text-muted-foreground h-12 w-full rounded-xl border-0 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
 
               <div class="flex gap-3 pt-2">
                 <Button type="button" variant="outline" class="flex-1" @click="showUploadModal = false">
-                  Cancel
+                  {{ $t('teacher.videos.modal.cancel') }}
                 </Button>
                 <Button type="submit" class="flex-1" :disabled="uploading">
-                  {{ uploading ? 'Uploading...' : 'Upload' }}
+                  {{ uploading ? $t('teacher.videos.modal.uploading') : $t('teacher.videos.modal.upload') }}
                 </Button>
               </div>
             </form>
@@ -167,12 +167,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Upload, Play, Video, Trash2 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import { useToast } from '@/composables/useToast'
 import { formatDuration } from '@/types/video'
 import { api } from '@/utils/api'
 
+const { t } = useI18n()
 const toast = useToast()
 
 const selectedClass = ref('')
@@ -221,7 +223,7 @@ onMounted(async () => {
     classes.value = cls
     videos.value = vids
   } catch {
-    toast.error('Failed to load data')
+    toast.error(t('teacher.videos.toast.loadFailed'))
   } finally {
     loading.value = false
   }
@@ -238,11 +240,11 @@ const uploadVideo = async () => {
       lesson_name: uploadForm.value.lesson_name || undefined,
     }) as VideoItem
     videos.value.unshift(created)
-    toast.success('Video uploaded successfully!')
+    toast.success(t('teacher.videos.toast.uploaded'))
     showUploadModal.value = false
     uploadForm.value = { title: '', description: '', class_id: '', video_url: '', lesson_name: '' }
   } catch {
-    toast.error('Failed to upload video')
+    toast.error(t('teacher.videos.toast.uploadFailed'))
   } finally {
     uploading.value = false
   }
@@ -252,9 +254,9 @@ const handleDelete = async (id: number) => {
   try {
     await api.deleteVideo(id)
     videos.value = videos.value.filter(v => v.id !== id)
-    toast.success('Video deleted')
+    toast.success(t('teacher.videos.toast.deleted'))
   } catch {
-    toast.error('Failed to delete video')
+    toast.error(t('teacher.videos.toast.deleteFailed'))
   }
 }
 </script>

@@ -34,6 +34,7 @@ export interface GeneratedLesson {
   category: string;
   difficulty: string;
   content: {
+    reading?: string;
     vocabulary: { term: string; definition: string; example: string }[];
     quiz: { question: string; options: string[]; correct: number; explanation: string }[];
     comprehension: { question: string; answer: string }[];
@@ -43,6 +44,11 @@ export interface GeneratedLesson {
 export interface GeneratedVocabSet {
   name: string;
   words: { term: string; definition: string; example: string }[];
+}
+
+export interface GeneratedTest {
+  title: string;
+  questions: { question: string; options: string[]; correct: number; points: number }[];
 }
 
 @Injectable()
@@ -269,12 +275,13 @@ Return ONLY a valid JSON object (no markdown, no code fences) with exactly this 
   "category": "${skill}",
   "difficulty": "${level}",
   "content": {
+    "reading": "a short, coherent ${lang} reading passage (4-6 sentences, one paragraph) about the topic, written at the ${level} level",
     "vocabulary": [{"term": "word/phrase in ${lang}", "definition": "${definitionHint}", "example": "natural example sentence in ${lang}"}],
     "quiz": [{"question": "question text", "options": ["A","B","C","D"], "correct": 0, "explanation": "why this is correct"}],
-    "comprehension": [{"question": "open-ended question", "answer": "ideal answer"}]
+    "comprehension": [{"question": "a reading-comprehension question in ${lang} that can ONLY be answered by reading the passage above", "answer": "the correct answer, taken from / based on the passage"}]
   }
 }
-Generate 8-12 vocabulary items, 6 multiple-choice quiz questions (correct = index of the right option), and 3 comprehension questions.`;
+Generate the reading passage, 8-12 vocabulary items, 6 multiple-choice quiz questions (correct = index of the right option), and 3 comprehension questions that test understanding of the reading passage (not open-ended opinion/speaking prompts).`;
 
     try {
       const response = await this.client.messages.create({
@@ -350,13 +357,78 @@ Include exactly ${count} words.`;
     }
   }
 
-  async getWordOfTheDay(): Promise<WordOfTheDay> {
+  /** Generate a multiple-choice test (title + questions) for a topic at a level. */
+  async generateTest(dto: {
+    topic: string;
+    level: string;
+    language?: string;
+    count?: number;
+  }): Promise<GeneratedTest> {
+    if (!this.client) {
+      throw new ServiceUnavailableException(
+        'AI service not configured. Please add your Anthropic API key in admin settings.',
+      );
+    }
+    const lang = this.langName(dto.language ?? 'en');
+    const level = (dto.level || 'Intermediate (B1)').trim();
+    const topic = (dto.topic || 'general knowledge').trim();
+    const count = Math.min(Math.max(dto.count ?? 8, 1), 20);
+
+    const prompt = `You are a ${lang} teacher writing a multiple-choice test.
+Topic: "${topic}". Target level: ${level}. Write ${count} clear multiple-choice questions in ${lang}, each with exactly 4 options and one correct answer.
+Return ONLY a valid JSON object (no markdown, no code fences):
+{
+  "title": "a short test title for this topic",
+  "questions": [
+    {"question": "the question text in ${lang}", "options": ["A","B","C","D"], "correct": 0, "points": 1}
+  ]
+}
+"correct" is the 0-based index of the right option. Include exactly ${count} questions.`;
+
+    try {
+      const response = await this.client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 3072,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const raw = (response.content[0] as { type: string; text: string }).text;
+      const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+      const test = JSON.parse(json) as GeneratedTest;
+      test.title ||= topic;
+      test.questions = (test.questions ?? [])
+        .filter(q => q && q.question && Array.isArray(q.options) && q.options.length >= 2)
+        .map(q => ({
+          question: q.question,
+          options: q.options,
+          correct: Math.min(Math.max(Number(q.correct) || 0, 0), q.options.length - 1),
+          points: q.points && q.points > 0 ? q.points : 1,
+        }));
+      return test;
+    } catch (err) {
+      this.logger.error('generateTest failed', err);
+      throw new ServiceUnavailableException('AI failed to generate the test. Please try again.');
+    }
+  }
+
+  async getWordOfTheDay(fresh = false): Promise<WordOfTheDay> {
     const today = new Date().toDateString();
-    if (this.cache?.date === today) return this.cache.word;
+    // Daily cache keeps the same word for the whole day; `fresh` (the refresh
+    // button) skips it to pull a brand-new random word on demand.
+    if (!fresh && this.cache?.date === today) return this.cache.word;
 
     if (!this.client) {
       throw new ServiceUnavailableException('AI service not configured. Please add your Anthropic API key in admin settings.');
     }
+
+    // A random seed (theme + starting letter) so each day — and each refresh —
+    // lands on a genuinely different word instead of the model's usual favourites.
+    const themes = [
+      'everyday life', 'nature & science', 'emotions & feelings', 'work & business',
+      'travel & places', 'food & cooking', 'art & music', 'technology',
+      'personality & character', 'time & change', 'communication', 'movement & action',
+    ];
+    const theme = themes[Math.floor(Math.random() * themes.length)];
+    const letter = 'abcdefghijklmnoprstuvw'[Math.floor(Math.random() * 22)];
 
     try {
       const response = await this.client.messages.create({
@@ -376,7 +448,7 @@ Return ONLY valid JSON (no markdown) with this exact structure:
   "difficulty": "beginner|intermediate|advanced",
   "tip": "fun memory trick or etymology tip"
 }
-Pick an interesting, useful English word. Not too common, not too obscure.`,
+Pick an interesting, useful English word related to "${theme}", ideally starting with "${letter}". Not too common, not too obscure. Surprise me with a different word each time.`,
         }],
       });
 

@@ -22,6 +22,23 @@ function getWeekStartStr(): string {
   return toDateStr(d);
 }
 
+function dayOfYear(): number {
+  const d = new Date();
+  const start = new Date(d.getFullYear(), 0, 0);
+  return Math.floor((d.getTime() - start.getTime()) / 86400000);
+}
+
+// A rotating daily challenge so the goals visibly change each new day.
+const DAILY_CHALLENGE_POOL: { type: string; label: string; target: number; metric: 'cards' | 'quizzes' }[] = [
+  { type: 'flashcard', label: 'Daily challenge: study 30 flashcards', target: 30, metric: 'cards' },
+  { type: 'quiz', label: 'Daily challenge: finish 2 quizzes', target: 2, metric: 'quizzes' },
+  { type: 'flashcard', label: 'Daily challenge: warm up with 15 cards', target: 15, metric: 'cards' },
+  { type: 'quiz', label: 'Daily challenge: complete 3 quizzes', target: 3, metric: 'quizzes' },
+  { type: 'flashcard', label: 'Daily challenge: review 50 flashcards', target: 50, metric: 'cards' },
+  { type: 'quiz', label: 'Daily challenge: ace a quiz today', target: 1, metric: 'quizzes' },
+  { type: 'flashcard', label: 'Daily challenge: learn 20 new words', target: 20, metric: 'cards' },
+];
+
 @Injectable()
 export class GoalsService {
   constructor(
@@ -70,6 +87,11 @@ export class GoalsService {
       daily_goals: [
         { type: 'flashcard', label: 'Review flashcards', current: todayCards, target: settings.target_cards, unit: 'cards' },
         { type: 'quiz', label: 'Complete quizzes', current: todayQuizzes, target: settings.target_quizzes, unit: 'quizzes' },
+        // Rotating daily challenge — changes every day so goals never feel static.
+        (() => {
+          const c = DAILY_CHALLENGE_POOL[dayOfYear() % DAILY_CHALLENGE_POOL.length]!;
+          return { type: c.type, label: c.label, current: c.metric === 'cards' ? todayCards : todayQuizzes, target: c.target, unit: c.metric };
+        })(),
       ],
       weekly_challenges: [
         { id: 'cards_weekly', title: 'Flashcard Grinder', description: 'Review 200 flashcards this week', current: weekCards, target: 200, completed: weekCards >= 200 },

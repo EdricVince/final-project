@@ -39,9 +39,9 @@
             <Bookmark :class="isBookmarked ? 'fill-current' : ''" class="mr-2 h-4 w-4" />
             {{ isBookmarked ? $t('courses.detail.saved') : $t('courses.detail.save') }}
           </Button>
-          <Button @click="startCourse">
-            <Play class="mr-2 h-4 w-4" />
-            {{ course.progress > 0 ? $t('courses.detail.continueCourse') : $t('courses.detail.startCourse') }}
+          <Button @click="advanceLesson">
+            <component :is="isComplete ? CheckCircle2 : Play" class="mr-2 h-4 w-4" />
+            {{ primaryLabel }}
           </Button>
         </div>
       </div>
@@ -176,20 +176,33 @@
 
       <!-- Comprehension Tab -->
       <div v-else class="space-y-4">
+        <!-- Reading passage (read this, then answer the questions) -->
+        <div v-if="lessonContent.reading" class="bg-card border-border rounded-2xl border p-5">
+          <h4 class="text-foreground mb-2 flex items-center gap-2 font-semibold">
+            <BookOpen class="text-primary h-4 w-4" />
+            {{ $t('courses.detail.readingPassage') }}
+          </h4>
+          <p class="text-foreground whitespace-pre-line text-base leading-relaxed">{{ lessonContent.reading }}</p>
+        </div>
+        <div v-if="lessonContent.comprehension.length" class="bg-primary/5 border-primary/20 rounded-xl border px-4 py-3 text-sm text-primary">
+          {{ $t('courses.detail.comprehensionHint') }}
+        </div>
         <div
           v-for="(c, i) in lessonContent.comprehension"
           :key="i"
           class="bg-card border-border rounded-2xl border p-5"
         >
           <p class="text-foreground mb-3 font-semibold">{{ i + 1 }}. {{ c.question }}</p>
-          <div
-            class="cursor-pointer rounded-xl bg-secondary/50 px-4 py-3 text-sm transition-all"
-            :class="revealedComp.has(i) ? '' : 'blur-sm select-none'"
-            @click="revealedComp.has(i) ? revealedComp.delete(i) : revealedComp.add(i); revealedComp = new Set(revealedComp)"
+          <button
+            class="text-primary hover:bg-primary/10 mb-2 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+            @click="toggleComp(i)"
           >
+            <component :is="revealedComp.has(i) ? EyeOff : Eye" class="h-4 w-4" />
+            {{ revealedComp.has(i) ? $t('courses.detail.hideAnswer') : $t('courses.detail.showAnswer') }}
+          </button>
+          <div v-if="revealedComp.has(i)" class="rounded-xl bg-secondary/50 px-4 py-3 text-sm text-foreground">
             {{ c.answer }}
           </div>
-          <p v-if="!revealedComp.has(i)" class="text-muted-foreground mt-1 text-center text-xs">Click to reveal answer</p>
         </div>
         <div v-if="!lessonContent.comprehension.length" class="py-12 text-center">
           <p class="text-muted-foreground text-sm">No comprehension questions in this lesson.</p>
@@ -230,13 +243,17 @@ import {
   TrendingUp,
   Languages,
   BookOpen,
+  Eye,
+  EyeOff,
 } from '@/components/icons'
 import Button from '@/components/ui/button/Button.vue'
 import CourseCertificate from '@/components/course/CourseCertificate.vue'
 import { useAuthStore } from '@/stores/auth.store'
+import { useToast } from '@/composables/useToast'
 import { api } from '@/utils/api'
 
 const { t } = useI18n()
+const toast = useToast()
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -246,6 +263,7 @@ const showCertificate = ref(false)
 const courseId = computed(() => Number(route.params.id) || 1)
 
 interface LessonContent {
+  reading?: string
   vocabulary: { term: string; definition: string; example: string }[]
   quiz: { question: string; options: string[]; correct: number; explanation: string }[]
   comprehension: { question: string; answer: string }[]
@@ -317,24 +335,68 @@ const getDifficultyClass = (difficulty: string) => {
 const goBack = () => router.push('/courses')
 const toggleBookmark = () => { isBookmarked.value = !isBookmarked.value }
 
-const startCourse = () => {
-  activeContentTab.value = 'vocab'
-  if (course.value && course.value.progress === 0) course.value.progress = 5
-  nextTick(() => contentRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+const toggleComp = (i: number) => {
+  const s = new Set(revealedComp.value)
+  s.has(i) ? s.delete(i) : s.add(i)
+  revealedComp.value = s
+}
+
+// Guided lesson flow: the primary button walks Vocabulary → Quiz → Comprehension,
+// updating progress on each step and marking the lesson complete at the end.
+type StepKey = 'vocab' | 'quiz' | 'comprehension'
+const steps: StepKey[] = ['vocab', 'quiz', 'comprehension']
+const isComplete = computed(() => (course.value?.progress ?? 0) >= 100)
+const isLastStep = computed(() => activeContentTab.value === 'comprehension')
+
+const primaryLabel = computed(() => {
+  if (isComplete.value) return t('courses.detail.restart')
+  if (isLastStep.value) return t('courses.detail.finishLesson')
+  if ((course.value?.progress ?? 0) > 0) return t('courses.detail.continueCourse')
+  return t('courses.detail.startCourse')
+})
+
+const scrollToContent = () => nextTick(() => contentRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+
+const advanceLesson = () => {
+  if (!course.value || !lessonContent.value) return
+  if (isComplete.value) {
+    course.value.progress = 0
+    course.value.completedLessons = 0
+    activeContentTab.value = 'vocab'
+    scrollToContent()
+    return
+  }
+  const idx = steps.indexOf(activeContentTab.value as StepKey)
+  if (idx < steps.length - 1) {
+    activeContentTab.value = steps[idx + 1]!
+    course.value.progress = Math.round(((idx + 1) / steps.length) * 100)
+    scrollToContent()
+  } else {
+    course.value.progress = 100
+    course.value.completedLessons = course.value.totalLessons
+    // Persist completion so the course card shows 100% (fire-and-forget).
+    void api.completeLesson(course.value.id).catch(() => {})
+    toast.success(t('courses.detail.lessonComplete'))
+  }
 }
 
 onMounted(async () => {
   try {
     const lesson = (await api.getLessonById(courseId.value)) as any
     if (!lesson) return
+    // If the user already finished this lesson, reflect it immediately.
+    let alreadyDone = false
+    try {
+      alreadyDone = (await api.getCompletedLessons()).includes(lesson.id)
+    } catch { /* non-critical */ }
     course.value = {
       id: lesson.id,
       title: lesson.title,
       description: lesson.description ?? '',
       category: lesson.category ?? 'General',
       difficulty: lesson.difficulty ?? 'Beginner',
-      progress: 0,
-      completedLessons: 0,
+      progress: alreadyDone ? 100 : 0,
+      completedLessons: alreadyDone ? 1 : 0,
       totalLessons: 1,
       estimatedHours: 1,
     }
