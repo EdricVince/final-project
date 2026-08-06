@@ -1,7 +1,15 @@
 <template>
   <div class="min-h-screen p-4 lg:p-6">
+    <!-- Loading State (AI is preparing descriptive clues) -->
+    <template v-if="isLoading">
+      <div class="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+        <div class="h-12 w-12 animate-spin rounded-full border-4 border-primary/30 border-t-primary"></div>
+        <p class="text-muted-foreground text-base">Preparing your word clues…</p>
+      </div>
+    </template>
+
     <!-- Show Result -->
-    <template v-if="gameState.status === 'finished'">
+    <template v-else-if="gameState.status === 'finished'">
       <QuizResult
         :result="quizResult"
         @play-again="restartQuiz"
@@ -35,10 +43,13 @@
               </span>
             </div>
 
-            <!-- Hint -->
+            <!-- Hint: a descriptive clue to read, then guess the word -->
             <div class="bg-secondary/50 mb-6 rounded-xl p-4">
-              <p class="text-muted-foreground text-sm">
-                <span class="font-medium">Hint:</span> {{ currentQuestion?.hint }}
+              <p class="text-foreground text-sm leading-relaxed">
+                <span class="text-primary font-semibold">Clue:</span> {{ currentQuestion?.hint }}
+              </p>
+              <p v-if="currentQuestion?.example" class="text-muted-foreground mt-2 text-sm italic">
+                e.g. {{ currentQuestion.example }}
               </p>
             </div>
 
@@ -145,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { RotateCcw, Check, CheckCircle, XCircle, ArrowRight } from '@/components/icons'
 import QuizHeader from '@/components/quiz/QuizHeader.vue'
@@ -163,7 +174,7 @@ const route = useRoute()
 const progressStore = useProgressStore()
 const quizStore = useQuizStore()
 const toast = useToast()
-const { generateScrambleQuestions } = useVocabulary()
+const { generateScrambleQuestions, generateAiScrambleQuestions } = useVocabulary()
 
 const questionCount = computed(() => Math.min(Math.max(parseInt(route.query.count as string) || 10, 3), 50))
 
@@ -187,7 +198,24 @@ const showExitModal = ref(false)
 const startTime = ref(Date.now())
 const vocabAnswers = ref<{ termDisplay: string; meaningDisplay: string; isCorrect: boolean }[]>([])
 
-const questions = ref<WordScrambleQuestion[]>(generateScrambleQuestions(questionCount.value))
+const isLoading = ref(true)
+const questions = ref<WordScrambleQuestion[]>([])
+
+// Prefer AI-generated words (each carries a descriptive clue sentence); top up with
+// the local word list if the AI returns too few usable words, or fall back entirely
+// when the AI is unavailable.
+const loadQuestions = async () => {
+  isLoading.value = true
+  const target = questionCount.value
+  const prev = questions.value.map(q => q.word)
+  let qs: WordScrambleQuestion[] = await generateAiScrambleQuestions(target, prev)
+  if (qs.length < target) {
+    qs = [...qs, ...generateScrambleQuestions(target - qs.length)]
+  }
+  questions.value = qs
+  isLoading.value = false
+  initializeQuestion()
+}
 
 const currentQuestion = computed(() => questions.value[gameState.value.currentQuestion])
 const isLastQuestion = computed(() => gameState.value.currentQuestion >= questions.value.length - 1)
@@ -314,7 +342,7 @@ const goToQuizzes = () => {
   router.push('/quizzes')
 }
 
-const restartQuiz = () => {
+const restartQuiz = async () => {
   gameState.value = {
     status: 'playing',
     currentQuestion: 0,
@@ -327,12 +355,13 @@ const restartQuiz = () => {
   }
   startTime.value = Date.now()
   vocabAnswers.value = []
-  questions.value = generateScrambleQuestions(questionCount.value)
-  initializeQuestion()
+  await loadQuestions()
 }
 
 // Watch for question changes
-watch(() => gameState.value.currentQuestion, initializeQuestion, { immediate: true })
+watch(() => gameState.value.currentQuestion, initializeQuestion)
+
+onMounted(loadQuestions)
 </script>
 
 <style scoped>
