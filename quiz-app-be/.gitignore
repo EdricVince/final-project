@@ -42,6 +42,9 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# runtime state (admin-registered custom AI features)
+ai-features.json
+
 # temp directory
 .temp
 .tmp

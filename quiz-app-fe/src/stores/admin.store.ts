@@ -23,6 +23,33 @@ export interface AdminStats {
   newThisWeek: number
 }
 
+export interface AiCustomFeature {
+  id: string
+  name: string
+  enabled: boolean
+  key_preview: string | null
+  custom: true
+  created_at: string
+}
+
+export interface AdminUserProfile {
+  id: number
+  email: string
+  name: string | null
+  avatar: string | null
+  role_id: number
+  is_active: boolean
+  is_verified: boolean
+  has_teacher_card: boolean
+  created_at: string
+  xp: number
+  level: number
+  streak_count: number
+  longest_streak: number
+  total_cards_studied: number
+  total_quizzes_completed: number
+}
+
 export const ROLE_STUDENT = 1
 export const ROLE_TEACHER = 2
 
@@ -133,6 +160,26 @@ export const useAdminStore = defineStore('admin', () => {
     await fetchStats()
   }
 
+  async function bulkDeleteUsers(ids: number[]): Promise<number> {
+    const res = await fetch(`${BASE}/api/v1/admin/users/bulk-delete`, {
+      method: 'POST',
+      headers: headers.value,
+      body: JSON.stringify({ ids }),
+    })
+    if (!res.ok) throw new Error('Failed to delete selected users')
+    const data = await res.json()
+    users.value = users.value.filter(u => !ids.includes(u.id))
+    await fetchStats()
+    return data.data.deleted as number
+  }
+
+  async function getUserProfile(userId: number): Promise<AdminUserProfile> {
+    const res = await fetch(`${BASE}/api/v1/admin/users/${userId}/profile`, { headers: headers.value })
+    if (!res.ok) throw new Error('Failed to load user profile')
+    const data = await res.json()
+    return data.data as AdminUserProfile
+  }
+
   async function createTeacher(name: string, password: string, email?: string, teacherCardImage?: string): Promise<string> {
     const res = await fetch(`${BASE}/api/v1/admin/create-teacher`, {
       method: 'POST',
@@ -179,12 +226,34 @@ export const useAdminStore = defineStore('admin', () => {
 
   async function fetchAiStatus(): Promise<{
     enabled: boolean; provider: string; key_preview: string | null;
-    features: { name: string; key: string }[]
+    features: { name: string; key: string }[];
+    custom_features: AiCustomFeature[];
   }> {
     const res = await fetch(`${BASE}/api/v1/admin/ai/status`, { headers: headers.value })
     if (!res.ok) throw new Error('Failed to fetch AI status')
     const data = await res.json()
     return data.data
+  }
+
+  async function addAiFeature(name: string, key: string): Promise<AiCustomFeature> {
+    const res = await fetch(`${BASE}/api/v1/admin/ai/features`, {
+      method: 'POST',
+      headers: headers.value,
+      body: JSON.stringify({ name, key }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      throw new Error((Array.isArray(data.message) ? data.message[0] : data.message) ?? 'Failed to add feature')
+    }
+    return data.data as AiCustomFeature
+  }
+
+  async function removeAiFeature(id: string): Promise<void> {
+    const res = await fetch(`${BASE}/api/v1/admin/ai/features/${id}`, {
+      method: 'DELETE',
+      headers: headers.value,
+    })
+    if (!res.ok) throw new Error('Failed to remove feature')
   }
 
   async function setAiKey(key: string): Promise<string> {
@@ -211,8 +280,8 @@ export const useAdminStore = defineStore('admin', () => {
     students, teachers,
     login, tryRestoreSession, logout,
     fetchStats, fetchUsers,
-    setActive, resetPassword, deleteUser, createTeacher,
+    setActive, resetPassword, deleteUser, bulkDeleteUsers, getUserProfile, createTeacher,
     getTeacherCard, setVerified,
-    fetchAiStatus, setAiKey, removeAiKey,
+    fetchAiStatus, setAiKey, removeAiKey, addAiFeature, removeAiFeature,
   }
 })

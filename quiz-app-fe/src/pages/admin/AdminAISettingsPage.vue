@@ -321,6 +321,110 @@
           </div>
         </div>
       </div>
+
+      <!-- ── Custom (admin-added) features + add form ── -->
+      <div class="border-t border-slate-200 dark:border-slate-800 p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="adm-h3">Custom Features</div>
+          <span class="adm-meta">{{ customFeatures.length }} added</span>
+        </div>
+
+        <!-- Existing custom features -->
+        <div v-if="customFeatures.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div
+            v-for="feat in customFeatures"
+            :key="feat.id"
+            class="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 p-3.5"
+          >
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl adm-feat-bg-violet">🧩</div>
+            <div class="flex-1 min-w-0">
+              <div class="adm-h3 truncate">{{ feat.name }}</div>
+              <div class="adm-meta mt-0.5 truncate">
+                <code class="adm-code">{{ feat.key_preview ?? 'no key' }}</code>
+              </div>
+            </div>
+            <div
+              class="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold shrink-0"
+              :class="feat.enabled ? 'adm-feat-status-on' : 'adm-feat-status-off'"
+            >
+              <span class="h-1.5 w-1.5 rounded-full" :class="feat.enabled ? 'adm-dot-on' : 'adm-dot-dim'" />
+              {{ feat.enabled ? 'Active' : 'Fallback' }}
+            </div>
+            <button
+              class="adm-icon-btn adm-icon-btn-close shrink-0"
+              title="Remove feature"
+              @click="handleRemoveFeature(feat.id, feat.name)"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <p v-else class="adm-meta">No custom features yet. Add one below to register a new AI-powered feature with its own key.</p>
+
+        <!-- Add form -->
+        <div class="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-4 space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="adm-label uppercase tracking-wider">Feature name</label>
+              <input
+                v-model="newFeatureName"
+                type="text"
+                placeholder="e.g. Grammar Coach"
+                maxlength="60"
+                class="adm-api-input"
+                @keydown.enter="handleAddFeature"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="adm-label uppercase tracking-wider">Anthropic API key</label>
+              <div class="relative">
+                <input
+                  v-model="newFeatureKey"
+                  :type="showNewFeatureKey ? 'text' : 'password'"
+                  placeholder="sk-ant-api03-..."
+                  class="adm-api-input"
+                  @keydown.enter="handleAddFeature"
+                />
+                <button
+                  type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 adm-icon-btn adm-icon-btn-close"
+                  @click="showNewFeatureKey = !showNewFeatureKey"
+                >
+                  <svg v-if="showNewFeatureKey" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" />
+                  </svg>
+                  <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div v-if="featError" class="adm-alert adm-alert-error">
+            <svg class="adm-alert-icon-error" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="adm-alert-text-error">{{ featError }}</p>
+          </div>
+          <button
+            class="adm-ai-save-btn"
+            :class="(newFeatureName.trim() && newFeatureKey.trim() && !addingFeature) ? 'adm-ai-save-btn-on' : 'adm-ai-save-btn-off'"
+            :disabled="addingFeature || !newFeatureName.trim() || !newFeatureKey.trim()"
+            @click="handleAddFeature"
+          >
+            <svg v-if="addingFeature" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <svg v-else class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            {{ addingFeature ? 'Adding…' : 'Add Feature & Activate' }}
+          </button>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -328,7 +432,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useAdminStore } from '@/stores/admin.store'
+import { useAdminStore, type AiCustomFeature } from '@/stores/admin.store'
 
 const adminStore = useAdminStore()
 
@@ -337,6 +441,7 @@ const status = ref<{
   provider: string
   key_preview: string | null
   features: { name: string; key: string }[]
+  custom_features: AiCustomFeature[]
 } | null>(null)
 const statusLoading = ref(true)
 const keyInput = ref('')
@@ -345,7 +450,15 @@ const saving = ref(false)
 const saveError = ref('')
 const saveSuccess = ref('')
 
+// Add-a-custom-feature form
+const newFeatureName = ref('')
+const newFeatureKey = ref('')
+const showNewFeatureKey = ref(false)
+const addingFeature = ref(false)
+const featError = ref('')
+
 const features = computed(() => status.value?.features ?? [])
+const customFeatures = computed(() => status.value?.custom_features ?? [])
 
 const FEATURE_META: Record<string, { icon: string; bgColor: string; desc: string }> = {
   flashcard_generation:   { icon: '🃏', bgColor: 'adm-feat-bg-indigo',  desc: 'Auto-generate flashcard sets from topics' },
@@ -408,6 +521,32 @@ async function handleRemove() {
     saveError.value = e?.message ?? 'Failed to remove key'
   } finally {
     saving.value = false
+  }
+}
+
+async function handleAddFeature() {
+  featError.value = ''
+  if (!newFeatureName.value.trim() || !newFeatureKey.value.trim() || addingFeature.value) return
+  addingFeature.value = true
+  try {
+    await adminStore.addAiFeature(newFeatureName.value.trim(), newFeatureKey.value.trim())
+    newFeatureName.value = ''
+    newFeatureKey.value = ''
+    await loadStatus()
+  } catch (e: any) {
+    featError.value = e?.message ?? 'Failed to add feature'
+  } finally {
+    addingFeature.value = false
+  }
+}
+
+async function handleRemoveFeature(id: string, name: string) {
+  if (!confirm(`Remove the "${name}" feature?`)) return
+  try {
+    await adminStore.removeAiFeature(id)
+    await loadStatus()
+  } catch (e: any) {
+    featError.value = e?.message ?? 'Failed to remove feature'
   }
 }
 

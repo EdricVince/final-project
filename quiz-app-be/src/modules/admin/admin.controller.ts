@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminGuard } from '../../core/guards/admin.guard';
-import { IsString, IsBoolean, IsEmail, IsOptional, MinLength, Matches, MaxLength } from 'class-validator';
+import { IsString, IsBoolean, IsEmail, IsOptional, MinLength, Matches, MaxLength, IsArray, ArrayNotEmpty, IsInt } from 'class-validator';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -55,6 +55,24 @@ class ResetPasswordDto {
   new_password: string;
 }
 
+class BulkDeleteDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsInt({ each: true })
+  ids: number[];
+}
+
+class CreateAiFeatureDto {
+  @IsString()
+  @MinLength(2)
+  @MaxLength(60)
+  name: string;
+
+  @IsString()
+  @Matches(/^sk-ant-[A-Za-z0-9\-_]{10,}$/, { message: 'Invalid Anthropic API key format' })
+  key: string;
+}
+
 @Controller('api/v1/admin')
 @UseGuards(AdminGuard)
 export class AdminController {
@@ -83,6 +101,19 @@ export class AdminController {
       message: `Teacher account created: ${result.email}`,
       data: result,
     };
+  }
+
+  @Get('users/:id/profile')
+  async getUserProfile(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.adminService.getUserProfile(id);
+    return { code: 200, message: 'User profile retrieved', data };
+  }
+
+  @Post('users/bulk-delete')
+  @HttpCode(HttpStatus.OK)
+  async bulkDeleteUsers(@Body() dto: BulkDeleteDto) {
+    const deleted = await this.adminService.deleteUsers(dto.ids);
+    return { code: 200, message: `${deleted} user(s) deleted`, data: { deleted } };
   }
 
   @Get('users/:id/teacher-card')
@@ -156,8 +187,28 @@ export class AdminController {
           { name: 'Word of the Day',           key: 'word_of_the_day' },
           { name: 'Content Import (AI Scan)',  key: 'content_import' },
         ],
+        custom_features: this.adminService.listAiFeatures(),
       },
     };
+  }
+
+  @Get('ai/features')
+  listAiFeatures() {
+    return { code: 200, message: 'Custom AI features', data: this.adminService.listAiFeatures() };
+  }
+
+  @Post('ai/features')
+  @HttpCode(HttpStatus.CREATED)
+  addAiFeature(@Body() dto: CreateAiFeatureDto) {
+    const data = this.adminService.addAiFeature(dto.name, dto.key);
+    return { code: 201, message: `Feature "${data.name}" added and activated`, data };
+  }
+
+  @Delete('ai/features/:id')
+  @HttpCode(HttpStatus.OK)
+  removeAiFeature(@Param('id') id: string) {
+    this.adminService.removeAiFeature(id);
+    return { code: 200, message: 'Feature removed', data: null };
   }
 
   @Post('ai/key')
