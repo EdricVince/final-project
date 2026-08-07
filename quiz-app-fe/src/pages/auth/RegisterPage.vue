@@ -2,9 +2,9 @@
   <div class="flex w-full max-w-md flex-col gap-8">
     <!-- Title Section -->
     <div class="animate-fade-in-down text-center lg:text-left">
-      <h1 class="text-foreground text-3xl font-bold tracking-tight">Create an account</h1>
+      <h1 class="text-foreground text-3xl font-bold tracking-tight">{{ $t('auth.register.title') }}</h1>
       <p class="text-muted-foreground mt-2 text-base">
-        Join StudySpark and start your learning journey
+        {{ $t('auth.register.subtitle') }}
       </p>
     </div>
 
@@ -21,7 +21,7 @@
       <!-- Email Field -->
       <FormField v-slot="{ componentField }" name="email">
         <FormItem class="space-y-2">
-          <FormLabel class="text-foreground text-sm font-medium">Email address</FormLabel>
+          <FormLabel class="text-foreground text-sm font-medium">{{ $t('auth.register.email') }}</FormLabel>
           <FormControl>
             <div class="relative">
               <Mail
@@ -31,7 +31,7 @@
                 v-bind="componentField"
                 type="email"
                 autocomplete="email"
-                placeholder="name@example.com"
+                :placeholder="$t('auth.register.emailPlaceholder')"
                 class="border-input bg-background focus:border-primary focus:ring-primary/20 h-12 rounded-xl pl-12 text-base transition-all focus:ring-2"
               />
             </div>
@@ -104,23 +104,23 @@
       <div class="flex items-start gap-3">
         <Checkbox v-model:checked="agreeTerms" class="mt-0.5 cursor-pointer" />
         <span class="text-muted-foreground text-sm leading-relaxed">
-          I agree to the
+          {{ $t('auth.register.termsText') }}
           <Button
             type="button"
             variant="link"
             class="text-primary hover:text-primary/80 h-auto p-0 font-medium"
             @click="openTermsOfService"
           >
-            Terms of Service
+            {{ $t('auth.register.termsOfService') }}
           </Button>
-          and
+          {{ $t('auth.register.and') }}
           <Button
             type="button"
             variant="link"
             class="text-primary hover:text-primary/80 h-auto p-0 font-medium"
             @click="openPrivacyPolicy"
           >
-            Privacy Policy
+            {{ $t('auth.register.privacyPolicy') }}
           </Button>
         </span>
       </div>
@@ -132,7 +132,7 @@
         class="bg-primary text-primary-foreground hover:bg-primary/90 h-12 w-full cursor-pointer rounded-xl text-base font-semibold shadow-sm transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Spinner v-if="isSubmitting" class="mr-2 h-5 w-5 animate-spin" />
-        <span>{{ isSubmitting ? 'Creating account...' : 'Create account' }}</span>
+        <span>{{ isSubmitting ? $t('auth.register.creatingAccount') : $t('auth.register.createAccount') }}</span>
       </Button>
     </form>
 
@@ -142,7 +142,7 @@
         <div class="border-border w-full border-t"></div>
       </div>
       <div class="relative flex justify-center">
-        <span class="bg-background text-muted-foreground px-4 text-sm">Or sign up with</span>
+        <span class="bg-background text-muted-foreground px-4 text-sm">{{ $t('auth.register.orSignUpWith') }}</span>
       </div>
     </div>
 
@@ -170,14 +170,14 @@
 
     <!-- Sign in link -->
     <p class="animate-fade-in-up delay-400 text-muted-foreground text-center text-sm">
-      Already have an account?
+      {{ $t('auth.register.alreadyHaveAccount') }}
       <Button
         type="button"
         variant="link"
         class="text-primary hover:text-primary/80 h-auto p-0 font-semibold"
         @click="goToLogin"
       >
-        Sign in
+        {{ $t('auth.register.signIn') }}
       </Button>
     </p>
   </div>
@@ -186,6 +186,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
@@ -209,24 +210,9 @@ import { signInWithGoogle, signInWithFacebook } from '@/lib/supabase'
 
 const TEACHER_DOMAIN = '@teacher.sprk'
 
-const registerSchema = z
-  .object({
-    email: z
-      .string()
-      .email('Please enter a valid email address')
-      .refine((e) => !e.toLowerCase().endsWith(TEACHER_DOMAIN), {
-        message: 'Teacher accounts are created by admin only. Contact your administrator.',
-      }),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  })
-
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const agreeTerms = ref(false)
@@ -234,13 +220,25 @@ const isSubmitting = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 
+const registerSchema = z
+  .object({
+    email: z
+      .string()
+      .email(t('auth.register.errEmail'))
+      .refine((e) => !e.toLowerCase().endsWith(TEACHER_DOMAIN), {
+        message: t('auth.register.errTeacherOnly'),
+      }),
+    password: z.string().min(8, t('auth.register.errPasswordMin')),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: t('auth.register.errPasswordMatch'),
+    path: ['confirmPassword'],
+  })
+
 const { handleSubmit } = useForm({
   validationSchema: toTypedSchema(registerSchema),
-  initialValues: {
-    email: '',
-    password: '',
-    confirmPassword: '',
-  },
+  initialValues: { email: '', password: '', confirmPassword: '' },
 })
 
 const roleFromEmail = computed(() => UserRole.STUDENT)
@@ -256,16 +254,16 @@ const handleSignUp = handleSubmit(async (formValues) => {
     const result = await authStore.register(formValues.email, formValues.password, roleFromEmail.value)
 
     if (result.success) {
-      successMessage.value = result.message || 'Registration successful! Redirecting to login...'
+      successMessage.value = result.message || t('auth.register.success')
       setTimeout(() => {
         router.push({ name: 'Login' })
       }, 2000)
     } else {
-      errorMessage.value = result.message || 'Registration failed. Please try again.'
+      errorMessage.value = result.message || t('auth.register.failed')
     }
   } catch (error) {
     console.error('Registration error:', error)
-    errorMessage.value = 'An unexpected error occurred. Please try again.'
+    errorMessage.value = t('auth.register.unexpectedError')
   } finally {
     isSubmitting.value = false
   }
@@ -280,7 +278,7 @@ const handleGoogleSignUp = async () => {
   try {
     await signInWithGoogle()
   } catch {
-    errorMessage.value = 'Google sign-up failed. Please try again.'
+    errorMessage.value = t('auth.register.googleFailed')
   }
 }
 
@@ -289,7 +287,7 @@ const handleFacebookSignUp = async () => {
   try {
     await signInWithFacebook()
   } catch {
-    errorMessage.value = 'Facebook sign-up failed. Please try again.'
+    errorMessage.value = t('auth.register.facebookFailed')
   }
 }
 

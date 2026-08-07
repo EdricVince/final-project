@@ -57,6 +57,27 @@
       </div>
     </div>
 
+    <!-- Bulk action bar -->
+    <Transition name="modal">
+      <div
+        v-if="selectedIds.length"
+        class="flex items-center justify-between gap-3 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-2.5"
+      >
+        <span class="text-sm font-medium text-indigo-700 dark:text-indigo-300">{{ selectedIds.length }} selected</span>
+        <div class="flex items-center gap-2">
+          <button @click="clearSelection" class="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted/30 rounded-lg transition">
+            Clear
+          </button>
+          <button @click="openBulkDelete" class="adm-btn-danger">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete selected
+          </button>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Table -->
     <div class="adm-card">
       <!-- Skeleton -->
@@ -83,6 +104,15 @@
       <table v-else class="w-full text-sm">
         <thead class="adm-thead">
           <tr>
+            <th class="adm-th w-10">
+              <input
+                type="checkbox"
+                :checked="allVisibleSelected"
+                class="h-4 w-4 cursor-pointer rounded border-slate-300 accent-indigo-600"
+                title="Select all"
+                @change="toggleSelectAll"
+              />
+            </th>
             <th class="adm-th">#</th>
             <th class="adm-th">User</th>
             <th class="adm-th hidden md:table-cell">Role</th>
@@ -93,15 +123,29 @@
           </tr>
         </thead>
         <tbody class="adm-divide">
-          <tr v-for="(user, idx) in filteredUsers" :key="user.id" class="adm-tr">
+          <tr
+            v-for="(user, idx) in filteredUsers"
+            :key="user.id"
+            class="adm-tr"
+            :class="{ 'bg-indigo-50/60 dark:bg-indigo-500/5': isSelected(user.id) }"
+          >
+            <td class="adm-td">
+              <input
+                type="checkbox"
+                :checked="isSelected(user.id)"
+                class="h-4 w-4 cursor-pointer rounded border-slate-300 accent-indigo-600"
+                @click.stop
+                @change="toggleSelect(user.id)"
+              />
+            </td>
             <td class="adm-td adm-meta">{{ idx + 1 }}</td>
             <td class="adm-td">
-              <div class="flex items-center gap-3">
+              <button type="button" class="flex items-center gap-3 text-left group/user" @click="openProfile(user)" title="View profile">
                 <div class="adm-avatar" :class="user.role_id === 2 ? 'adm-avatar-teacher' : 'adm-avatar-student'">
                   {{ initials(user.name ?? user.email) }}
                 </div>
                 <div class="min-w-0">
-                  <p class="font-medium text-foreground truncate flex items-center gap-1.5">
+                  <p class="font-medium text-foreground truncate flex items-center gap-1.5 group-hover/user:text-indigo-600 dark:group-hover/user:text-indigo-400 transition-colors">
                     {{ user.name ?? '—' }}
                     <span
                       v-if="user.is_verified"
@@ -114,7 +158,7 @@
                   </p>
                   <p class="adm-meta truncate">{{ user.email }}</p>
                 </div>
-              </div>
+              </button>
             </td>
             <td class="adm-td hidden md:table-cell">
               <span class="adm-badge" :class="user.role_id === 2 ? 'adm-badge-teacher' : 'adm-badge-student'">
@@ -139,6 +183,11 @@
             </td>
             <td class="adm-td">
               <div class="flex items-center justify-end gap-1">
+                <button @click="openProfile(user)" class="adm-icon-btn adm-icon-btn-close" title="View profile">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                  </svg>
+                </button>
                 <button v-if="user.has_teacher_card" @click="openCardView(user)" class="adm-icon-btn adm-icon-btn-close" title="View ID card">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M18 6h.008v.008H18V6zm2.25 12H3.75A2.25 2.25 0 011.5 15.75V4.5A2.25 2.25 0 013.75 2.25h16.5A2.25 2.25 0 0122.5 4.5v11.25A2.25 2.25 0 0120.25 18z" />
@@ -367,6 +416,149 @@
       </Transition>
     </Teleport>
 
+    <!-- ── User Profile Modal ── -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="profileTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="profileTarget = null" />
+          <div class="relative w-full max-w-md adm-card-2xl shadow-2xl">
+            <div class="adm-card-header px-6 py-4">
+              <h3 class="adm-h3 text-base">User Profile</h3>
+              <button @click="profileTarget = null" class="adm-icon-btn adm-icon-btn-close">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div v-if="profileLoading" class="flex items-center justify-center py-16">
+              <div class="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+            </div>
+
+            <div v-else-if="profile" class="px-6 py-5 space-y-5">
+              <!-- Identity -->
+              <div class="flex items-center gap-4">
+                <img
+                  v-if="profile.avatar"
+                  :src="profile.avatar"
+                  alt="Avatar"
+                  class="h-14 w-14 rounded-full object-cover"
+                />
+                <div
+                  v-else
+                  class="adm-avatar h-14 w-14 text-lg"
+                  :class="profile.role_id === 2 ? 'adm-avatar-teacher' : 'adm-avatar-student'"
+                >
+                  {{ initials(profile.name ?? profile.email) }}
+                </div>
+                <div class="min-w-0">
+                  <p class="font-semibold text-foreground truncate flex items-center gap-1.5">
+                    {{ profile.name ?? '—' }}
+                    <span
+                      v-if="profile.is_verified"
+                      class="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 text-[10px] font-semibold"
+                    >Verified</span>
+                  </p>
+                  <p class="adm-meta truncate">{{ profile.email }}</p>
+                  <div class="mt-1 flex items-center gap-2">
+                    <span class="adm-badge" :class="profile.role_id === 2 ? 'adm-badge-teacher' : 'adm-badge-student'">
+                      {{ profile.role_id === 2 ? 'Teacher' : 'Student' }}
+                    </span>
+                    <span
+                      class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                      :class="profile.is_active ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700/40 text-slate-500'"
+                    >{{ profile.is_active ? 'Active' : 'Inactive' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stats grid -->
+              <div class="grid grid-cols-3 gap-3">
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-center">
+                  <div class="text-lg font-bold text-foreground">{{ profile.level }}</div>
+                  <div class="adm-meta">Level</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-center">
+                  <div class="text-lg font-bold text-foreground">{{ profile.xp.toLocaleString() }}</div>
+                  <div class="adm-meta">XP</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-center">
+                  <div class="text-lg font-bold text-foreground">{{ profile.streak_count }}🔥</div>
+                  <div class="adm-meta">Streak</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-center">
+                  <div class="text-lg font-bold text-foreground">{{ profile.longest_streak }}</div>
+                  <div class="adm-meta">Best streak</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-center">
+                  <div class="text-lg font-bold text-foreground">{{ profile.total_cards_studied }}</div>
+                  <div class="adm-meta">Cards</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-center">
+                  <div class="text-lg font-bold text-foreground">{{ profile.total_quizzes_completed }}</div>
+                  <div class="adm-meta">Quizzes</div>
+                </div>
+              </div>
+
+              <!-- Meta rows -->
+              <div class="space-y-2 text-sm">
+                <div class="flex items-center justify-between">
+                  <span class="adm-meta">User ID</span>
+                  <span class="font-mono text-foreground">#{{ profile.id }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="adm-meta">Joined</span>
+                  <span class="text-foreground">{{ formatDate(profile.created_at) }}</span>
+                </div>
+                <div v-if="profile.role_id === 2" class="flex items-center justify-between">
+                  <span class="adm-meta">Teacher ID card</span>
+                  <span class="text-foreground">{{ profile.has_teacher_card ? 'On file' : 'Not uploaded' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 px-6 py-4 bg-muted/10 border-t border-border">
+              <button @click="profileTarget = null" class="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/20 rounded-lg transition">Close</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- ── Bulk Delete Confirm Modal ── -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="bulkDeleteOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="bulkDeleteOpen = false" />
+          <div class="relative w-full max-w-sm adm-card-2xl shadow-2xl">
+            <div class="px-6 pt-6 pb-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/15 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 class="adm-h3 text-base">Delete {{ selectedIds.length }} user(s)?</h3>
+              </div>
+              <p class="text-sm text-muted-foreground">
+                This permanently deletes the selected accounts and all their data. This action cannot be undone.
+              </p>
+            </div>
+            <div class="flex items-center justify-end gap-3 px-6 py-4 bg-muted/10 border-t border-border">
+              <button @click="bulkDeleteOpen = false" class="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/20 rounded-lg transition">Cancel</button>
+              <button @click="submitBulkDelete" :disabled="bulkDeleting" class="adm-btn-danger">
+                <svg v-if="bulkDeleting" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Delete selected
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- ── View Teacher ID Card Modal ── -->
     <Teleport to="body">
       <Transition name="modal">
@@ -406,7 +598,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAdminStore, type AdminUser } from '@/stores/admin.store'
+import { useAdminStore, type AdminUser, type AdminUserProfile } from '@/stores/admin.store'
 
 const route = useRoute()
 const adminStore = useAdminStore()
@@ -459,6 +651,63 @@ function initials(str: string) {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+// ── Multi-select (bulk delete) ───────────────────────────────────────────────
+const selectedIds = ref<number[]>([])
+const isSelected = (id: number) => selectedIds.value.includes(id)
+function toggleSelect(id: number) {
+  selectedIds.value = isSelected(id)
+    ? selectedIds.value.filter(x => x !== id)
+    : [...selectedIds.value, id]
+}
+const allVisibleSelected = computed(() =>
+  filteredUsers.value.length > 0 && filteredUsers.value.every(u => selectedIds.value.includes(u.id)),
+)
+function toggleSelectAll() {
+  const visible = new Set(filteredUsers.value.map(u => u.id))
+  if (allVisibleSelected.value) {
+    selectedIds.value = selectedIds.value.filter(id => !visible.has(id))
+  } else {
+    const ids = new Set(selectedIds.value)
+    visible.forEach(id => ids.add(id))
+    selectedIds.value = [...ids]
+  }
+}
+function clearSelection() { selectedIds.value = [] }
+
+const bulkDeleteOpen = ref(false)
+const bulkDeleting = ref(false)
+function openBulkDelete() { if (selectedIds.value.length) bulkDeleteOpen.value = true }
+async function submitBulkDelete() {
+  bulkDeleting.value = true
+  try {
+    const n = await adminStore.bulkDeleteUsers([...selectedIds.value])
+    showToast(`${n} user(s) deleted`, 'success')
+    clearSelection()
+    bulkDeleteOpen.value = false
+  } catch {
+    showToast('Failed to delete selected users.')
+  } finally {
+    bulkDeleting.value = false
+  }
+}
+
+// ── View profile ─────────────────────────────────────────────────────────────
+const profileTarget = ref<AdminUser | null>(null)
+const profile = ref<AdminUserProfile | null>(null)
+const profileLoading = ref(false)
+async function openProfile(user: AdminUser) {
+  profileTarget.value = user
+  profile.value = null
+  profileLoading.value = true
+  try {
+    profile.value = await adminStore.getUserProfile(user.id)
+  } catch {
+    showToast('Failed to load user profile.')
+  } finally {
+    profileLoading.value = false
+  }
 }
 
 async function toggleActive(user: AdminUser) {
@@ -600,7 +849,9 @@ async function submitDelete() {
   if (!deleteTarget.value) return
   deleteLoading.value = true
   try {
-    await adminStore.deleteUser(deleteTarget.value.id)
+    const id = deleteTarget.value.id
+    await adminStore.deleteUser(id)
+    selectedIds.value = selectedIds.value.filter(x => x !== id)
     deleteTarget.value = null
   } finally {
     deleteLoading.value = false

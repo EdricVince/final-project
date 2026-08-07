@@ -88,9 +88,9 @@
       <div
         v-if="selectedChallenge"
         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-        @click.self="selectedChallenge = null"
+        @click.self="selectedId = null"
       >
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="selectedChallenge = null" />
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="selectedId = null" />
         <div class="bg-card border-border relative z-10 w-full max-w-sm rounded-2xl border p-6 shadow-xl">
           <!-- Header -->
           <div class="mb-5 flex items-start justify-between gap-3">
@@ -108,7 +108,7 @@
                 </span>
               </div>
             </div>
-            <button class="text-muted-foreground hover:text-foreground" @click="selectedChallenge = null">
+            <button class="text-muted-foreground hover:text-foreground" @click="selectedId = null">
               <X class="h-5 w-5" />
             </button>
           </div>
@@ -143,7 +143,7 @@
           <div class="flex gap-3">
             <button
               class="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1 rounded-xl py-2.5 text-sm font-medium transition-colors"
-              @click="selectedChallenge = null"
+              @click="selectedId = null"
             >
               {{ $t('common.close') }}
             </button>
@@ -166,8 +166,11 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Flame, Clock, Zap, BookOpen, Brain, Layers, Target, X, ArrowRight } from '@/components/icons'
+import { useProgressStore } from '@/stores/progress.store'
 
 defineEmits<{ claimReward: [challengeId: number] }>()
+
+const props = withDefaults(defineProps<{ dailyGoalXp?: number }>(), { dailyGoalXp: 50 })
 
 interface Challenge {
   id: number
@@ -182,63 +185,52 @@ interface Challenge {
 }
 
 const router = useRouter()
-const selectedChallenge = ref<Challenge | null>(null)
+const progressStore = useProgressStore()
+const selectedId = ref<number | null>(null)
 
-const challenges = ref<Challenge[]>([
-  {
-    id: 1,
-    title: 'Learn 10 Words',
-    description: 'Study flashcards to learn new vocabulary',
-    icon: BookOpen,
-    current: 0,
-    target: 10,
-    xp: 25,
-    completed: false,
-    path: '/flashcards',
-  },
-  {
-    id: 2,
-    title: 'Complete a Quiz',
-    description: 'Take any quiz and score at least 70%',
-    icon: Brain,
-    current: 0,
-    target: 1,
-    xp: 30,
-    completed: false,
-    path: '/quizzes',
-  },
-  {
-    id: 3,
-    title: 'Review 20 Cards',
-    description: 'Review flashcards you\'ve learned before',
-    icon: Layers,
-    current: 0,
-    target: 20,
-    xp: 20,
-    completed: false,
-    path: '/flashcards',
-  },
-  {
-    id: 4,
-    title: 'Reach Daily Goal',
-    description: 'Complete your daily study goal',
-    icon: Target,
-    current: 0,
-    target: 20,
-    xp: 35,
-    completed: false,
-    path: '/goals',
-  },
-])
+// Derived live from the progress store's "today" counters, which are updated in
+// real time by logFlashcardSession()/logQuizCompletion() — so the bars advance as
+// the learner studies instead of sitting at 0.
+const challenges = computed<Challenge[]>(() => {
+  const cards = progressStore.todayCards
+  const quizzes = progressStore.todayQuizzes
+  const todayXp = progressStore.todayXP
+  const goalXp = props.dailyGoalXp
+  return [
+    {
+      id: 1, title: 'Learn 10 Words', description: 'Study flashcards to learn new vocabulary',
+      icon: BookOpen, current: Math.min(cards, 10), target: 10, xp: 25,
+      completed: cards >= 10, path: '/flashcards',
+    },
+    {
+      id: 2, title: 'Complete a Quiz', description: 'Take any quiz to finish this challenge',
+      icon: Brain, current: Math.min(quizzes, 1), target: 1, xp: 30,
+      completed: quizzes >= 1, path: '/quizzes',
+    },
+    {
+      id: 3, title: 'Review 20 Cards', description: 'Study flashcards to reach 20 cards today',
+      icon: Layers, current: Math.min(cards, 20), target: 20, xp: 20,
+      completed: cards >= 20, path: '/flashcards',
+    },
+    {
+      id: 4, title: 'Reach Daily Goal', description: `Earn ${goalXp} XP from studying today`,
+      icon: Target, current: Math.min(todayXp, goalXp), target: goalXp, xp: 35,
+      completed: todayXp >= goalXp, path: '/goals',
+    },
+  ]
+})
 
 const allCompleted = computed(() => challenges.value.every(c => c.completed))
 
+// Track by id so the modal stays live while the underlying challenge recomputes.
+const selectedChallenge = computed(() => challenges.value.find(c => c.id === selectedId.value) ?? null)
+
 const openDetail = (challenge: Challenge) => {
-  selectedChallenge.value = challenge
+  selectedId.value = challenge.id
 }
 
 const goToChallenge = (challenge: Challenge) => {
-  selectedChallenge.value = null
+  selectedId.value = null
   router.push(challenge.path)
 }
 

@@ -78,11 +78,13 @@ services:
         sync: false
 
   # ── Frontend: Vue 3 SPA (static site) ─────────────────────────────────────
+  # NOTE: static sites are served from a global CDN and cannot set `region`.
   - type: web
     name: studyspark-web
     runtime: static
-    region: singapore
-    buildCommand: corepack enable && corepack prepare pnpm@10 --activate && pnpm install --frozen-lockfile --filter quiz-app-fe... && pnpm --filter quiz-app-fe build
+    # Render's static build image already provides pnpm; don't run corepack
+    # (it fails writing to the read-only /usr/bin).
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter quiz-app-fe build
     staticPublishPath: ./quiz-app-fe/dist
     # SPA history-mode fallback.
     routes:
@@ -95,8 +97,9 @@ services:
         value: public, max-age=31536000, immutable
     envVars:
       # Baked into the client bundle at build time — must match the API URL.
+      # Render suffixed the API service name to `studyspark-api-f8f2`.
       - key: VITE_API_BASE_URL
-        value: https://studyspark-api.onrender.com/api/v1
+        value: https://studyspark-api-f8f2.onrender.com/api/v1
       # Supabase browser client (optional — only if using Google/Facebook login).
       - key: VITE_SUPABASE_URL
         sync: false

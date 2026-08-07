@@ -1,7 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+// Fall back to harmless placeholders when the Supabase env isn't configured.
+// createClient() throws on an empty OR malformed URL, which would crash the
+// whole app on import (e.g. the login page). Only accept a real http(s) URL,
+// otherwise use a placeholder so the app still loads; only the Google/Facebook
+// OAuth buttons are non-functional until Supabase is set up.
+const rawUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+const validUrl = !!rawUrl && /^https?:\/\/\S+/.test(rawUrl)
+
+const supabaseUrl = validUrl ? rawUrl! : 'https://placeholder.supabase.co'
+const supabaseAnonKey = rawKey || 'placeholder-anon-key'
+
+export const isSupabaseConfigured = validUrl && !!rawKey
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

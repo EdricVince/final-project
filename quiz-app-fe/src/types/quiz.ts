@@ -34,6 +34,8 @@ export interface WordScrambleQuestion {
   word: string
   hint: string
   scrambled: string[]
+  /** Optional example sentence shown under the descriptive hint. */
+  example?: string
 }
 
 export interface MatchingPair {

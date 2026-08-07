@@ -22,8 +22,8 @@
       >
         <GraduationCap class="h-5 w-5 shrink-0" />
         <div class="text-left">
-          <p class="text-sm font-semibold">Student</p>
-          <p class="text-xs opacity-70">Learn & practice</p>
+          <p class="text-sm font-semibold">{{ $t('auth.login.roleStudent') }}</p>
+          <p class="text-xs opacity-70">{{ $t('auth.login.roleStudentDesc') }}</p>
         </div>
       </button>
       <button
@@ -38,8 +38,8 @@
       >
         <Users class="h-5 w-5 shrink-0" />
         <div class="text-left">
-          <p class="text-sm font-semibold">Teacher</p>
-          <p class="text-xs opacity-70">Manage classes</p>
+          <p class="text-sm font-semibold">{{ $t('auth.login.roleTeacher') }}</p>
+          <p class="text-xs opacity-70">{{ $t('auth.login.roleTeacherDesc') }}</p>
         </div>
       </button>
     </div>
@@ -52,10 +52,9 @@
       <div class="flex items-start gap-3">
         <GraduationCap class="text-primary mt-0.5 h-5 w-5 shrink-0" />
         <div>
-          <p class="text-foreground text-sm font-semibold">Teacher Portal Access</p>
+          <p class="text-foreground text-sm font-semibold">{{ $t('auth.login.teacherPortalAccess') }}</p>
           <p class="text-muted-foreground mt-0.5 text-xs">
-            Only accounts with <span class="text-primary font-medium">@teacher.sprk</span> email can access the teacher portal.
-            Teacher accounts are created by the admin — contact your administrator if you don't have one.
+            {{ $t('auth.login.teacherBanner', { domain: '@teacher.sprk' }) }}
           </p>
         </div>
       </div>
@@ -199,6 +198,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { Eye, EyeOff, Mail, Lock, GraduationCap, Users } from '@/components/icons'
@@ -223,6 +223,7 @@ const TEACHER_DOMAIN = '@teacher.sprk'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const showPassword = ref(false)
 const rememberMe = ref(false)
@@ -252,14 +253,14 @@ const handleSignIn = handleSubmit(async (formValues) => {
 
   // Validate: teacher tab must use @teacher.sprk email
   if (selectedRole.value === 'teacher' && !isTeacherEmail) {
-    errorMessage.value = `Teacher accounts must use a ${TEACHER_DOMAIN} email address.`
+    errorMessage.value = t('auth.login.errTeacherEmail', { domain: TEACHER_DOMAIN })
     isSubmitting.value = false
     return
   }
 
   // Validate: student tab must NOT use @teacher.sprk email
   if (selectedRole.value === 'student' && isTeacherEmail) {
-    errorMessage.value = `This is a teacher account. Please switch to the Teacher tab to sign in.`
+    errorMessage.value = t('auth.login.errStudentTab')
     isSubmitting.value = false
     return
   }
@@ -272,10 +273,10 @@ const handleSignIn = handleSubmit(async (formValues) => {
         router.push(isTeacherEmail ? { name: 'TeacherDashboard' } : { name: 'Dashboard' })
       }, 500)
     } else {
-      errorMessage.value = result.message || 'Login failed'
+      errorMessage.value = result.message || t('auth.login.failed')
     }
   } catch {
-    errorMessage.value = 'An unexpected error occurred'
+    errorMessage.value = t('auth.login.unexpectedError')
   } finally {
     isSubmitting.value = false
   }
@@ -289,7 +290,7 @@ const handleGoogleSignIn = async () => {
   try {
     await signInWithGoogle()
   } catch {
-    errorMessage.value = 'Google sign-in failed. Please try again.'
+    errorMessage.value = t('auth.login.googleFailed')
   }
 }
 
@@ -298,7 +299,7 @@ const handleFacebookSignIn = async () => {
   try {
     await signInWithFacebook()
   } catch {
-    errorMessage.value = 'Facebook sign-in failed. Please try again.'
+    errorMessage.value = t('auth.login.facebookFailed')
   }
 }
 </script>
