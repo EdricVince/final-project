@@ -1,4 +1,4 @@
-import { ServiceUnavailableException } from '@nestjs/common';
+import { Logger, ServiceUnavailableException } from '@nestjs/common';
 
 // Mock the Anthropic SDK so we exercise the real prompt/parse logic without any
 // network call. `mockCreate` is hoisted-safe (name starts with "mock").
@@ -16,6 +16,12 @@ describe('AiService — AI generation paths (Anthropic mocked)', () => {
   const KEY = 'sk-ant-testkey1234567890';
   const originalKey = process.env.ANTHROPIC_API_KEY;
   let svc: AiService;
+
+  // The failure-path tests below deliberately reject the mocked model call, which
+  // makes AiService log an error. Mute it so the suite output stays clean.
+  let errSpy: jest.SpyInstance;
+  beforeAll(() => { errSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined); });
+  afterAll(() => { errSpy.mockRestore(); });
 
   beforeEach(() => {
     process.env.ANTHROPIC_API_KEY = KEY; // makes the lazy client non-null

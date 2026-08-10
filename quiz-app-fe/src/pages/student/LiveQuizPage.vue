@@ -48,7 +48,6 @@
       </div>
       <h2 class="text-foreground mb-2 text-2xl font-bold">{{ title }}</h2>
       <p class="text-muted-foreground mb-1">{{ $t('liveLesson.waitingDesc') }}</p>
-      <p class="text-muted-foreground text-sm">{{ $t('liveLesson.stepsReady', { n: totalSteps }) }}</p>
       <span class="text-chart-2 mt-4 inline-flex items-center gap-1.5 text-xs">
         <span class="bg-chart-2 h-1.5 w-1.5 animate-pulse rounded-full"></span> {{ $t('liveLesson.connectedLive') }}
       </span>
@@ -57,33 +56,34 @@
       </button>
     </div>
 
-    <!-- PHASE: LIVE — Watch the current step -->
-    <div v-else-if="phase === 'live'" class="mx-auto max-w-2xl">
-      <div class="mb-6 flex items-center justify-between">
-        <span class="text-muted-foreground text-sm font-medium">
-          {{ $t('liveLesson.stepOf', { current: (currentStep?.index ?? 0) + 1, total: totalSteps }) }}
-        </span>
-        <span class="text-chart-2 inline-flex items-center gap-1.5 text-xs">
-          <span class="bg-chart-2 h-1.5 w-1.5 animate-pulse rounded-full"></span> {{ $t('liveLesson.live') }}
+    <!-- PHASE: LIVE — watch the teacher's camera -->
+    <div v-else-if="phase === 'live'" class="mx-auto max-w-4xl">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-foreground truncate text-xl font-bold">{{ title }}</h2>
+        <span class="text-destructive inline-flex items-center gap-1.5 text-sm font-semibold">
+          <span class="bg-destructive h-2 w-2 animate-pulse rounded-full"></span> {{ $t('liveLesson.live') }}
         </span>
       </div>
 
-      <div class="bg-secondary mb-6 h-1.5 rounded-full">
-        <div
-          class="bg-primary h-1.5 rounded-full transition-all duration-500"
-          :style="{ width: `${totalSteps ? (((currentStep?.index ?? 0) + 1) / totalSteps) * 100 : 0}%` }"
-        ></div>
+      <div class="bg-card border-border overflow-hidden rounded-2xl border">
+        <div class="relative aspect-video bg-slate-900">
+          <video ref="remoteVideo" autoplay playsinline class="h-full w-full object-cover"></video>
+          <div v-if="!hasVideo" class="absolute inset-0 flex flex-col items-center justify-center text-white/70">
+            <span class="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+              <Radio class="h-7 w-7 animate-pulse" />
+            </span>
+            <p class="text-sm">{{ $t('liveLesson.followAlong') }}</p>
+          </div>
+        </div>
       </div>
 
-      <div class="bg-card border-border rounded-2xl border p-6">
-        <h2 class="text-foreground text-2xl font-bold leading-snug">{{ currentStep?.title }}</h2>
-        <p class="text-foreground/90 mt-4 whitespace-pre-wrap text-base leading-relaxed">{{ currentStep?.body }}</p>
+      <div class="mt-4 flex items-center justify-between">
+        <p v-if="presenceCount" class="text-muted-foreground text-sm">{{ presenceCount }} {{ $t('liveLesson.watching') }}</p>
+        <span v-else></span>
+        <button class="text-muted-foreground hover:text-destructive text-sm transition-colors" @click="leaveSession">
+          {{ $t('liveLesson.leaveSession') }}
+        </button>
       </div>
-
-      <p class="text-muted-foreground mt-6 text-center text-sm">{{ $t('liveLesson.followAlong') }}</p>
-      <button class="text-muted-foreground hover:text-foreground mx-auto mt-4 block text-sm transition-colors" @click="leaveSession">
-        {{ $t('liveLesson.leaveSession') }}
-      </button>
     </div>
 
     <!-- PHASE: ENDED -->
@@ -117,10 +117,10 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 
 type Phase = 'join' | 'waiting' | 'live' | 'ended'
-interface ClientStep { index: number; total: number; title: string; body: string }
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/api/v1'
 const SOCKET_URL = API_BASE.replace(/\/api\/v1\/?$/, '')
+const ICE = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
 
 const phase = ref<Phase>('join')
 const pin = ref('')
@@ -128,10 +128,27 @@ const joining = ref(false)
 const joinError = ref('')
 
 const title = ref('')
-const totalSteps = ref(0)
-const currentStep = ref<ClientStep | null>(null)
+const presenceCount = ref(0)
+const remoteVideo = ref<HTMLVideoElement | null>(null)
+const hasVideo = ref(false)
 
 let socket: Socket | null = null
+let hostId = ''
+let pc: RTCPeerConnection | null = null
+
+// ── WebRTC (student receives the teacher's camera) ───────────────────────────
+const ensurePc = () => {
+  if (pc) return pc
+  pc = new RTCPeerConnection(ICE)
+  pc.ontrack = (e) => {
+    if (remoteVideo.value) remoteVideo.value.srcObject = e.streams[0]
+    if (e.track.kind === 'video') hasVideo.value = true
+  }
+  pc.onicecandidate = (e) => {
+    if (e.candidate && hostId) socket?.emit('rtc:signal', { to: hostId, data: { candidate: e.candidate } })
+  }
+  return pc
+}
 
 const joinSession = () => {
   if (!pin.value || joining.value) return
@@ -143,24 +160,39 @@ const joinSession = () => {
 
   socket.on('connect', () => socket?.emit('lm:join', { pin: pin.value }))
 
-  socket.on('lm:joined', (d: { title: string; total: number; status: string }) => {
+  socket.on('lm:joined', (d: { title: string; status: string }) => {
     joining.value = false
     title.value = d.title
-    totalSteps.value = d.total
     if (d.status !== 'live') phase.value = 'waiting'
   })
 
-  socket.on('lm:step', (s: ClientStep) => {
-    currentStep.value = s
-    totalSteps.value = s.total
+  socket.on('lm:live', (d: { title: string }) => {
+    if (d?.title) title.value = d.title
     phase.value = 'live'
   })
 
-  socket.on('lm:ended', () => { phase.value = 'ended' })
+  socket.on('rtc:host', (d: { id: string }) => { hostId = d.id })
 
-  socket.on('lm:host_left', () => {
-    if (phase.value !== 'ended') phase.value = 'ended'
+  // The teacher (host) sends an offer with their camera; answer it.
+  socket.on('rtc:signal', async (d: { from: string; data: { sdp?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit } }) => {
+    hostId = d.from
+    const peer = ensurePc()
+    try {
+      if (d.data.sdp) {
+        await peer.setRemoteDescription(d.data.sdp)
+        const answer = await peer.createAnswer()
+        await peer.setLocalDescription(answer)
+        socket?.emit('rtc:signal', { to: d.from, data: { sdp: peer.localDescription } })
+      } else if (d.data.candidate) {
+        await peer.addIceCandidate(d.data.candidate)
+      }
+    } catch { /* ignore a transient negotiation error */ }
   })
+
+  socket.on('lm:presence', (d: { count: number }) => { presenceCount.value = d.count })
+
+  socket.on('lm:ended', () => { phase.value = 'ended' })
+  socket.on('lm:host_left', () => { if (phase.value !== 'ended') phase.value = 'ended' })
 
   socket.on('lm:error', (d: { message: string }) => {
     joining.value = false
@@ -174,6 +206,9 @@ const joinSession = () => {
 }
 
 const teardown = () => {
+  if (pc) { pc.close(); pc = null }
+  hostId = ''
+  hasVideo.value = false
   if (socket) { socket.disconnect(); socket = null }
 }
 
@@ -187,9 +222,8 @@ const reset = () => {
   phase.value = 'join'
   pin.value = ''
   joinError.value = ''
-  currentStep.value = null
   title.value = ''
-  totalSteps.value = 0
+  presenceCount.value = 0
 }
 
 onUnmounted(teardown)

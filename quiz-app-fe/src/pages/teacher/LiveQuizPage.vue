@@ -8,8 +8,8 @@
       </div>
     </div>
 
-    <!-- PHASE: SETUP — build the lesson steps -->
-    <div v-if="phase === 'setup'" class="mx-auto max-w-3xl">
+    <!-- PHASE: SETUP — just name the room and go live -->
+    <div v-if="phase === 'setup'" class="mx-auto max-w-lg">
       <div class="bg-card border-border space-y-5 rounded-2xl border p-6">
         <div>
           <label class="text-foreground mb-1.5 block text-sm font-medium">{{ $t('liveLesson.lessonTitle') }} *</label>
@@ -18,34 +18,9 @@
             type="text"
             :placeholder="$t('liveLesson.lessonTitlePlaceholder')"
             class="border-border bg-background text-foreground w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            @keyup.enter="createAndHost"
           />
         </div>
-
-        <div v-for="(s, si) in steps" :key="si" class="border-border space-y-3 rounded-xl border p-4">
-          <div class="flex items-center justify-between">
-            <span class="text-foreground text-sm font-semibold">{{ $t('liveLesson.step') }} {{ si + 1 }}</span>
-            <button v-if="steps.length > 1" class="text-muted-foreground hover:text-destructive" @click="removeStep(si)">
-              <X class="h-4 w-4" />
-            </button>
-          </div>
-          <input
-            v-model="s.title"
-            type="text"
-            :placeholder="$t('liveLesson.stepTitlePlaceholder')"
-            class="border-border bg-background text-foreground w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          <textarea
-            v-model="s.body"
-            rows="4"
-            :placeholder="$t('liveLesson.stepBodyPlaceholder')"
-            class="border-border bg-background text-foreground w-full resize-y rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          ></textarea>
-        </div>
-
-        <button class="border-border hover:bg-secondary/50 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed py-3 text-sm font-medium transition-colors" @click="addStep">
-          <Plus class="h-4 w-4" /> {{ $t('liveLesson.addStep') }}
-        </button>
-
         <p v-if="setupError" class="text-destructive text-sm">{{ setupError }}</p>
         <button
           class="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-semibold transition-colors disabled:opacity-50"
@@ -59,98 +34,96 @@
       </div>
     </div>
 
-    <!-- PHASE: LOBBY — waiting for participants -->
-    <div v-else-if="phase === 'lobby'" class="grid gap-6 lg:grid-cols-5">
+    <!-- PHASE: LOBBY / LIVE — the meeting room with the teacher's camera -->
+    <div v-else-if="phase === 'lobby' || phase === 'live'" class="grid gap-6 lg:grid-cols-5">
+      <!-- Left: camera + controls -->
+      <div class="space-y-4 lg:col-span-3">
+        <div class="bg-card border-border overflow-hidden rounded-2xl border">
+          <div class="relative aspect-video bg-slate-900">
+            <video ref="localVideo" autoplay muted playsinline class="h-full w-full object-cover"></video>
+            <div v-if="!camOn" class="absolute inset-0 flex flex-col items-center justify-center text-white/70">
+              <VideoOff class="mb-2 h-10 w-10" />
+              <span class="text-sm">{{ $t('liveLesson.cameraOff') }}</span>
+            </div>
+            <span
+              v-if="phase === 'live'"
+              class="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-destructive px-2.5 py-1 text-xs font-bold text-white"
+            >
+              <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-white"></span> {{ $t('liveLesson.live') }}
+            </span>
+            <span v-if="camError" class="absolute bottom-3 left-3 right-3 rounded-lg bg-black/60 px-3 py-1.5 text-center text-xs text-white">
+              {{ camError }}
+            </span>
+          </div>
+          <!-- Controls -->
+          <div class="flex items-center justify-center gap-3 p-4">
+            <button
+              class="flex h-11 w-11 items-center justify-center rounded-full transition-colors"
+              :class="camOn ? 'bg-secondary text-foreground hover:bg-secondary/70' : 'bg-destructive/15 text-destructive'"
+              :title="$t('liveLesson.toggleCamera')"
+              @click="toggleCam"
+            >
+              <Video v-if="camOn" class="h-5 w-5" />
+              <VideoOff v-else class="h-5 w-5" />
+            </button>
+            <button
+              class="flex h-11 w-11 items-center justify-center rounded-full transition-colors"
+              :class="micOn ? 'bg-secondary text-foreground hover:bg-secondary/70' : 'bg-destructive/15 text-destructive'"
+              :title="$t('liveLesson.toggleMic')"
+              @click="toggleMic"
+            >
+              <Mic v-if="micOn" class="h-5 w-5" />
+              <MicOff v-else class="h-5 w-5" />
+            </button>
+
+            <button
+              v-if="phase === 'lobby'"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-full px-6 py-2.5 font-semibold transition-colors disabled:opacity-50"
+              :disabled="participants.length === 0"
+              @click="start"
+            >
+              <Play class="h-5 w-5" /> {{ $t('liveLesson.startLesson', { n: participants.length }) }}
+            </button>
+            <button
+              class="bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center gap-2 rounded-full px-6 py-2.5 font-semibold transition-colors"
+              @click="phase === 'lobby' ? quit() : end()"
+            >
+              {{ phase === 'lobby' ? $t('liveLesson.cancel') : $t('liveLesson.endLesson') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: PIN + participant roster -->
       <div class="space-y-4 lg:col-span-2">
         <div class="bg-card border-border rounded-2xl border p-6 text-center">
           <p class="text-muted-foreground mb-2 text-sm font-medium">{{ $t('liveLesson.sharePin') }}</p>
           <div class="bg-primary/5 border-primary/20 mx-auto mb-2 rounded-2xl border px-6 py-4">
-            <p class="text-primary font-mono text-5xl font-black tracking-[0.3em]">{{ pin }}</p>
+            <p class="text-primary font-mono text-4xl font-black tracking-[0.3em]">{{ pin }}</p>
           </div>
           <p class="text-muted-foreground text-xs">{{ $t('liveLesson.sharePinHint') }}</p>
         </div>
-        <button
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-semibold transition-colors disabled:opacity-50"
-          :disabled="participants.length === 0"
-          @click="start"
-        >
-          <Play class="h-5 w-5" /> {{ $t('liveLesson.startLesson', { n: participants.length }) }}
-        </button>
-        <button class="border-border hover:bg-secondary/50 w-full rounded-xl border py-3 text-sm font-medium transition-colors" @click="quit">
-          {{ $t('liveLesson.cancel') }}
-        </button>
-      </div>
 
-      <div class="lg:col-span-3">
-        <div class="bg-card border-border h-full rounded-2xl border">
-          <div class="border-border flex items-center justify-between border-b px-6 py-4">
-            <h3 class="text-foreground font-semibold">{{ $t('liveLesson.waitingRoom') }}</h3>
+        <div class="bg-card border-border rounded-2xl border">
+          <div class="border-border flex items-center justify-between border-b px-5 py-3.5">
+            <h3 class="text-foreground text-sm font-semibold">{{ $t('liveLesson.waitingRoom') }}</h3>
             <span class="text-chart-2 inline-flex items-center gap-1.5 text-xs">
-              <span class="bg-chart-2 h-1.5 w-1.5 animate-pulse rounded-full"></span> {{ $t('liveLesson.live') }}
+              <span class="bg-chart-2 h-1.5 w-1.5 animate-pulse rounded-full"></span> {{ participantCount }}
             </span>
           </div>
-          <div v-if="participants.length" class="grid grid-cols-2 gap-3 p-6 sm:grid-cols-3">
-            <div v-for="(p, i) in participants" :key="p.name + i" class="bg-secondary/50 flex items-center gap-2 rounded-xl p-3">
+          <div v-if="participants.length" class="max-h-72 space-y-2 overflow-y-auto p-4">
+            <div v-for="(p, i) in participants" :key="p.name + i" class="bg-secondary/50 flex items-center gap-2 rounded-xl p-2.5">
               <div class="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold">
                 {{ p.name.charAt(0).toUpperCase() }}
               </div>
               <span class="text-foreground truncate text-sm font-medium">{{ p.name }}</span>
             </div>
           </div>
-          <div v-else class="flex flex-col items-center justify-center py-20 text-center">
-            <Users class="text-primary mb-3 h-10 w-10" />
-            <p class="text-foreground font-medium">{{ $t('liveLesson.waitingForStudents') }}</p>
-            <p class="text-muted-foreground text-sm">{{ $t('liveLesson.sharePinToJoin') }}</p>
+          <div v-else class="flex flex-col items-center justify-center py-10 text-center">
+            <Users class="text-primary mb-2 h-8 w-8" />
+            <p class="text-foreground text-sm font-medium">{{ $t('liveLesson.waitingForStudents') }}</p>
+            <p class="text-muted-foreground text-xs">{{ $t('liveLesson.sharePinToJoin') }}</p>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PHASE: PRESENTING — lead the lesson step by step -->
-    <div v-else-if="phase === 'presenting'" class="grid gap-6 lg:grid-cols-3">
-      <div class="space-y-4 lg:col-span-2">
-        <div class="bg-card border-border rounded-2xl border p-6">
-          <div class="mb-3 flex items-center justify-between">
-            <span class="text-muted-foreground text-sm">{{ $t('liveLesson.stepOf', { current: (current?.index ?? 0) + 1, total: current?.total ?? 0 }) }}</span>
-            <span class="text-chart-2 inline-flex items-center gap-1.5 text-xs">
-              <span class="bg-chart-2 h-1.5 w-1.5 animate-pulse rounded-full"></span> {{ participantCount }} {{ $t('liveLesson.watching') }}
-            </span>
-          </div>
-          <h2 class="text-foreground text-2xl font-bold">{{ current?.title }}</h2>
-          <p class="text-foreground/90 mt-4 whitespace-pre-wrap text-base leading-relaxed">{{ current?.body }}</p>
-        </div>
-
-        <div class="flex gap-3">
-          <button
-            class="border-border hover:bg-secondary/50 flex-1 rounded-xl border py-3 font-medium transition-colors disabled:opacity-40"
-            :disabled="(current?.index ?? 0) === 0"
-            @click="prev"
-          >
-            ← {{ $t('liveLesson.previous') }}
-          </button>
-          <button class="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl py-3 font-semibold transition-colors" @click="next">
-            {{ isLast ? $t('liveLesson.finish') : $t('liveLesson.nextStep') }} →
-          </button>
-        </div>
-        <button class="text-muted-foreground hover:text-destructive w-full text-sm transition-colors" @click="end">
-          {{ $t('liveLesson.endLesson') }}
-        </button>
-      </div>
-
-      <div class="lg:col-span-1">
-        <div class="bg-card border-border rounded-2xl border p-5">
-          <h3 class="text-foreground mb-3 font-semibold">{{ $t('liveLesson.outline') }}</h3>
-          <ol class="space-y-1.5">
-            <li
-              v-for="(s, i) in steps"
-              :key="i"
-              class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm"
-              :class="i === (current?.index ?? 0) ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground'"
-            >
-              <span class="w-5 text-center text-xs font-bold">{{ i + 1 }}</span>
-              <span class="truncate">{{ s.title || $t('liveLesson.untitledStep') }}</span>
-            </li>
-          </ol>
         </div>
       </div>
     </div>
@@ -172,56 +145,98 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, nextTick, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { io, type Socket } from 'socket.io-client'
-import { Radio, Play, Users, X, Plus, CircleCheck } from '@/components/icons'
+import { Radio, Play, Users, CircleCheck, Video, VideoOff, Mic, MicOff } from '@/components/icons'
 import { api } from '@/utils/api'
 import { useAuthStore } from '@/stores/auth.store'
 
-type Phase = 'setup' | 'lobby' | 'presenting' | 'ended'
-interface BuilderStep { title: string; body: string }
-interface ClientStep { index: number; total: number; title: string; body: string }
+type Phase = 'setup' | 'lobby' | 'live' | 'ended'
 interface Participant { name: string }
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/api/v1'
 const SOCKET_URL = API_BASE.replace(/\/api\/v1\/?$/, '')
+const ICE = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 
 const phase = ref<Phase>('setup')
 const lessonTitle = ref('')
-const steps = ref<BuilderStep[]>([blankStep()])
 const creating = ref(false)
 const setupError = ref('')
 
 const pin = ref('')
 const participants = ref<Participant[]>([])
 const participantCount = ref(0)
-const current = ref<ClientStep | null>(null)
 
-const isLast = computed(() => current.value !== null && current.value.index >= current.value.total - 1)
+const localVideo = ref<HTMLVideoElement | null>(null)
+const camOn = ref(true)
+const micOn = ref(true)
+const camError = ref('')
 
 let socket: Socket | null = null
+let localStream: MediaStream | null = null
+// One peer connection per student, keyed by their socket id.
+const peers = new Map<string, RTCPeerConnection>()
 
-function blankStep(): BuilderStep {
-  return { title: '', body: '' }
+// ── Camera ─────────────────────────────────────────────────────────────────
+const startCamera = async () => {
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    await nextTick()
+    if (localVideo.value) localVideo.value.srcObject = localStream
+    camOn.value = true
+    micOn.value = true
+  } catch {
+    camError.value = t('liveLesson.cameraDenied')
+    camOn.value = false
+    micOn.value = false
+  }
 }
-const addStep = () => steps.value.push(blankStep())
-const removeStep = (i: number) => steps.value.splice(i, 1)
 
+const toggleCam = () => {
+  const track = localStream?.getVideoTracks()[0]
+  if (!track) return
+  track.enabled = !track.enabled
+  camOn.value = track.enabled
+}
+const toggleMic = () => {
+  const track = localStream?.getAudioTracks()[0]
+  if (!track) return
+  track.enabled = !track.enabled
+  micOn.value = track.enabled
+}
+
+// ── WebRTC (host broadcasts its camera to each student) ──────────────────────
+const createPeerAndOffer = async (peerId: string) => {
+  if (peers.has(peerId)) return
+  const pc = new RTCPeerConnection(ICE)
+  peers.set(peerId, pc)
+  localStream?.getTracks().forEach((track) => pc.addTrack(track, localStream!))
+  pc.onicecandidate = (e) => {
+    if (e.candidate) socket?.emit('rtc:signal', { to: peerId, data: { candidate: e.candidate } })
+  }
+  try {
+    const offer = await pc.createOffer()
+    await pc.setLocalDescription(offer)
+    socket?.emit('rtc:signal', { to: peerId, data: { sdp: pc.localDescription } })
+  } catch { /* ignore a transient negotiation error */ }
+}
+
+const closePeer = (peerId: string) => {
+  peers.get(peerId)?.close()
+  peers.delete(peerId)
+}
+
+// ── Session ──────────────────────────────────────────────────────────────────
 const createAndHost = async () => {
   setupError.value = ''
   if (!lessonTitle.value.trim()) { setupError.value = t('liveLesson.errTitle'); return }
-  const clean = steps.value
-    .map((s) => ({ title: s.title.trim(), body: s.body.trim() }))
-    .filter((s) => s.title || s.body)
-  if (clean.length === 0) { setupError.value = t('liveLesson.errSteps'); return }
-
   creating.value = true
   try {
-    const session = (await api.createLiveSession({ title: lessonTitle.value.trim(), steps: clean })) as { id: number; pin: string }
+    const session = (await api.createLiveSession({ title: lessonTitle.value.trim(), steps: [] })) as { id: number; pin: string }
     connect(session.pin)
   } catch {
     setupError.value = t('liveLesson.errCreate')
@@ -235,12 +250,13 @@ const connect = (sessionPin: string) => {
 
   socket.on('connect', () => socket?.emit('lm:host', { pin: sessionPin }))
 
-  socket.on('lm:host_ready', (d: { pin: string; participants: Participant[] }) => {
+  socket.on('lm:host_ready', async (d: { pin: string; participants: Participant[] }) => {
     creating.value = false
     pin.value = d.pin
     participants.value = d.participants
     participantCount.value = d.participants.length
     phase.value = 'lobby'
+    await startCamera()
   })
 
   socket.on('lm:participants', (d: { participants: Participant[]; count: number }) => {
@@ -248,9 +264,21 @@ const connect = (sessionPin: string) => {
     participantCount.value = d.count
   })
 
-  socket.on('lm:step', (s: ClientStep) => {
-    current.value = s
-    phase.value = 'presenting'
+  socket.on('lm:live', () => { phase.value = 'live' })
+
+  // WebRTC signalling
+  socket.on('rtc:peers', (d: { peers: { id: string }[] }) => {
+    d.peers.forEach((p) => createPeerAndOffer(p.id))
+  })
+  socket.on('rtc:peer', (d: { id: string }) => { createPeerAndOffer(d.id) })
+  socket.on('rtc:peer_left', (d: { id: string }) => { closePeer(d.id) })
+  socket.on('rtc:signal', async (d: { from: string; data: { sdp?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit } }) => {
+    const pc = peers.get(d.from)
+    if (!pc) return
+    try {
+      if (d.data.sdp) await pc.setRemoteDescription(d.data.sdp)          // student's answer
+      else if (d.data.candidate) await pc.addIceCandidate(d.data.candidate)
+    } catch { /* ignore */ }
   })
 
   socket.on('lm:ended', () => { phase.value = 'ended' })
@@ -267,23 +295,28 @@ const connect = (sessionPin: string) => {
 }
 
 const start = () => socket?.emit('lm:start')
-const next = () => socket?.emit('lm:next')
-const prev = () => socket?.emit('lm:prev')
 const end = () => socket?.emit('lm:end')
 
-const teardown = () => { if (socket) { socket.disconnect(); socket = null } }
+const teardown = () => {
+  peers.forEach((pc) => pc.close())
+  peers.clear()
+  localStream?.getTracks().forEach((tr) => tr.stop())
+  localStream = null
+  if (socket) { socket.disconnect(); socket = null }
+}
 
 const quit = () => {
   teardown()
   phase.value = 'setup'
   lessonTitle.value = ''
-  steps.value = [blankStep()]
   pin.value = ''
   participants.value = []
   participantCount.value = 0
-  current.value = null
   creating.value = false
   setupError.value = ''
+  camError.value = ''
+  camOn.value = true
+  micOn.value = true
 }
 
 onUnmounted(teardown)

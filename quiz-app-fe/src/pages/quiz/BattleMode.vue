@@ -82,7 +82,7 @@
       <div class="flex min-h-[80vh] flex-col items-center justify-center">
         <div class="mb-6 text-center">
           <p class="text-muted-foreground mb-2 text-lg">Opponent found! Battle starts in</p>
-          <div class="bg-primary text-primary-foreground flex h-32 w-32 items-center justify-center rounded-full text-6xl font-black shadow-2xl">
+          <div class="bg-primary text-primary-foreground mx-auto flex h-32 w-32 items-center justify-center rounded-full text-6xl font-black leading-none shadow-2xl">
             {{ countdownNum }}
           </div>
           <p class="text-muted-foreground mt-4 text-base">Get ready to fight!</p>
@@ -123,7 +123,7 @@
                   :stroke-dasharray="circumference" :stroke-dashoffset="timerOffset"
                   :class="timeLeft <= 3 ? 'text-destructive' : 'text-primary'" class="transition-all duration-100" />
               </svg>
-              <span class="absolute inset-0 flex items-center justify-center font-black" :class="timeLeft <= 3 ? 'text-destructive' : 'text-foreground'">{{ timeLeft }}</span>
+              <span class="absolute inset-0 flex items-center justify-center text-lg font-black leading-none" :class="timeLeft <= 3 ? 'text-destructive' : 'text-foreground'">{{ timeLeft }}</span>
             </div>
             <span class="text-muted-foreground mt-1 text-xs">{{ currentQ + 1 }}/{{ questions.length }}</span>
           </div>
