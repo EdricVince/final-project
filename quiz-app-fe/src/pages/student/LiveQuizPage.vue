@@ -147,7 +147,8 @@ const ensurePc = () => {
   if (pc) return pc
   pc = new RTCPeerConnection(ICE)
   pc.ontrack = (e) => {
-    if (remoteVideo.value) remoteVideo.value.srcObject = e.streams[0]
+    const [stream] = e.streams
+    if (stream && remoteVideo.value) remoteVideo.value.srcObject = stream
     if (e.track.kind === 'video') hasVideo.value = true
   }
   pc.onicecandidate = (e) => {
