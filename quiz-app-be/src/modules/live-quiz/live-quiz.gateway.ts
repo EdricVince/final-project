@@ -91,8 +91,10 @@ export class LiveQuizGateway implements OnGatewayDisconnect {
     }
     socket.join(session.pin);
     socket.emit('lm:joined', { title: room.title, total: room.steps.length, status: room.status });
-    // Late joiner during a live lesson gets the current step immediately.
+    // Late joiner during a live lesson enters the meeting immediately (plus the
+    // current step, if this session happens to use presentation steps).
     if (room.status === 'live') {
+      socket.emit('lm:live', { title: room.title });
       const step = this.rooms.clientStep(room, room.currentIndex);
       if (step) socket.emit('lm:step', step);
     }
@@ -106,6 +108,9 @@ export class LiveQuizGateway implements OnGatewayDisconnect {
     if (!room) return;
     const step = this.rooms.start(room.pin);
     await this.persistStatus(room, 'live');
+    // Everyone enters the live meeting room. Presentation steps are optional —
+    // only sessions that were built with steps also stream the current step.
+    this.server.to(room.pin).emit('lm:live', { title: room.title });
     if (step) this.server.to(room.pin).emit('lm:step', step);
   }
 

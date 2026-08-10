@@ -48,7 +48,6 @@
       </div>
       <h2 class="text-foreground mb-2 text-2xl font-bold">{{ title }}</h2>
       <p class="text-muted-foreground mb-1">{{ $t('liveLesson.waitingDesc') }}</p>
-      <p class="text-muted-foreground text-sm">{{ $t('liveLesson.stepsReady', { n: totalSteps }) }}</p>
       <span class="text-chart-2 mt-4 inline-flex items-center gap-1.5 text-xs">
         <span class="bg-chart-2 h-1.5 w-1.5 animate-pulse rounded-full"></span> {{ $t('liveLesson.connectedLive') }}
       </span>
@@ -57,31 +56,18 @@
       </button>
     </div>
 
-    <!-- PHASE: LIVE — Watch the current step -->
-    <div v-else-if="phase === 'live'" class="mx-auto max-w-2xl">
-      <div class="mb-6 flex items-center justify-between">
-        <span class="text-muted-foreground text-sm font-medium">
-          {{ $t('liveLesson.stepOf', { current: (currentStep?.index ?? 0) + 1, total: totalSteps }) }}
-        </span>
-        <span class="text-chart-2 inline-flex items-center gap-1.5 text-xs">
-          <span class="bg-chart-2 h-1.5 w-1.5 animate-pulse rounded-full"></span> {{ $t('liveLesson.live') }}
-        </span>
+    <!-- PHASE: LIVE — in the meeting room -->
+    <div v-else-if="phase === 'live'" class="flex min-h-[60vh] flex-col items-center justify-center text-center">
+      <span class="text-chart-2 mb-4 inline-flex items-center gap-1.5 text-sm font-medium">
+        <span class="bg-chart-2 h-2 w-2 animate-pulse rounded-full"></span> {{ $t('liveLesson.live') }}
+      </span>
+      <div class="bg-primary/10 mb-6 flex h-24 w-24 items-center justify-center rounded-3xl">
+        <Radio class="text-primary h-12 w-12" />
       </div>
-
-      <div class="bg-secondary mb-6 h-1.5 rounded-full">
-        <div
-          class="bg-primary h-1.5 rounded-full transition-all duration-500"
-          :style="{ width: `${totalSteps ? (((currentStep?.index ?? 0) + 1) / totalSteps) * 100 : 0}%` }"
-        ></div>
-      </div>
-
-      <div class="bg-card border-border rounded-2xl border p-6">
-        <h2 class="text-foreground text-2xl font-bold leading-snug">{{ currentStep?.title }}</h2>
-        <p class="text-foreground/90 mt-4 whitespace-pre-wrap text-base leading-relaxed">{{ currentStep?.body }}</p>
-      </div>
-
-      <p class="text-muted-foreground mt-6 text-center text-sm">{{ $t('liveLesson.followAlong') }}</p>
-      <button class="text-muted-foreground hover:text-foreground mx-auto mt-4 block text-sm transition-colors" @click="leaveSession">
+      <h2 class="text-foreground mb-2 text-3xl font-bold">{{ title }}</h2>
+      <p class="text-muted-foreground mb-1">{{ $t('liveLesson.followAlong') }}</p>
+      <p v-if="presenceCount" class="text-muted-foreground text-sm">{{ presenceCount }} {{ $t('liveLesson.watching') }}</p>
+      <button class="text-muted-foreground hover:text-foreground mt-8 text-sm transition-colors" @click="leaveSession">
         {{ $t('liveLesson.leaveSession') }}
       </button>
     </div>
@@ -117,7 +103,6 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 
 type Phase = 'join' | 'waiting' | 'live' | 'ended'
-interface ClientStep { index: number; total: number; title: string; body: string }
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/api/v1'
 const SOCKET_URL = API_BASE.replace(/\/api\/v1\/?$/, '')
@@ -128,8 +113,7 @@ const joining = ref(false)
 const joinError = ref('')
 
 const title = ref('')
-const totalSteps = ref(0)
-const currentStep = ref<ClientStep | null>(null)
+const presenceCount = ref(0)
 
 let socket: Socket | null = null
 
@@ -143,18 +127,19 @@ const joinSession = () => {
 
   socket.on('connect', () => socket?.emit('lm:join', { pin: pin.value }))
 
-  socket.on('lm:joined', (d: { title: string; total: number; status: string }) => {
+  socket.on('lm:joined', (d: { title: string; status: string }) => {
     joining.value = false
     title.value = d.title
-    totalSteps.value = d.total
     if (d.status !== 'live') phase.value = 'waiting'
   })
 
-  socket.on('lm:step', (s: ClientStep) => {
-    currentStep.value = s
-    totalSteps.value = s.total
+  // The teacher started (or we joined a session already live) — enter the room.
+  socket.on('lm:live', (d: { title: string }) => {
+    if (d?.title) title.value = d.title
     phase.value = 'live'
   })
+
+  socket.on('lm:presence', (d: { count: number }) => { presenceCount.value = d.count })
 
   socket.on('lm:ended', () => { phase.value = 'ended' })
 
@@ -187,9 +172,8 @@ const reset = () => {
   phase.value = 'join'
   pin.value = ''
   joinError.value = ''
-  currentStep.value = null
   title.value = ''
-  totalSteps.value = 0
+  presenceCount.value = 0
 }
 
 onUnmounted(teardown)
