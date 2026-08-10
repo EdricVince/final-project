@@ -115,6 +115,7 @@ import ComboMultiplier from '@/components/quiz/ComboMultiplier.vue'
 import XPFloat from '@/components/ui/XPFloat.vue'
 import { sfx } from '@/utils/soundFx'
 import { useProgressStore } from '@/stores/progress.store'
+import { api } from '@/utils/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -152,18 +153,57 @@ const poolConsumed = ref(0)
 const visibleWords = computed(() => wordPool.value.slice(poolConsumed.value, poolConsumed.value + 15))
 const visibleOffset = computed(() => poolConsumed.value)
 
-const getWordList = () => {
+// The static lists above are the instant, offline fallback. When the AI is
+// available we pull fresh words whose length matches the difficulty tier and feed
+// them into the pool — so the game never waits on the network, yet serves
+// AI-generated words once they arrive.
+const aiWords = ref<string[]>([])
+const TIER_LEN: Record<Difficulty, [number, number]> = {
+  easy: [3, 5], medium: [5, 8], hard: [7, 11], expert: [9, 16],
+}
+
+const localList = () => {
   if (difficulty.value === 'easy')   return WORDS_EASY
   if (difficulty.value === 'hard')   return WORDS_HARD
   if (difficulty.value === 'expert') return WORDS_EXPERT
   return WORDS_MEDIUM
 }
 
+// Prefer AI words once we have a healthy batch; otherwise use the local list.
+const getWordList = () => (aiWords.value.length >= 10 ? aiWords.value : localList())
+
+let aiLoading = false
+const fetchAiWords = async () => {
+  if (aiLoading) return
+  aiLoading = true
+  try {
+    const [min, max] = TIER_LEN[difficulty.value as Difficulty]
+    const items = await api.generateVocabulary({
+      learningLang: 'en',
+      uiLang: 'en',
+      count: 30,
+      exclude: aiWords.value.slice(-40),
+    })
+    const re = new RegExp(`^[a-zA-Z]{${min},${max}}$`)
+    const words = (items ?? [])
+      .map((i) => i.term.toLowerCase().trim())
+      .filter((w) => re.test(w))
+    if (words.length) aiWords.value.push(...words)
+  } catch {
+    // AI unavailable — the local list keeps the game running.
+  } finally {
+    aiLoading = false
+  }
+}
+
 const shuffle = (arr: string[]) => [...arr].sort(() => Math.random() - 0.5)
 
 const ensurePool = () => {
   const remaining = wordPool.value.length - poolConsumed.value
-  if (remaining < 30) wordPool.value.push(...shuffle(getWordList()))
+  if (remaining < 30) {
+    wordPool.value.push(...shuffle(getWordList()))
+    if (aiWords.value.length < 60) void fetchAiWords() // keep the AI supply topped up
+  }
 }
 
 const wpm = computed(() => {
@@ -181,6 +221,7 @@ const xpEarned = computed(() => {
 })
 
 const startGame = async () => {
+  void fetchAiWords() // background: game starts instantly on local words, AI blends in
   wordPool.value = [...shuffle(getWordList()), ...shuffle(getWordList())]
   poolConsumed.value = 0
   wordResults.value = []
