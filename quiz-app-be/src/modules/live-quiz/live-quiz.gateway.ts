@@ -95,6 +95,11 @@ export class LiveQuizGateway implements OnGatewayDisconnect {
     // current step, if this session happens to use presentation steps).
     if (room.status === 'live') {
       socket.emit('lm:live', { title: room.title });
+      // WebRTC: introduce this new peer to the host, and tell it who the host is.
+      if (room.hostSocketId) {
+        this.server.to(room.hostSocketId).emit('rtc:peer', { id: socket.id, name });
+        socket.emit('rtc:host', { id: room.hostSocketId });
+      }
       const step = this.rooms.clientStep(room, room.currentIndex);
       if (step) socket.emit('lm:step', step);
     }
@@ -111,7 +116,19 @@ export class LiveQuizGateway implements OnGatewayDisconnect {
     // Everyone enters the live meeting room. Presentation steps are optional —
     // only sessions that were built with steps also stream the current step.
     this.server.to(room.pin).emit('lm:live', { title: room.title });
+    // WebRTC: hand the host every current peer, and tell everyone who the host is.
+    if (room.hostSocketId) {
+      this.server.to(room.hostSocketId).emit('rtc:peers', { peers: this.rooms.participantSockets(room) });
+      this.server.to(room.pin).emit('rtc:host', { id: room.hostSocketId });
+    }
     if (step) this.server.to(room.pin).emit('lm:step', step);
+  }
+
+  /** Relay a WebRTC signal (offer / answer / ICE candidate) to a specific peer socket. */
+  @SubscribeMessage('rtc:signal')
+  onRtcSignal(@ConnectedSocket() socket: Socket, @MessageBody() body: { to: string; data: unknown }) {
+    if (!body?.to) return;
+    this.server.to(body.to).emit('rtc:signal', { from: socket.id, data: body.data });
   }
 
   @SubscribeMessage('lm:next')
@@ -147,6 +164,8 @@ export class LiveQuizGateway implements OnGatewayDisconnect {
   handleDisconnect(socket: Socket) {
     const res = this.rooms.removeSocket(socket.id);
     if (!res) return;
+    // Tell remaining peers to tear down the WebRTC connection to this socket.
+    this.server.to(res.room.pin).emit('rtc:peer_left', { id: socket.id });
     if (res.wasHost) {
       this.server.to(res.room.pin).emit('lm:host_left', {});
     } else {

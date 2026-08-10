@@ -56,20 +56,34 @@
       </button>
     </div>
 
-    <!-- PHASE: LIVE — in the meeting room -->
-    <div v-else-if="phase === 'live'" class="flex min-h-[60vh] flex-col items-center justify-center text-center">
-      <span class="text-chart-2 mb-4 inline-flex items-center gap-1.5 text-sm font-medium">
-        <span class="bg-chart-2 h-2 w-2 animate-pulse rounded-full"></span> {{ $t('liveLesson.live') }}
-      </span>
-      <div class="bg-primary/10 mb-6 flex h-24 w-24 items-center justify-center rounded-3xl">
-        <Radio class="text-primary h-12 w-12" />
+    <!-- PHASE: LIVE — watch the teacher's camera -->
+    <div v-else-if="phase === 'live'" class="mx-auto max-w-4xl">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-foreground truncate text-xl font-bold">{{ title }}</h2>
+        <span class="text-destructive inline-flex items-center gap-1.5 text-sm font-semibold">
+          <span class="bg-destructive h-2 w-2 animate-pulse rounded-full"></span> {{ $t('liveLesson.live') }}
+        </span>
       </div>
-      <h2 class="text-foreground mb-2 text-3xl font-bold">{{ title }}</h2>
-      <p class="text-muted-foreground mb-1">{{ $t('liveLesson.followAlong') }}</p>
-      <p v-if="presenceCount" class="text-muted-foreground text-sm">{{ presenceCount }} {{ $t('liveLesson.watching') }}</p>
-      <button class="text-muted-foreground hover:text-foreground mt-8 text-sm transition-colors" @click="leaveSession">
-        {{ $t('liveLesson.leaveSession') }}
-      </button>
+
+      <div class="bg-card border-border overflow-hidden rounded-2xl border">
+        <div class="relative aspect-video bg-slate-900">
+          <video ref="remoteVideo" autoplay playsinline class="h-full w-full object-cover"></video>
+          <div v-if="!hasVideo" class="absolute inset-0 flex flex-col items-center justify-center text-white/70">
+            <span class="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+              <Radio class="h-7 w-7 animate-pulse" />
+            </span>
+            <p class="text-sm">{{ $t('liveLesson.followAlong') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 flex items-center justify-between">
+        <p v-if="presenceCount" class="text-muted-foreground text-sm">{{ presenceCount }} {{ $t('liveLesson.watching') }}</p>
+        <span v-else></span>
+        <button class="text-muted-foreground hover:text-destructive text-sm transition-colors" @click="leaveSession">
+          {{ $t('liveLesson.leaveSession') }}
+        </button>
+      </div>
     </div>
 
     <!-- PHASE: ENDED -->
@@ -106,6 +120,7 @@ type Phase = 'join' | 'waiting' | 'live' | 'ended'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/api/v1'
 const SOCKET_URL = API_BASE.replace(/\/api\/v1\/?$/, '')
+const ICE = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
 
 const phase = ref<Phase>('join')
 const pin = ref('')
@@ -114,8 +129,26 @@ const joinError = ref('')
 
 const title = ref('')
 const presenceCount = ref(0)
+const remoteVideo = ref<HTMLVideoElement | null>(null)
+const hasVideo = ref(false)
 
 let socket: Socket | null = null
+let hostId = ''
+let pc: RTCPeerConnection | null = null
+
+// ── WebRTC (student receives the teacher's camera) ───────────────────────────
+const ensurePc = () => {
+  if (pc) return pc
+  pc = new RTCPeerConnection(ICE)
+  pc.ontrack = (e) => {
+    if (remoteVideo.value) remoteVideo.value.srcObject = e.streams[0]
+    if (e.track.kind === 'video') hasVideo.value = true
+  }
+  pc.onicecandidate = (e) => {
+    if (e.candidate && hostId) socket?.emit('rtc:signal', { to: hostId, data: { candidate: e.candidate } })
+  }
+  return pc
+}
 
 const joinSession = () => {
   if (!pin.value || joining.value) return
@@ -133,19 +166,33 @@ const joinSession = () => {
     if (d.status !== 'live') phase.value = 'waiting'
   })
 
-  // The teacher started (or we joined a session already live) — enter the room.
   socket.on('lm:live', (d: { title: string }) => {
     if (d?.title) title.value = d.title
     phase.value = 'live'
   })
 
+  socket.on('rtc:host', (d: { id: string }) => { hostId = d.id })
+
+  // The teacher (host) sends an offer with their camera; answer it.
+  socket.on('rtc:signal', async (d: { from: string; data: { sdp?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit } }) => {
+    hostId = d.from
+    const peer = ensurePc()
+    try {
+      if (d.data.sdp) {
+        await peer.setRemoteDescription(d.data.sdp)
+        const answer = await peer.createAnswer()
+        await peer.setLocalDescription(answer)
+        socket?.emit('rtc:signal', { to: d.from, data: { sdp: peer.localDescription } })
+      } else if (d.data.candidate) {
+        await peer.addIceCandidate(d.data.candidate)
+      }
+    } catch { /* ignore a transient negotiation error */ }
+  })
+
   socket.on('lm:presence', (d: { count: number }) => { presenceCount.value = d.count })
 
   socket.on('lm:ended', () => { phase.value = 'ended' })
-
-  socket.on('lm:host_left', () => {
-    if (phase.value !== 'ended') phase.value = 'ended'
-  })
+  socket.on('lm:host_left', () => { if (phase.value !== 'ended') phase.value = 'ended' })
 
   socket.on('lm:error', (d: { message: string }) => {
     joining.value = false
@@ -159,6 +206,9 @@ const joinSession = () => {
 }
 
 const teardown = () => {
+  if (pc) { pc.close(); pc = null }
+  hostId = ''
+  hasVideo.value = false
   if (socket) { socket.disconnect(); socket = null }
 }
 

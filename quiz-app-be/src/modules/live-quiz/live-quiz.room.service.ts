@@ -108,6 +108,11 @@ export class LiveQuizRoomService {
     return [...room.participants.values()].map((p) => ({ name: p.name }));
   }
 
+  /** Participant socket ids + names — the host needs these to open a WebRTC peer to each. */
+  participantSockets(room: LmRoom): { id: string; name: string }[] {
+    return [...room.participants.values()].map((p) => ({ id: p.socketId, name: p.name }));
+  }
+
   clientStep(room: LmRoom, index: number): ClientStep | null {
     const s = room.steps[index];
     if (!s) return null;
