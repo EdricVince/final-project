@@ -157,7 +157,13 @@ interface Participant { name: string }
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/api/v1'
 const SOCKET_URL = API_BASE.replace(/\/api\/v1\/?$/, '')
-const ICE = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+const ICE = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+  ],
+}
 
 const { t } = useI18n()
 const authStore = useAuthStore()
